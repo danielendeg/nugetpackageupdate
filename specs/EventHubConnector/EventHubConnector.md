@@ -2,7 +2,7 @@
 
 ## Description
 
-Users of the Azure API for FHIR and the FHIR server for Azure will want to a) be able to do large scale population analytics on the data and b) react when records are created/updated.
+Users of the Azure API for FHIR **and** the FHIR server for Azure will want to a) be able to do large scale population analytics on the data and b) react when records are created/updated.
 
 One way to achieve both those goals would be to create a connection to Azure Event Hubs. The Event Hub connection could be used to emit a resource every time it is created, updated, or deleted. There could also be an option to pipe bulk FHIR exports to the Event Hub.
 
@@ -16,9 +16,11 @@ As a user, I should be able to specify an Event Hub to connect to. Once connecte
 
 1. Emit `resourceType` and `id` whenever a resource is successfully created or updated.
 2. Emit the entire resource whenever successfully created, updated, or deleted. If it is a delete event, the resource should be appropriately tagged to allow it to be filtered in subsequent queries.
-3. Emit bulk FHIR expports to the Event Hub.
+3. Emit bulk FHIR exports to the Event Hub.
 
 The Event Hub should live in the users subscription to allow them to connect it whatever downstream processing is appropriate. Multiple consumer groups can enable independent processing by multiple downstream systems.
+
+In the Azure API for FHIR, the connection to Event Hub should be managed with ARM and the portal. In the OSS FHIR Server for Azure, the connection could be specified with configuration parameters.
 
 ## Test Strategy
 
