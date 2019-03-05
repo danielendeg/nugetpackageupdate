@@ -1,4 +1,4 @@
-#Azure API for FHIR road to GA of service
+#Azure API for FHIR Service release requirements
 
 The purpose of this document is to scope out all the necessary work needed to release Azure API for FHIR as an Azure Service. This includes:
 
@@ -10,3 +10,5 @@ The purpose of this document is to scope out all the necessary work needed to re
 -	Any other engineering work that needs to be done (ARM work, infrastructure optimization, Performance/Scaling,…)
 -	Geo expansion and deployment plan
 -	BCDR, GDPR and Privacy work
+
+##Billing Services and custom meters
