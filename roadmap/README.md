@@ -1,7 +1,5 @@
 # Roadmap
 
-## Immediate Roadmap
-
 1. Billing:
     1. Fixed 1000 RUs
     1. Query commerce engine
@@ -10,17 +8,31 @@
 
 1. Ability to configure Authority/Audience and CosmosDB throughput
 
-    The customers expect to be able to select/change the AAD tenant and set the Audience. This is required for SMART on FHIR (see below). We have the capability to set these things currently, but there is ARM and Portal work. Similarly, for CosmosDB throughput. 
+    The customers expect to be able to select/change the AAD tenant and set the Audience. This is required for SMART on FHIR (see below). We have the capability to set these things currently, but there is ARM and Portal work. Similarly, for CosmosDB throughput.
 
 1. CORS
 
     Customers expect to be able to write single page apps backed by Azure API for FHIR. We have current partners that are blocked by this.
 
+1. Versioning R4, etc.
+
+1. SQL Persistence Provider
+
+    Chained searches, transactions, and FHIR service use cases that include population-based queries, e.g. for analytics or machine learning, need queries that do joins across multiple resources.
+
 1. SMART on FHIR in PaaS
 
     This functionality is already implemented and advertised. We should unblock the use of it urgently since it is a differentiator. In addition to providing SMART on FHIR compatibility we also enable (combined with 3.) CORS on Azure AD, which is another blocker for people using Azure AD for FHIR applications.
-  
+
 1. Bulk FHIR `$export`
+
+1. Transactions, Batch (will leverage SQL)
+
+    It is a critical component of bulk data ingest to be able to accept a FHIR bundle of type "transaction" and/or "batch" at the base URL and have all (or none) the resources in the bundle persisted in a transactional fashion.
+
+1. Subscriptions (event triggers)
+
+    Customers have a need to set up subscriptions/triggers. They are essential in scenarios where customer/provider apps may update resources and these updates need to be communicated to other systems, e.g. emitted as an HL7 v2 message to alert an EMR. Another use case is where registration of a new patient or encounter should activate a decision support system and possible generate risk assessments. The Subscription (https://www.hl7.org/fhir/subscription.html) specification is one option, but we should investigate others. We could link the service to event hub or event grid.
 
 1. Bulk FHIR `$import`
 
@@ -31,22 +43,6 @@
 1. Bring your own identity and basic RBAC
 
     Customers will want to bring their own identity provider (AAD B2C, Okta, Auth0, Authy, etc.). Once the control plane is exposed, we can start building out these capabilities.  
-
-## Next Steps
-
-1. SQL Persistence Provider
-
-    Chained searches, transactions, and FHIR service use cases that include population-based queries, e.g. for analytics or machine learning, need queries that do joins across multiple resources.
-
-1. Transactions, Batch
-
-    It is a critical component of bulk data ingest to be able to accept a FHIR bundle of type "transaction" and/or "batch" at the base URL and have all (or none) the resources in the bundle persisted in a transactional fashion.
-
-1. Versioning R4, etc.
-
-1. Subscriptions (event triggers)
-
-    Customers have a need to set up subscriptions/triggers. They are essential in scenarios where customer/provider apps may update resources and these updates need to be communicated to other systems, e.g. emitted as an HL7 v2 message to alert an EMR. Another use case is where registration of a new patient or encounter should activate a decision support system and possible generate risk assessments. The Subscription (https://www.hl7.org/fhir/subscription.html) specification is one option, but we should investigate others. We could link the service to event hub or event grid.
 
 1. Profiling and Extensions
 
