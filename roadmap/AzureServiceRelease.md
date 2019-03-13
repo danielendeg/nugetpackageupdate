@@ -12,9 +12,20 @@ The purpose of this document is to scope out all the necessary work needed to re
 - BCDR, GDPR and Privacy work
 
 ## Billing Services and custom meters
-From the support perspective there is no additional work needed for GA. All processes that were setup for Public Preview are enough for GA.
+
+The way billing is currently implemented is, that we only charge customers for CosmosDB usage and set RU's at service creation time at 1000. This is currently hard coded in billing agent. For GA there are several items that needs to be done:
+
+- Create new custom meters (infra + network + Cosmos DB?)
+- Business planning around creating customer meters
+- Query Commerce server for usage
+
+|Task  |Eng Owner  |PM Owner  |Status  |
+|---------|---------|---------|---------|
+|Business Planning     |         |     Matjaz    |    On Track (waiting for new BP)     |
+|Querying Commerce Server     |     Ganesh    |    Matjaz     |  On Track       |
 
 ## CSS Support
+
 From the support perspective there is no additional work needed for GA. All processes that were setup for Public Preview are enough for GA.
 
 |Task  |eng Owner  |PM Owner  |Status  |
@@ -27,5 +38,6 @@ As per [List of accepted languages](https://github.com/Azure/portaldocs/blob/mas
 
 |Task     |Eng Owner  |PM Owner  |Status  |
 |---------|---------|---------|---------|
-|Azure portal Localization     |  Joyce       |  Matjaz       |  Not Started       |
+|Azure portal Localization     |  Joyce       |  Matjaz       |  In progress/On track       |
 
+Localization will start on 4/12, when we will do a first pass on localizing resource files. 
