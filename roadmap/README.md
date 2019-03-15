@@ -34,6 +34,8 @@
 
     Customers have a need to set up subscriptions/triggers. They are essential in scenarios where customer/provider apps may update resources and these updates need to be communicated to other systems, e.g. emitted as an HL7 v2 message to alert an EMR. Another use case is where registration of a new patient or encounter should activate a decision support system and possible generate risk assessments. The Subscription (https://www.hl7.org/fhir/subscription.html) specification is one option, but we should investigate others. We could link the service to event hub or event grid.
 
+1. High Availability
+
 1. Bulk FHIR `$import`
 
 1. Control Plane
