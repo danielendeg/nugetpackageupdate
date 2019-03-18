@@ -1,4 +1,4 @@
-# Azure API for FHIR and High Availability considerations
+# Azure API for FHIR - Region deployment and High Availability considerations
 
 Currently Azure API for FHIR does not give customers option to configure High Availability. 
 
