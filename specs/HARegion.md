@@ -14,7 +14,7 @@ Combining region pairing and Ring requirements means that our service would need
 
 Ring 2 requires us to be in all Hero regions withing 30 days of GA. To satisfy Azure requirements and offering HA in US, Europe and UK, we need to be deployed in following regions:
 
-| Paired Regions  |Type||Type  | HA Available |
+| Region  |Type|Region|Type  | HA Available |
 |-------|------|------|----|----|
 |East US (Public / United States)|Hero | ||No|
 |East US 2 (Public / United States)|Hero| ||No |
@@ -34,7 +34,7 @@ Based of current service footprint we need to deploy to additional **9 regions**
 
 Currently Azure API for FHIR sits in Ring 1 (moved from Ring 2). Current Azure requirements are that ring 1 services are in all Hero regions within 30 days of GA and 180 days in Hub regions. That requires us to 
 
-| Paired Regions  | Type| | Type| HA Available |
+|Regions  |Type|Regoin | Type| HA Available |
 |-------|------|-----|-----|----|
 |North Europe (Public / Europe) |Hero|West Europe (Public / Europe)| Hero| Yes|
 |East US (Public / United States)|Hero|West US (Public / United States) |Hub|Yes|
