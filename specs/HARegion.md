@@ -21,7 +21,7 @@ Ring 2 requires us to be in all Hero regions withing 30 days of GA. To satisfy A
 |**North Central US (Public / United States)*** |Hub|South Central US (Public / United States)|Hero|Yes |
 |**West US 2 (Public / United States)** |Hero| ||No |
 |West Europe (Public / Europe) |Hero|North Europe (Public / Europe) |Hero|Yes|
-|UK South (Public / United Kingdom) |Hero|**UK West (Public / United Kingdom)*** |Hub|Yes |
+|UK South (Public / United Kingdom) |Hero|**UK West (Public / United Kingdom)*** |Satellite|Yes |
 |Australia East (Public / Australia) |Hero | ||No|
 |Southeast Asia (Public / Asia Pacific) |Hero | ||No |
 |Sweden Central (Public / Sweden) |Hero|||No |
@@ -42,7 +42,7 @@ Currently Azure API for FHIR sits in Ring 1 (moved from Ring 2). Current Azure r
 |**North Central US (Public / United States)*** |Hub|South Central US (Public / United States) |Hero|Yes|
 |Canada Central (Public / Canada)|Hub|||No|
 |**West US 2 (Public / United States)***|Hero|||No|
-|UK South (Public / United Kingdom)|Hero|**UK West (Public / United Kingdom)*** |Hub|Yes|
+|UK South (Public / United Kingdom)|Hero|**UK West (Public / United Kingdom)*** |Satellite|Yes|
 |France Central (Public / France) |Hub|||No|
 |Germany West Central (Public / Germany)|Hub|| |No|
 |Switzerland North (Public / Switzerland)|Hub|| |No|
