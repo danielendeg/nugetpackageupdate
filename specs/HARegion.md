@@ -1,14 +1,32 @@
 # Azure API for FHIR - Region deployment and High Availability considerations
 
-Currently Azure API for FHIR does not give customers option to configure High Availability. 
+Currently Azure API for FHIR does not give customers option to configure High Availability (HA).
+By the GA time we want to offer customer option to setup Managed service in HA configuration.
+Combining region pairing and Ring requirements means that our service would need to be available in most Hero, Hubs and Satellite regions. This would inflate our infrastructure complexity and cost.
 
 ## Region pairing map
 
 In order to offer HA of our service we need to specify what regions will we pair when customers selects this option during service provisioning. Current list of region paring for Azure is at [https://docs.microsoft.com/en-us/azure/best-practices-availability-paired-regions](https://docs.microsoft.com/en-us/azure/best-practices-availability-paired-regions). When the customer will provissions new Azure API for FHIR service, we can point to the document, so they can understand what region gets paired automatically if they choose HA scenario.
 
-Currently the service is deployed in **West US2, North Central US and UK West** region. In order to satisfy Ring 1 Requirements (28 regions) or Ring 2 requirements (10 Hero regions).
+Currently the service is deployed in **West US2, North Central US and UK West** region. In order to satisfy Ring 1 Requirements (28 regions) or Ring 2 requirements (10 Hero regions), we need to come up with geo expansion strategy of Azure API for FHIR at GA time.
 
-Combining region pairing and Ring requirements means that our service would need to be available in most Hero, Hubs and Satellite regions. This would inflate our infrastructure complexity and cost.
+### Azure Ring requirements 
+Azure has different requirements for Services in different rings. Project Resolute started as Ring 2 service, but has been moved to Ring 1 at the time of Public Preview. This puts some stricter requirements on where service needs to be deployed and available. 
+This is documented in [Microsoft Cloud Rings](https://microsoft.sharepoint.com/teams/azureecosystem/servicerings/Shared%20Documents/Sc%20Rings/Microsoft%20Cloud%20Rings%20-%20Scandium.docx?web=1)
+
+Ring 2 promise:
+* Cloud expansion: **Hero Regions**
+* Customer Data Management: Customer data resides in Geo & is GDPR compliant
+* Assurance and Compliance: Foundational certifications (ISO, SOC, PCI, FedRAMP**)
+* Resiliency and High Availability: **No promise**
+* Lifecycle Commitment: 12-month product deprecation or change notice
+
+Ring 1 promise:
+* Cloud expansion: **Hub & Hero Regions**
+* Customer Data Management: Customer data resides in Geo & is GDPR compliant
+* Assurance and Compliance: Foundational certifications (ISO, SOC, PCI, FedRAMP**)
+* Resiliency and High Availability: **Zone Aware, Failover promise, & No customer data loss**
+* Lifecycle Commitment: 12-month product deprecation or change notice
 
 ### Ring 2 pairing
 
@@ -62,3 +80,5 @@ Currently Azure API for FHIR sits in Ring 1 (moved from Ring 2). Current Azure r
 Based of current service footprint we need to deploy to additional **23 regions** to satisfy Ring 2 requirements. This is valid is we don't offer HA in every region. If that was the case we need to deploy in additional **37 regions** from where we are today.
 
 ### Billing impact
+
+To be assesed
