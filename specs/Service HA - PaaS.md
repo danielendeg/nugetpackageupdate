@@ -1,0 +1,64 @@
+# Azure API for FHIR and High Availability considerations
+
+Currently Azure API for FHIR does not give customers option to configure High Availability. 
+
+## Region pairing map
+
+In order to offer HA of our service we need to specify what regions will we pair when customers selects this option during service provisioning. Current list of region paring for Azure is at [https://docs.microsoft.com/en-us/azure/best-practices-availability-paired-regions](https://docs.microsoft.com/en-us/azure/best-practices-availability-paired-regions). When the customer will provissions new Azure API for FHIR service, we can point to the document, so they can understand what region gets paired automatically if they choose HA scenario.
+
+Currently the service is deployed in **West US2, North Central US and UK West** region. In order to satisfy Ring 1 Requirements (28 regions) or Ring 2 requirements (10 Hero regions).
+
+Combining region pairing and Ring requirements means that our service would need to be available in most Hero, Hubs and Satellite regions. This would inflate our infrastructure complexity and cost.
+
+### Ring 2 pairing
+
+Ring 2 requires us to be in all Hero regions withing 30 days of GA. To satisfy Azure requirements and offering HA in US, Europe and UK, we need to be deployed in following regions:
+
+| Paired Regions  |Type||Type  | HA Available |
+|-------|------|------|----|----|
+|East US (Public / United States)|Hero | ||No|
+|East US 2 (Public / United States)|Hero| ||No |
+|**North Central US (Public / United States)*** |Hub|South Central US (Public / United States)|Hero|Yes |
+|**West US 2 (Public / United States)** |Hero| ||No |
+|West Europe (Public / Europe) |Hero|North Europe (Public / Europe) |Hero|Yes|
+|UK South (Public / United Kingdom) |Hero|**UK West (Public / United Kingdom)*** |Hub|Yes |
+|Australia East (Public / Australia) |Hero | ||No|
+|Southeast Asia (Public / Asia Pacific) |Hero | ||No |
+|Sweden Central (Public / Sweden) |Hero|||No |
+
+***Note**: UK West (Public / United Kingdom) and North Central US (Public / United States)  are Satellite/Hub regions, but we are already deployed there and use them for HA.
+
+Based of current service footprint we need to deploy to additional **9 regions** to satisfy Ring 2 requirements. If that was the case we need to deploy in additional **15 regions**.
+
+### Ring 1 pairing
+
+Currently Azure API for FHIR sits in Ring 1 (moved from Ring 2). Current Azure requirements are that ring 1 services are in all Hero regions within 30 days of GA and 180 days in Hub regions. That requires us to 
+
+| Paired Regions  | Type| | Type| HA Available |
+|-------|------|-----|-----|----|
+|North Europe (Public / Europe) |Hero|West Europe (Public / Europe)| Hero| Yes|
+|East US (Public / United States)|Hero|West US (Public / United States) |Hub|Yes|
+|East US 2 (Public / United States)|Hero|Central US (Public / United States)|Hub| Yes|
+|**North Central US (Public / United States)*** |Hub|South Central US (Public / United States) |Hero|Yes|
+|Canada Central (Public / Canada)|Hub|||No|
+|**West US 2 (Public / United States)***|Hero|||No|
+|UK South (Public / United Kingdom)|Hero|**UK West (Public / United Kingdom)*** |Hub|Yes|
+|France Central (Public / France) |Hub|||No|
+|Germany West Central (Public / Germany)|Hub|| |No|
+|Switzerland North (Public / Switzerland)|Hub|| |No|
+|Norway East (Public / Norway)|Hub|||No|
+|Sweden Central (Public / Sweden)|Hero|||No|
+|East Asia (Public / Asia Pacific)|Hub|Southeast Asia (Public / Asia Pacific)|Hero|Yes|
+|Brazil South (Public / Brazil)|Hub|||No|
+|Australia East (Public / Australia)|Hero|||No|
+|Japan East (Public / Japan)|Hub|||No|
+|Korea Central (Public / Korea)|Hub|||No|
+|Central India (Public / India)|Hub|||No|
+|South Africa North (Public / South Africa)|Hub|||No|
+|UAE North (Public / UAE)|Hub|||No|
+
+***Note**: UK West (Public / United Kingdom) is Satellite region, but we are already deployed there and use them for HA.
+
+Based of current service footprint we need to deploy to additional **23 regions** to satisfy Ring 2 requirements. This is valid is we don't offer HA in every region. If that was the case we need to deploy in additional **37 regions**.
+
+### Billing impact
