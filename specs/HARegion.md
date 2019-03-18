@@ -3,6 +3,7 @@
 Currently Azure API for FHIR does not give customers option to configure High Availability (HA).
 By the GA time we want to offer customer option to setup Managed service in HA configuration.
 Combining region pairing and Ring requirements means that our service would need to be available in most Hero, Hubs and Satellite regions. This would inflate our infrastructure complexity and cost.
+For Azure Region Strategy see [Azure Region Strategy](https://microsoft.sharepoint.com/teams/azureecosystem/servicerings/Shared%20Documents/K%20Rings/Azure%20Region%20Strategy.docx?web=1)
 
 ## Region pairing map
 
