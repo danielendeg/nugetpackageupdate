@@ -51,7 +51,7 @@ Based of current service footprint we need to deploy to additional **9 regions**
 
 ### Ring 1 pairing
 
-Currently Azure API for FHIR sits in Ring 1 (moved from Ring 2). Current Azure requirements are that ring 1 services are in all Hero regions within 30 days of GA and 180 days in Hub regions. That requires us to 
+Currently Azure API for FHIR sits in Ring 1 (moved from Ring 2). Current Azure requirements are that ring 1 services are in all Hero regions within 30 days of GA and 180 days in Hub regions. 
 
 |Regions  |Type|Regoin | Type| HA Available |
 |-------|------|-----|-----|----|
