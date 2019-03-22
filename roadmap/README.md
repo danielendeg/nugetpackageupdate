@@ -34,7 +34,13 @@
 
     Customers need the ability to define [profiles](https://www.hl7.org/fhir/profiling.html), i.e. specify for each resource which field can, must, should be there. In addition, there is a need to specify which extensions are searchable. We need to provide an interface for defining profiles and search parameters. 
 
-1. High Availability
+1. GA readiness
+
+    * High Availability
+    * Service SDKs
+    * Portal/ARM KPIs
+    * Region roll-out
+
 
 1. Bulk FHIR `$import`
 
