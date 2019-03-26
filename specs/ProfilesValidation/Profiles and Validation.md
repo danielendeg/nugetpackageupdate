@@ -4,16 +4,22 @@ The FHIR server needs the following capabilities:
 
 1. Validate that a resource conforms to the base resource profile.
 1. Validate that a resource conforms to a specific (custom) profile. 
-1. Validate a resource before without upserting it.
+1. Validate a resource before without upserting it ($validate).
 1. Validate referential integrity, e.g. an Observation should not have an internal reference to a Patient that doesn't exist. 
+
+Note that referential integraty and profile validation are really two different things, but they intersect and we will discuss them together in this document.
 
 [[_TOC_]]
 
 # Introduction to Profiling and Validation
 
-Before diving into how specific design for the FHIR server, here is a small review of Profiling. To assist with the understanding, there is a sample `FHIRValidator` app in [FHIRValidator](FHIRValidator/).
+Before diving into how specific design for the FHIR server, here is a small review of Profiling. To assist with the understanding, there is a sample `FHIRValidator` app in the [FHIRValidator/](FHIRValidator/) folder. You can run it with:
 
-Generally profiling works by constraining an existing profile. In the case of a patient, one could restrict the cardinality or datatype for certain elements. As an example, suppose we wanted to create a profile for a Patient that could not have any Extensions, it could look like this:
+```
+dotnet run /FileName <myresource.json> /Profile <canonical profile uri>
+```
+
+Generally profiling works by constraining an existing profile. In the case of a patient, one could restrict the cardinality or datatype for certain elements. There is no way to add fields that don't exist, but we can specify what can go into extensions, etc. As an example, suppose we wanted to create a profile for a Patient that could **not** have any Extensions, it could look like this:
 
 ```json
 {
@@ -316,19 +322,161 @@ In this case, we are providing the profile we would like to validate against dir
 
 As is seen the `profile` metadata field is an array of multiple profiles that this resource conforms to (or should conform to).
 
+## Validating with the .NET FHIR API
+
+The .NET FHIR API has validation tools:
+
+```csharp
+var parser = new FhirJsonParser();
+
+var source = new CachedResolver(new MultiResolver(
+        new DirectorySource(@"./profiles"),
+        ZipSource.CreateValidationSource())
+    );
+
+var ctx = new ValidationSettings()
+        {
+            ResourceResolver = source,
+            GenerateSnapshot = true,
+            Trace = false,
+            EnableXsdValidation = true,
+            ResolveExteralReferences = false
+        };
+
+var validator = new Validator(ctx);
+
+
+try
+{
+    var parsedResource = parser.Parse(resourceText);
+    Console.WriteLine(parsedResource.TypeName);
+
+    OperationOutcome result;
+    if (string.IsNullOrEmpty(profile)) 
+    {
+        result = validator.Validate(parsedResource);
+    }
+    else
+    {
+        result = validator.Validate(parsedResource, profile);
+    }
+
+    Console.WriteLine(result.ToString());
+}
+catch (FormatException fe)
+{
+    Console.WriteLine("Resource could not be parsed");
+    Console.WriteLine(fe);
+}
+
+```
+
 # High-Level Design
 
-Describe the high-level design -- enough detail that code reviewers and stakeholders are not surprised.
+To support the validation needs of our customers, we will need to add a number of capabilities to the server. There are dependencies between the different features, but there is some oportunity to implement them in parallel.
+
+## Validation of referential integrity
+
+Referential integrity is something that customers **may** want to validate and our server **should** be able to do it. It should be optional (see Configuration options below). There are in principle two situations where you might want to validate:
+
+1. On create/update: Make sure that any internal references, e.g. 
+
+    ```json
+    {
+        "resourceType": "Observation",
+        "subject": "Patient/1234",
+
+        // Rest of resourse
+    }
+    ```
+
+    actually exist in the FHIR server. 
+
+1. On delete: Prevent deletion of a resource that is referenced by other resources.
+
+On SQL server persistence provider, there are some opportunities to take advantage of transactions in both cases. 
+
+## Validate profile on Create/Update
+
+We should handle two cases:
+
+1. When a resource is created or updated we should validate it against **all** profiles specified in `meta.profile` and reject it if any of the validations fail.
+1. When a resource is created or updated and **no profiles** are specified in `meta.profile`, we should validate it against any default profile (see configuration below) and reject it if it doesn't conform. 
+
+## Support for `$validate`
+
+The `$validate` operation (https://www.hl7.org/fhir/resource-operation-validate.html) allows a user to check if a resource conforms to a specific profile. 
+
+It can be used in a couple of different ways (that we should support):
+
+1. `POST //fhirserver/Resource/$validate` where the payload is the resource to be validated. 
+1. `GET //fhirserver/Resource/1234/$validate` to validate an existing resource.
+
+There are a couple of optional parameters for these:
+
+* `mode`: 
+    * `create`: Can this resource be created
+    * `update`: Can this resource be updated
+    * `delete`: This checks if it would be OK to delete the resource. It should take into consideration if we are validating referential integrity on delete (see configuration below).
+* `profile`: The canonical uri for the profile to validate against.
+
+Return `OperationOutcome`.
+
+## Support for `$meta`, `$meta-add` and `$meta-delete`
+
+FHIR specifies two operations for modifying metadata: `$meta-add` and `$meta-delete`. The opration `$meta` simply returns the current metadata. We **should** support these operations to allow users to add profiles to existing resources. We need to consider two situations:
+
+1. If we are adding a profile to an existing resource, we should validate that the resource conforms to the profile and otherwise reject the call.
+1. When deleting a profile from metadata, the Resource could fall back to validation agains a default profile for that resource type. That default resource could be more restrictive than the current profile and the validation could fail. In that case, we should not allow removal of the metadata.
+
+Note that we can defer implementation of these operations since there is a workaround by simply updating the resource.
+
+## Configuration options
+
+We need a set of configuration options to allow customers to opt in to referential integrity validation and profile validation. It could look something like:
+
+```json
+{
+  "FhirServer": {
+    "Conformance": {
+      "UseStrictConformance": true
+    },
+    "Validation": {
+        "ValidateReferencesOnWrite": true,
+        "ValidateReferencesOnDelete": true,
+        "ValidateProfiles": true,
+        "DefaultProfiles": [
+            {
+                "ResourceType": "Patient",
+                "StructureDefinition": "http://hl7.org/fhir/us/core/StructureDefinition/us-core-patient"
+            }
+        ]
+    }
+}
+```
+
+## Uploading `StructureDefinition`, `ValueSet`, etc. resources
+
+In order for validation to succeed, the FHIR service must have a way to resolve references (canonical URIs) for profiles, e.g. `http://hl7.org/fhir/us/core/StructureDefinition/us-core-patient` is not a URL that actually points to the StructureDefinition. It should be possible for customers to upload the profiles. Simple solution is to just let customers do:
+
+```
+POST //fhirserver/StructureDefinition
+```
+
+But we need to make sure that the resolvers pick up these profiles. Another option would be through the portal or the control plane. 
+
+We should also consider adding well known profiles to the server by default, e.g. US Core. 
+
 
 # Test Strategy
 
-Describe the test strategy.
+We meed to add a number of tests to check that we are validating correctly in all the typical profile use cases, e.g. restriction of cardinality, restricting code systems, etc. We also need explicit testing of referential integrity. 
 
 # Security
 
-Describe any special security implications or security testing needed.
+There should be no security implications of this work. 
 
 # Other
 
-Describe any impact to localization, globalization, deployment, back-compat, SOPs, ISMS, etc.
+Adding validation capabilities will significantly increase the computational load of the service. When deploying this to PaaS, we should aim to give customers an ability to scale the front-end compute up (at increased cost). 
 
