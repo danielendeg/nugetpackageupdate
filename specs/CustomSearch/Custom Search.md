@@ -33,6 +33,10 @@ The search parameters are defined in `src\Microsoft.Health.Fhir.Core\Features\De
       }
 ```
 
+**Note**: 
+1. When we add an ability for customers to provide this `SearchParameter` configuration to the server, we need to validate that a) it is a valid FHIR path expression and b) it doesn't result in indexing every field in the document. We could limit it to extensions, but that may be too restrictive, e.g. `identity` is on patient is something where a customer might want to add `mrn` as a search parameter.
+2. We should be clear about whether we require xpath or not and if we require it, we **should** validate it. 
+
 Additionally, we need to add something like:
 
 ```json
@@ -141,6 +145,8 @@ with a `SearchParameter` payload as described above. It does create a bit of a c
 
 We also need to make changes to the way the current list of SearchParameters is loaded. It is currently a static file added to the assembly, which means that and update requires a rebuild. This needs to be dynamic.
 
+See also comments on the `SearchParameter` definition for considerations on validation, xpath, etc.
+
 ## Re-indexing
 
 We actually have a general needs for a re-indexing mechanism, but with custom SearchParameters, we need to provide this capability to the customer as well. The most consistent way (following on the logic from the `$export` operation), would be to provide an `$reindex` operation:
@@ -178,7 +184,11 @@ The motivation for structuring the `$export` call like that seems a bit unclear 
 
 ## Resuming interrupted re-indexing
 
-Re-indexing could be interrupted by upgrades, outages, etc. Consequently, the re-index job must be persisted so that it can be picked up again. Something like the logic around `$export` would make sense. 
+Re-indexing could be interrupted by upgrades, outages, etc. Consequently, the re-index job must be persisted so that it can be picked up again. Something like the logic around `$export` would make sense.
+
+## Partially indexed search parameters
+
+When adding a new search parameter, there could be a (potentially long) period of time where a given search parameter is partially indexed. Consequently, we need to maintain a list of all the search parameters included in the last complete re-indexing and then only serve (in capability statement and otherwise) the ones that are completely indexed.
 
 # Test Strategy
 
