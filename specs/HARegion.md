@@ -103,7 +103,7 @@ For Ring 1 service, we need to be in all Hero regions by GA + 30 days and Hub re
 |7|North Europe|Hero|June 2019||
 |8|East US 2|Hero|June 2019||
 |9|South Central US|Hero|June 2019||
-|10|West US 2|Hero|June 2019||
+|10|**West US 2**|Hero|Nov 2018||
 |11|Sweden Central|Hero|September 2019|
 
 
