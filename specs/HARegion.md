@@ -98,7 +98,7 @@ For Ring 1 service, we need to be in all Hero regions by GA + 30 days and Hub re
 |2|East US|Hero|June 2019||
 |3|Australia East|Hero|September 2019||
 |4|Southeast Asia|Hero|September 2019||
-|5|||||
+|5|Central US EUAP (Canary)|Satellite|||
 |6|UK South|Hero|June 2019||
 |7|North Europe|Hero|June 2019||
 |8|East US 2|Hero|June 2019||
