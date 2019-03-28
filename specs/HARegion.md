@@ -88,23 +88,40 @@ Current billing impact for a customer that enables HA on their instance is, that
 
 Geo expansion plan needs to be planned in  [PAM tool](https://global.azure.com/product-availability/availability-by-offering/offering/1461)
 
-### Ring 1
+For Ring 1 service we need to be in all Hero regions by GA + 30 days and Hub regions by GA + 180. 
+For Ring 2 service we need to be in all Hero regions by GA + 30 days.
 
-For Ring 1 service, we need to be in all Hero regions by GA + 30 days and Hub regions by GA + 180. 
-
-|Priority|Region|Type|Deployment date|Notes|
+|Priority|Region|Type|Deployment date (GA)|Notes|
 |----|----|----|----|----|
-|1|West Europe|Hero|June 2019||
-|2|East US|Hero|June 2019||
-|3|Australia East|Hero|September 2019||
-|4|Southeast Asia|Hero|September 2019||
-|5|Central US EUAP (Canary)|Satellite|||
-|6|UK South|Hero|June 2019||
-|7|North Europe|Hero|June 2019||
-|8|East US 2|Hero|June 2019||
-|9|South Central US|Hero|June 2019||
+|1|West Europe|Hero|Aug 2019||
+|2|East US|Hero|Aug 2019||
+|3|Australia East|Hero|Sept 2019||
+|4|Southeast Asia|Hero|Sep 2019||
+|5|Central US EUAP (Canary)|Satellite|Sep 2019|Canary region|
+|6|UK South|Hero|Aug 2019||
+|7|North Europe|Hero|Aug 2019||
+|8|East US 2|Hero|Aug 2019||
+|9|South Central US|Hero|Aug 2019||
 |10|**West US 2**|Hero|Nov 2018||
-|11|Sweden Central|Hero|September 2019|
+|11|West US|Hub|Aug 2019||
+|12|Central US|Hub|Aug 2019||
+|13|**North Central US**|Hub|Nov  2018|
+|14|Japan East|Hub|Feb 2020|
+|15|East Asia|Hub|Feb 2020||
+|16|USGov Virginia|Hub|Dec 2019|UsGov|
+|17|Canada Central|Hub|Feb 2020||
+|18|China East 2|Hub|TBD|Mooncake|
+|19|Central India|Hub|Feb 2020||
+|20|Korea Central|Hub|Feb 2020||
+|21|France Central|Hub|Sep 2019||
+|22|South Africa North|Hub|Feb 2020||
+|23|UAE North|Hub|Feb 2020|
+|24|Switzerland North|Hub|Feb 2020||
+|25|Germany West Central|Hub|Feb 2020||
+|26|Brazil South|Hub|Feb 2020||
+|27|Norway East|Hub|Feb 2020|
+|28|Sweden Central|Hero|September 2019||
+|29|**UK West**|Satellite|Nov 2018||
 
 
 
