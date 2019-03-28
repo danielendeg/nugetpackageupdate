@@ -196,7 +196,7 @@ E2E testing is needed where we first load some set of resources, add `SearchPara
 
 # Security
 
-The `/SearchParameter` endpoint may need special RBAC rules once we have RBAC built out. Similarly, `$reindex` should be a privileged operation because it could change the search behavior and it consumes resources that could change the performance of the service during re-indexing.
+The `/SearchParameter` endpoint may need special RBAC rules once we have RBAC built out. Similarly, `$reindex` should be a privileged operation because it could change the search behavior and it consumes resources that could change the performance of the service during re-indexing. All of this should be discussed in the context of the control plane, which may need some modifications moving forvard.
 
 # Other
 
