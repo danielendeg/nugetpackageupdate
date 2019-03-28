@@ -86,6 +86,8 @@ Current billing impact for a customer that enables HA on their instance is, that
 
 ## Geo-expansion rollout plan
 
+Geo expansion plan needs to be planned in  [PAM tool](https://global.azure.com/product-availability/availability-by-offering/offering/1461)
+
 ### Ring 1
 
 For Ring 1 service, we need to be in all Hero regions by GA + 30 days and Hub regions by GA + 180. 
@@ -94,7 +96,17 @@ For Ring 1 service, we need to be in all Hero regions by GA + 30 days and Hub re
 |----|----|----|----|----|
 |1|West Europe|Hero|June 2019||
 |2|East US|Hero|June 2019||
-|3|Australia East|Hero|
+|3|Australia East|Hero|September 2019||
+|4|Southeast Asia|Hero|September 2019||
+|5|||||
+|6|UK South|Hero|June 2019||
+|7|North Europe|Hero|June 2019||
+|8|East US 2|Hero|June 2019||
+|9|South Central US|Hero|June 2019||
+|10|West US 2|Hero|June 2019||
+|11|Sweden Central|Hero|September 2019|
+
+
 
 
 
