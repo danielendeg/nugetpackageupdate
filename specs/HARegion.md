@@ -53,7 +53,7 @@ Based of current service footprint we need to deploy to additional **9 regions**
 
 Currently Azure API for FHIR sits in Ring 1 (moved from Ring 2). Current Azure requirements are that ring 1 services are in all Hero regions within 30 days of GA and 180 days in Hub regions. 
 
-|Regions  |Type|Regoin | Type| HA Available |
+|Regions  |Type|Region | Type| HA Available |
 |-------|------|-----|-----|----|
 |North Europe (Public / Europe) |Hero|West Europe (Public / Europe)| Hero| Yes|
 |East US (Public / United States)|Hero|West US (Public / United States) |Hub|Yes|
@@ -82,4 +82,20 @@ Based of current service footprint we need to deploy to additional **23 regions*
 
 ### Billing impact
 
-To be assesed
+Current billing impact for a customer that enables HA on their instance is, that the cost doubles as we instantiate a new Cosmos DB account in paired region and replicate the data between the regions.
+
+## Geo-expansion rollout plan
+
+### Ring 1
+
+For Ring 1 service, we need to be in all Hero regions by GA + 30 days and Hub regions by GA + 180. 
+
+|Priority|Region|Type|Deployment date|Notes|
+|----|----|----|----|----|
+|1|West Europe|Hero|June 2019||
+|2|East US|Hero|June 2019||
+|3|Australia East|Hero|
+
+
+
+
