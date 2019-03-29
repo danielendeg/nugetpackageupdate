@@ -190,6 +190,8 @@ Re-indexing could be interrupted by upgrades, outages, etc. Consequently, the re
 
 When adding a new search parameter, there could be a (potentially long) period of time where a given search parameter is partially indexed. Consequently, we need to maintain a list of all the search parameters included in the last complete re-indexing and then only serve (in capability statement and otherwise) the ones that are completely indexed.
 
+When removing a search parameter, we should immediately remove it from the capability statement, stop honoring it and when the user initiates a re-index, the indexing data will be gone as well.
+
 # Test Strategy
 
 E2E testing is needed where we first load some set of resources, add `SearchParameter`, call `$reindex`, and verify that search works.
