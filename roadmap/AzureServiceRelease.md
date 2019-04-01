@@ -40,7 +40,7 @@ As per [List of accepted languages](https://github.com/Azure/portaldocs/blob/mas
 |---------|---------|---------|---------|
 |Azure portal Localization     |  Joyce       |  Matjaz       |  In progress/On track       |
 
-Localization will start on 4/12, when we will do a first pass on localizing resource files. 
+Localization will start on 5/17, when we will do a first pass on localizing resource files. 
 
 ## Compliance
 

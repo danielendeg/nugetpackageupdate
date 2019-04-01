@@ -7,7 +7,7 @@ For Azure Region Strategy see [Azure Region Strategy](https://microsoft.sharepoi
 
 ## Region pairing map
 
-In order to offer HA of our service we need to specify what regions will we pair when customers selects this option during service provisioning. Current list of region paring for Azure is at [https://docs.microsoft.com/en-us/azure/best-practices-availability-paired-regions](https://docs.microsoft.com/en-us/azure/best-practices-availability-paired-regions). When the customer will provissions new Azure API for FHIR service, we can point to the document, so they can understand what region gets paired automatically if they choose HA scenario.
+In order to offer HA of our service we need to specify what regions will we pair when customers selects this option during service provisioning. Current list of region pairing for Azure is at [https://docs.microsoft.com/en-us/azure/best-practices-availability-paired-regions](https://docs.microsoft.com/en-us/azure/best-practices-availability-paired-regions). When the customer will provisions new Azure API for FHIR service, we can point to the document, so they can understand what region gets paired automatically if they choose HA scenario.
 
 Currently the service is deployed in **West US2, North Central US and UK West** region. In order to satisfy Ring 1 Requirements (28 regions) or Ring 2 requirements (10 Hero regions), we need to come up with geo expansion strategy of Azure API for FHIR at GA time.
 
@@ -47,7 +47,7 @@ Ring 2 requires us to be in all Hero regions withing 30 days of GA. To satisfy A
 
 ***Note**: UK West (Public / United Kingdom) and North Central US (Public / United States)  are Satellite/Hub regions, but we are already deployed there and use them for HA.
 
-Based of current service footprint we need to deploy to additional **9 regions** to satisfy Ring 2 requirements. If we want to offer HA in every region then we need to deploy in additional **15 regions** from where we are today.
+Based on current service footprint we need to deploy to additional **9 regions** to satisfy Ring 2 requirements. If we want to offer HA in every region then we need to deploy in additional **15 regions** from where we are today.
 
 ### Ring 1 pairing
 
