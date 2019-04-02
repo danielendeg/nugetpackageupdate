@@ -11,11 +11,13 @@ In order to offer HA of our service we need to specify what regions will we pair
 
 Currently the service is deployed in **West US2, North Central US and UK West** region. In order to satisfy Ring 1 Requirements (28 regions) or Ring 2 requirements (10 Hero regions), we need to come up with geo expansion strategy of Azure API for FHIR at GA time.
 
-### Azure Ring requirements 
-Azure has different requirements for Services in different rings. Project Resolute started as Ring 2 service, but has been moved to Ring 1 at the time of Public Preview. This puts some stricter requirements on where service needs to be deployed and available. 
+### Azure Ring requirements
+
+Azure has different requirements for Services in different rings. Project Resolute started as Ring 2 service, but has been moved to Ring 1 at the time of Public Preview. This puts some stricter requirements on where service needs to be deployed and available.
 This is documented in [Microsoft Cloud Rings](https://microsoft.sharepoint.com/teams/azureecosystem/servicerings/Shared%20Documents/Sc%20Rings/Microsoft%20Cloud%20Rings%20-%20Scandium.docx?web=1)
 
 Ring 2 promise:
+
 * Cloud expansion: **Hero Regions**
 * Customer Data Management: Customer data resides in Geo & is GDPR compliant
 * Assurance and Compliance: Foundational certifications (ISO, SOC, PCI, FedRAMP**)
@@ -23,11 +25,12 @@ Ring 2 promise:
 * Lifecycle Commitment: 12-month product deprecation or change notice
 
 Ring 1 promise:
+
 * Cloud expansion: **Hub & Hero Regions**
 * Customer Data Management: Customer data resides in Geo & is GDPR compliant
 * Assurance and Compliance: Foundational certifications (ISO, SOC, PCI, FedRAMP**)
-* Resiliency and High Availability: **Zone Aware, Failover promise, & No customer data loss**
-* Lifecycle Commitment: 12-month product deprecation or change notice
+* Resiliency and High Availability: **Zone Aware, Fail over promise, & No customer data loss**
+* Life cycle Commitment: 12-month product deprecation or change notice
 
 ### Ring 2 pairing
 
@@ -88,7 +91,7 @@ Current billing impact for a customer that enables HA on their instance is, that
 
 Geo expansion plan needs to be planned in  [PAM tool](https://global.azure.com/product-availability/availability-by-offering/offering/1461)
 
-For Ring 1 service we need to be in all Hero regions by GA + 30 days and Hub regions by GA + 180. 
+For Ring 1 service we need to be in all Hero regions by GA + 30 days and Hub regions by GA + 180.
 For Ring 2 service we need to be in all Hero regions by GA + 30 days.
 
 |Priority|Region|Type|Deployment date (GA)|Notes|
@@ -129,7 +132,7 @@ Currently each Azure API for FHIR account gets 2 instances in cluster. In the fu
 
 **This is separate from customers being able to choose Cosmos DB RU separately.**
 
-We can define scale unit of our service and then give customers control over how many scale units of service they want in cluster. 
+We can define scale unit of our service and then give customers control over how many scale units of service they want in cluster.
 
 // Ex. 2 instances, 1 CPU core, 1Gb RAM ?
 |Scale Unit|Instances|CPU|RAM Gb|
