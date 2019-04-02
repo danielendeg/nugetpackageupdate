@@ -82,7 +82,7 @@ Services purchased through Open, Open Value, and Open Value Subscription volume 
 
 "Failed Transactions" is the set of all requests within Total Transaction Attempts that result in an Error Code or otherwise do not return a Success Code within 60 seconds after receipt by the Service.
 
-### Monthly Uptime Calculation and Service Levels for Azure API for FHIR account
+### Monthly Uptime Calculation and Service Levels for Azure API for FHIR
 
 "Monthly Uptime Percentage" for a given Azure API for FHIR account is calculated as Total Transaction Attempts less Failed Transactions divided by Total Transaction Attempts multiplied by 100. Monthly Uptime Percentage is represented by the following formula:
 
