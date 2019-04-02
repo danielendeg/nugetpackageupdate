@@ -123,8 +123,24 @@ For Ring 2 service we need to be in all Hero regions by GA + 30 days.
 |28|Sweden Central|Hero|September 2019||
 |29|**UK West**|Satellite|Nov 2018||
 
+## Service scaling
 
+Currently each Azure API for FHIR account gets 2 instances in cluster. In the future we want to give customers more control on scaling up and scaling out the service. This means we need to offer customers to scale service in scale units.
 
+**This is separate from customers being able to choose Cosmos DB RU separately.**
 
+We can define scale unit of our service and then give customers control over how many scale units of service they want in cluster. 
 
+// Ex. 2 instances, 1 CPU core, 1Gb RAM ?
+|Scale Unit|Instances|CPU|RAM Gb|
+|-----|-----|-----|-----|
+|1|2|1|1|
+|2|3|1|2|
 
+## High Availability - Geo replication
+
+As a separate discussion we need to define how do we make our service High Available by replicating in paired regions.
+
+* Do we enable same scale as in the primary region? (Costly)
+* How much control do we give to the customer in UI? Just a checkbox? or they can choose region pairing.
+* We will not offer HA in every region (see above Region pairing map) and we need to build logic when customer chooses HA option, by looking up our internal region pairing map.
