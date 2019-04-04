@@ -390,11 +390,11 @@ Referential integrity is something that customers **may** want to validate and o
     }
     ```
 
-    actually exist in the FHIR server. 
+    actually exist in the FHIR server.
 
 1. On delete: Prevent deletion of a resource that is referenced by other resources.
 
-On SQL server persistence provider, there are some opportunities to take advantage of transactions in both cases. 
+On SQL server persistence provider, there are some opportunities to take advantage of transactions in both cases.
 
 ## Validate profile on Create/Update
 
@@ -424,12 +424,14 @@ Return `OperationOutcome`.
 
 ## Support for `$meta`, `$meta-add` and `$meta-delete`
 
-FHIR specifies two operations for modifying metadata: `$meta-add` and `$meta-delete`. The opration `$meta` simply returns the current metadata. We **should** support these operations to allow users to add profiles to existing resources. We need to consider two situations:
+FHIR specifies two operations for modifying metadata: `$meta-add` and `$meta-delete`. The operation `$meta` simply returns the current metadata. We **should** support these operations to allow users to add profiles to existing resources. We need to consider two situations:
 
 1. If we are adding a profile to an existing resource, we should validate that the resource conforms to the profile and otherwise reject the call.
 1. When deleting a profile from metadata, the Resource could fall back to validation agains a default profile for that resource type. That default resource could be more restrictive than the current profile and the validation could fail. In that case, we should not allow removal of the metadata.
 
 Note that we can defer implementation of these operations since there is a workaround by simply updating the resource.
+
+Also note that these operations will require an update of extracted search parameters. Since changing metadata should create a new version, it should be handled.
 
 ## Configuration options
 
@@ -455,6 +457,12 @@ We need a set of configuration options to allow customers to opt in to referenti
 }
 ```
 
+The reference handling policy should be stated in the CapabilityStatement, see https://www.hl7.org/fhir/capabilitystatement-definitions.html#CapabilityStatement.rest.resource.referencePolicy
+
+However, it does not make it completely clear if that should happen on write, delete or both.
+
+For profile validation, we may need to define multiple levels of validation, e.g. basic, profile, full, etc. **TODO** define what levels are meaningful in terms of balancing use of profiles and performance.
+
 ## Uploading `StructureDefinition`, `ValueSet`, etc. resources
 
 In order for validation to succeed, the FHIR service must have a way to resolve references (canonical URIs) for profiles, e.g. `http://hl7.org/fhir/us/core/StructureDefinition/us-core-patient` is not a URL that actually points to the StructureDefinition. It should be possible for customers to upload the profiles. Simple solution is to just let customers do:
@@ -471,11 +479,11 @@ We should also consider adding well known profiles to the server by default, e.g
 
 # Test Strategy
 
-We meed to add a number of tests to check that we are validating correctly in all the typical profile use cases, e.g. restriction of cardinality, restricting code systems, etc. We also need explicit testing of referential integrity. 
+We meed to add a number of tests to check that we are validating correctly in all the typical profile use cases, e.g. restriction of cardinality, restricting code systems, etc. We also need explicit testing of referential integrity.
 
 # Security
 
-The `$validate` operation has some security implications. Information could be leaked if we try to validate a resource and it gets rejected due to referential integrity. Consequently the `$validate` would require the user to have read access in all the compartments relevant to the resource being validated.
+The `$validate` operation has some security implications. Information could be leaked if we try to validate a resource and it gets rejected due to referential integrity. Consequently the `$validate` would require the user to have read access in all the compartments relevant to the resource being validated. Specifically, it should not be possible for a user to probe if a certain patient exists by adding an observation with a reference to that patient and if it succeeds, the patient exists. Similarly `$validate` could be used to probe if certain resources exist.
 
 # Other
 
