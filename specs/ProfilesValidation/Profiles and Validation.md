@@ -465,8 +465,9 @@ POST //fhirserver/StructureDefinition
 
 But we need to make sure that the resolvers pick up these profiles. Another option would be through the portal or the control plane. 
 
-We should also consider adding well known profiles to the server by default, e.g. US Core. 
+We should also consider adding well known profiles to the server by default, e.g. US Core.
 
+**Note**: StructureDefinitions and ValueSets can be very large. So large in fact that they would not fit in CosmosDB. They should probably be stored somewhere else.
 
 # Test Strategy
 
@@ -474,9 +475,10 @@ We meed to add a number of tests to check that we are validating correctly in al
 
 # Security
 
-There should be no security implications of this work. 
+The `$validate` operation has some security implications. Information could be leaked if we try to validate a resource and it gets rejected due to referential integrity. Consequently the `$validate` would require the user to have read access in all the compartments relevant to the resource being validated.
 
 # Other
 
-Adding validation capabilities will significantly increase the computational load of the service. When deploying this to PaaS, we should aim to give customers an ability to scale the front-end compute up (at increased cost). 
+Adding validation capabilities will significantly increase the computational load of the service. When deploying this to PaaS, we should aim to give customers an ability to scale the front-end compute up (at increased cost).
 
+Future work on implementing the [FHIR terminology module](http://www.hl7.org/fhir/terminology-module.html) would need leverage profiles, value sets, etc.
