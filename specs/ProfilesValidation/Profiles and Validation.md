@@ -400,8 +400,8 @@ On SQL server persistence provider, there are some opportunities to take advanta
 
 We should handle two cases:
 
-1. When a resource is created or updated we should validate it against **all** profiles specified in `meta.profile` and reject it if any of the validations fail.
-1. When a resource is created or updated and **no profiles** are specified in `meta.profile`, we should validate it against any default profile (see configuration below) and reject it if it doesn't conform. 
+1. When a resource is created or updated we should validate it against **all** profiles specified in `meta.profile` **and** any default profiles and reject it if any of the validations fail.
+1. When a resource is created or updated and **no profiles** are specified in `meta.profile`, we should validate it against any default profile (see configuration below) and reject it if it doesn't conform.
 
 ## Support for `$validate`
 
@@ -417,17 +417,14 @@ There are a couple of optional parameters for these:
 * `mode`: 
     * `create`: Can this resource be created
     * `update`: Can this resource be updated
-    * `delete`: This checks if it would be OK to delete the resource. It should take into consideration if we are validating referential integrity on delete (see configuration below).
+    * `delete`: This checks if it would be OK to delete the resource. It should take into consideration if we are validating referential integrity.
 * `profile`: The canonical uri for the profile to validate against.
 
 Return `OperationOutcome`.
 
 ## Support for `$meta`, `$meta-add` and `$meta-delete`
 
-FHIR specifies two operations for modifying metadata: `$meta-add` and `$meta-delete`. The operation `$meta` simply returns the current metadata. We **should** support these operations to allow users to add profiles to existing resources. We need to consider two situations:
-
-1. If we are adding a profile to an existing resource, we should validate that the resource conforms to the profile and otherwise reject the call.
-1. When deleting a profile from metadata, the Resource could fall back to validation agains a default profile for that resource type. That default resource could be more restrictive than the current profile and the validation could fail. In that case, we should not allow removal of the metadata.
+FHIR specifies two operations for modifying metadata: `$meta-add` and `$meta-delete`. The operation `$meta` simply returns the current metadata. We **should** support these operations to allow users to add profiles to existing resources. If we are adding a profile to an existing resource, we should validate that the resource conforms to the profile and otherwise reject the call.
 
 Note that we can defer implementation of these operations since there is a workaround by simply updating the resource.
 
@@ -444,8 +441,7 @@ We need a set of configuration options to allow customers to opt in to referenti
       "UseStrictConformance": true
     },
     "Validation": {
-        "ValidateReferencesOnWrite": true,
-        "ValidateReferencesOnDelete": true,
+        "ValidateReferences": true,
         "ValidateProfiles": true,
         "DefaultProfiles": [
             {
