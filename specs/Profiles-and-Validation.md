@@ -13,7 +13,7 @@ Note that referential integraty and profile validation are really two different 
 
 # Introduction to Profiling and Validation
 
-Before diving into how specific design for the FHIR server, here is a small review of Profiling. To assist with the understanding, there is a sample `FHIRValidator` app in the [FHIRValidator/](FHIRValidator/) folder. You can run it with:
+Before diving into how specific design for the FHIR server, here is a small review of Profiling. To assist with the understanding, there is a sample `FHIRValidator` app in the [ProfilesValidation/FHIRValidator/](ProfilesValidation/FHIRValidator/) folder. You can run it with:
 
 ```
 dotnet run /FileName <myresource.json> /Profile <canonical profile uri>
