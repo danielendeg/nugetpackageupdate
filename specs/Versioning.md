@@ -29,9 +29,12 @@ The versions that are in scope today are v3.0.1 and v4.0.0 only
 
 ![Portal Mockup](../Versioning/Versioning-mockup.jpg)
 
-## Test Strategy
-It should be validated that the version selected is the one deployed
+### Considerations 
+- The .NET FHIR API libraries we use are different packages for different versions but with the same namespace. That would imply that there are two different versions compiled of our server. We should see if we can come up with an approach where we maintain a single code base with a single release branch and a way to configure in services.AddFhirServer() which version of FHIR we are using
 
+## Test Strategy
+It should be validated that the version selected is the one deployed. 
+Each feature (PR) should be tested against all versions made available to the customer 
 
 ## Security
 N/A
