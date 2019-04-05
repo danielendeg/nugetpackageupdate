@@ -10,7 +10,7 @@ The version that is currently available for customers to deploy on Azure API for
 As of 4/4/2019, the latest version of the FHIR specification is version v4.0.0 and it is not available for customers to deploy on Azure API for FHIR
 
 Between Release 3 and Release 4, nearly 3000 change proposals were applied to the specification, including >1000 substantive changes, of which 339 were labeled 'non-compatible'.
-You can find the differences between Release 3 and Release 4 in the [version history] (https://www.hl7.org/fhir/history.html)
+You can find the differences between Release 3 and Release 4 in the [version history](https://www.hl7.org/fhir/history.html)
 
 A customer may choose to deploy Azure API for FHIR in the FHIR Release 3 spec, if the source data they plan to migrate is in the same schema
 A customer may choose to deploy Azure API for FHIR in the FHIR Release 4 spec, if they plan to start fresh in  the lastest spec with Release 4
@@ -25,7 +25,7 @@ The versions that are in scope today are v3.0.1 and v4.0.0 only
 - The field should be a required field
 - All version options should be made available via a drop downbox and should be listed in descending order
 - The default selection should be the lastest version offered and should be labeled as such
-- The tooltip should read: "The version of FHIR to be provisioned. You will not be able to migrate between versions. View FHIR [version history] (https://www.hl7.org/fhir/history.html)"
+- The tooltip should read: "The version of FHIR to be provisioned. You will not be able to migrate between versions. View FHIR [version history](https://www.hl7.org/fhir/history.html)"
 
 <SCREENSHOT>
 
