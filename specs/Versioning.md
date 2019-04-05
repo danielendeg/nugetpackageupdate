@@ -27,14 +27,14 @@ The versions that are in scope today are v3.0.1 and v4.0.0 only
 - The default selection should be the lastest version offered and should be labeled as such
 - The tooltip should read: "The version of FHIR to be provisioned. You will not be able to migrate between versions. View FHIR [version history](https://www.hl7.org/fhir/history.html)"
 
-![Portal Mockup](../Versioning/Versioning-mockup.jpg)
+![Portal Mockup](../specs/Versioning/Versioning-mockup.jpg)
 
 ### Considerations 
 - The .NET FHIR API libraries we use are different packages for different versions but with the same namespace. That would imply that there are two different versions compiled of our server. We should see if we can come up with an approach where we maintain a single code base with a single release branch and a way to configure in services.AddFhirServer() which version of FHIR we are using
 
 ## Test Strategy
-It should be validated that the version selected is the one deployed. 
-Each feature (PR) should be tested against all versions made available to the customer 
+- It should be validated that the version selected is the one deployed. 
+- Each feature (PR) should be tested against all versions made available to the customer 
 
 ## Security
 N/A
