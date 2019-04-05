@@ -28,7 +28,7 @@ The versions that are in scope today are v3.0.1 and v4.0.0 only
 - The tooltip should read: "The version of FHIR to be provisioned. You will not be able to migrate between versions. View FHIR [version history](https://www.hl7.org/fhir/history.html)"
 
 <SCREENSHOT>
-
+[](https://microsofthealth.visualstudio.com/DefaultCollection/Health/_git/health-paas-docs?path=%2Fspecs%2FVersioning%2FAzure%20API%20for%20FHIR%20SharedScreenshot%20R4.jpg&version=GBR4-Spec)
 
 ## Test Strategy
 It should be validated that the version selected is the one deployed
