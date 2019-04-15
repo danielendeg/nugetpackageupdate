@@ -487,72 +487,7 @@ We don't plan to use Entity Framework or Dapper for the FHIR data plane (though 
 
 ## Schema migrations
 
-The database schema will evolve over time. A server in production will need to be upgraded to the latest version of the code, which may require changes to the schema.
-
-Schema migrations can take a long time, often in proportion to the size of the database. For this reason, we do not believe that the server should perform schema migrations on startup. Instead, we propose shipping a command-line utility that admins can run to perform schema migrations.
-
-See [Custom Search Parameters](#custom-search-parameters) for a brief discussion on the related topic of re-indexing.
-
-Note that this design assumes that the migrations are static and that we are do not need to generate tables based on a profile. (The idea would be the same but the complexity increases).
-
-A migration is a T-SQL script that alters the database in some way and has a version encoded in its file name. The version will have the format `[0-9]+(\.[a-z])?`, e.g. "1", "2", "3.a", "3.b". The optional alphabetic is meant to represent migration sequences for which only a single version of the code is needed.
-
-The latest and previous schema versions applied to the database are maintained in a `SchemaVersion` table.
-
-Each version needs to be backwards compatible with the immediate previous version, so that code written to work with version n will continue to work with n+1.
-
-Let's walk though a hypothetical scenario. Suppose we have a database currently on version 54. The next version of the FHIR server decides to consolidate a "FirstName" and "LastName" column into a "Name" column, and drop the original columns.
-
-There are three migrations needed to accomplish this:
-
-1. 55.a creates the new column
-2. 55.b does a bulk update, setting the new Name column to be FirstName + ' ' + LastName
-3. 55.c drops the old columns.
-
-Here is the sequence of events:
-
-1. The `SchemaVersion` table has two rows in it: 54 and 53.
-1. The FHIR server starts up, validates that the current version is 54 as it expects, and then places a long-running shared lock on record 54. (Note the long-running shared lock may present some challenges, but let's ignore that for now)
-1. The admin runs the migration tool which checks that the current version is 54 and all servers are using 54 and not 53. It does this by deleting 53. If any server were using 53, its shared lock would block the deletion. The tool then applies 55.a and adds 55.a to the version table. The tool then instructs the admin to upgrade the FHIR server code.
-1. The new version of the FHIR server can work with version 55.a, 55.b, and 55.c. In this case, once deployed, the FHIR server sees that the current version is 55.a and takes a shared lock on the 55.a record. The 55.a code behavior writes to both the new column AND the old columns, but only reads from the old columns.
-1. The admin is ready to proceed with the next phase of the upgrade. He or she runs the tool again. The tool needs to know that it is safe to apply 55.b. For this, every FHIR server must be using 55.a. It attempts to delete row 54, and because there aren't any shared locks placed on it, the delete succeeds. The tool then applies 55.b and updates the version table. After 55.b has run, all data is in the new column and the old columns can be ignored.
-1. At this point, the admin can restart the FHIR server and it detects that it needs to switch to the 55.b behavior (or the FHIR server polls and adjusts on the fly). 55.b behavior uses the new column exclusively.
-1. The admin can proceed with the final phase. The tool checks and deletes 55.a and applies the 55.c migration, which deletes the old columns.
-1. The admin restarts the FHIR server (or it detects the change itself), and transitions to 55.c mode. 55.c mode is the same as 55.b, but now the 55.c record is locked.
-
-The guiding principles are:
-
-1. Schema versions are backwards compatible with their immediate predecessor.
-1. That the admin tool will not perform an upgrade if the FHIR servers connected to the database will be broken by it. We can use a combination of `sys.dm_tran_locks` and `sys.sysprocesses` and `applicationname` in the connection string to identity which server instances are using an old version.
-1. The FHIR server will not run against a database with an unknown version.
-
-### Schema Migration Admin Tool
-
-The admin tool will have the following commands:
-
-``` bash
-fhirdbadmin getcurrentversion --database <connectionstring>
-```
-
-``` bash
-fhirdbadmin getnextversions --database <connectionstring>
-```
-
-``` bash
-fhirdbadmin applyversion (--nextversion | --version <version>) [--force] --database <connectionstring>
-```
-
-The output of the `applynextversion` command should tell the admin what to do next (restart the server, upgrade the server, etc.).
-
-Passing in the database connection string as an argument is not really a great option. Using an environment variable might be better. This tool should also support AAD credentials. **Needs some more thought.**
-
-#### Distribution
-
-This tool could take the form of .NET Core executable (optionally packaged as a single executable file using a tool like [Warp](https://github.com/dgiagio/warp/blob/master/README.md)), a PowerShell core script, a self-contained single-file executable written in Go, or a .NET [global tool](https://docs.microsoft.com/en-us/dotnet/core/tools/global-tools). In the case of the global tool, the tool would need to fetch the T-SQL scripts from GitHub. This could make testing of changes that are not in master a little challenging: the tool would been to accept an argument telling it which repo and branch to use.
-
-Additionally, we could ship a UX as an [Azure Data Studio](https://docs.microsoft.com/en-us/sql/azure-data-studio/what-is?view=sql-server-2017) extension. This would solve the problem of passing in a connection string and the tool already can help solve connectivity issues by changing firewall rules. **Requires more thought.**
-
-Note that we will also need to run this tool (or invoke its core library) from the PaaS deployment scripts when upgrading and when the RP creates the database.
+Schema migrations are defined in the [Schema Migrations](Schema-Migrations.md) document.
 
 # Test Strategy
 
