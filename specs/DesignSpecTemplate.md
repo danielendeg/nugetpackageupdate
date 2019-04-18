@@ -1,15 +1,20 @@
-# [Feature name]
-## Description
-Describe the feature.
+Describe the feature
 
-## High-level Design
+[[_TOC_]]
+
+# High-Level Design
+
 Describe the high-level design -- enough detail that code reviewers and stakeholders are not surprised.
 
-## Test Strategy
+# Test Strategy
+
 Describe the test strategy.
 
-## Security
+# Security
+
 Describe any special security implications or security testing needed.
 
-## Other
+# Other
+
 Describe any impact to localization, globalization, deployment, back-compat, SOPs, ISMS, etc.
+

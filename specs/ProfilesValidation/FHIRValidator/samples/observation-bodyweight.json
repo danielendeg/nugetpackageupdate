@@ -1,0 +1,47 @@
+{
+    "resourceType": "Observation",
+    "id": "8e8c63e3-034b-4eb5-b927-e93a16607b33",
+    "meta": {
+      "versionId": "1",
+      "lastUpdated": "2019-01-30T03:34:50.2668228+00:00",
+      "profile": [
+        "http://hl7.org/fhir/StructureDefinition/bodyweight"
+      ]
+    },
+    "status": "final",
+    "category": [
+      {
+        "coding": [
+          {
+            "system": "http://hl7.org/fhir/observation-category",
+            "code": "vital-signs",
+            "display": "vital-signs"
+          }
+        ]
+      }
+    ],
+    "code": {
+      "coding": [
+        {
+          "system": "http://loinc.org",
+          "code": "29463-7",
+          "display": "Body Weight"
+        }
+      ],
+      "text": "Body Weight"
+    },
+    "subject": {
+      "reference": "Patient/a34858e3-c86d-4866-b731-e23c0a14c89b"
+    },
+    "context": {
+      "reference": "Encounter/33c88459-29ed-42a5-b168-4d4ff48dbe8e"
+    },
+    "effectiveDateTime": "2016-08-18T03:46:47+00:00",
+    "issued": "2016-08-18T03:46:47.231+00:00",
+    "valueQuantity": {
+      "value": 3.539760700157569,
+      "unit": "kg",
+      "system": "http://unitsofmeasure.org",
+      "code": "kg"
+    }
+  }
