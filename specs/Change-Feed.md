@@ -105,7 +105,7 @@ The current result looks like:
 As seen the results include records that have been deleted, but if you do a `hardDelete`:
 
 ```
-DELETE //fhirserver/Patient/18a2ac75-3b9f-486c-882b-aff34d436164??hardDelete=true
+DELETE //fhirserver/Patient/18a2ac75-3b9f-486c-882b-aff34d436164?hardDelete=true
 ```
 
 The same `_history` search comes up empty:
@@ -144,7 +144,7 @@ Testing should include:
 
 1. No records fall between two time points, i.e. the given the following two searches:
     * `/?_since=2019-04-18T06:00:00&_before=2019-04-18T08:00:00`
-    * `/?_since=2019-04-18T08:00:00&_before=le2019-04-18T10:00:00`
+    * `/?_since=2019-04-18T08:00:00&_before=2019-04-18T10:00:00`
 
     There should be no additional records around the `2019-04-18T08:00:00` that are missed. There should be no records that will be returned in both queries. 
 1. Shadow records are produced for hard deleted records.
