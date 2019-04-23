@@ -1,9 +1,9 @@
 # Azure API for FHIR - Region deployment and Geo Redundancy considerations
 
-Currently Azure API for FHIR does not give customers option to configure High Availability (HA).
-By the GA time we want to offer customer option to setup Managed service in HA configuration.
-Combining region pairing and Ring requirements means that our service would need to be available in most Hero, Hubs and Satellite regions. This would inflate our infrastructure complexity and cost.
-For Azure Region Strategy see [Azure Region Strategy](https://microsoft.sharepoint.com/teams/azureecosystem/servicerings/Shared%20Documents/K%20Rings/Azure%20Region%20Strategy.docx?web=1)
+## Business Justification
+
+Currently Azure API for FHIR does not give customers option to configure Geo-Redundancy, as it is only deployed in three regions. At the GA time we want to offer service in all Hero regions with option to make it Geo-Redundant. This is a must if we want customers to host mission critical data in our service.
+Initially this would be only available in paired regions that we are deployed. See Ring 2/1 pairing.
 
 ## Region pairing map
 
@@ -148,13 +148,26 @@ As a separate discussion we need to define how do we make our service High Avail
 * How much control do we give to the customer in UI? Just a checkbox? or they can choose region pairing.
 * We will not offer HA in every region (see above Region pairing map) and we need to build logic when customer chooses HA option, by looking up our internal region pairing map.
 
-## Features
+## User Stories
 
 ### Geo Expansion
 
-For GA time frame we should follow Ring 2 expansion plan as it is a subset of Ring 1 (GA + 30 days). This means following User Stories
+For GA time frame we should follow Ring 2 expansion plan as it is a subset of Ring 1 (GA + 30 days). This means following User Stories.
 
-|Story  |URL  |Note  |
+* As a Azure user I want to be able to deploy service in 
+    + East US,
+    + East US 2,
+    + South Central US,
+    + West US 2, West Europe,
+    + North Europe,
+    + UK South,
+    + Southeast Asia,
+    + Sweden Central,
+    + Australia East
+
+#### Suggested VSTS user stories
+
+|VSTS Story  |URL  |Note  |
 |---------|---------|---------|
 |Define region specific infrastructure stamp|||
 |Deploy in East US (Public / United States)|         |         |
@@ -171,7 +184,13 @@ For GA time frame we should follow Ring 2 expansion plan as it is a subset of Ri
 
 ### Geo Redundancy
 
-|Story  |URL  |Note  |
+* As Azure User I want to be able to specify Geo-Redundancy during service creation
+* As Azure User I want to be able to enable Geo-Redundancy after service creation
+* As Azure User I want to disable Geo-Redundancy after service creation
+
+#### Suggested VSTS user stories
+
+|VSTS Story  |URL  |Note  |
 |---------|---------|---------|
 |Define region pairing for HA     |         |         |
 |Update Azure UI with HA Option in creation     |         |         |
@@ -185,7 +204,11 @@ For GA time frame we should follow Ring 2 expansion plan as it is a subset of Ri
 
 ### Service Scaling
 
-|Story  |URL  |Note  |
+* As Azure user I want to get consistent service performance after I provision service 
+* As Azure user I want to be able to scale service up and down acording to my needs (x Service scale unit) - This can be defered to later time
+
+
+|VSTS Story  |URL  |Note  |
 |---------|---------|---------|
 |Define base scale unit for account     |         |         |
 |
