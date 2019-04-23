@@ -1,4 +1,4 @@
-# Azure API for FHIR - Region deployment and High Availability considerations
+# Azure API for FHIR - Region deployment and Geo Redundancy considerations
 
 Currently Azure API for FHIR does not give customers option to configure High Availability (HA).
 By the GA time we want to offer customer option to setup Managed service in HA configuration.
@@ -137,8 +137,8 @@ We can define scale unit of our service and then give customers control over how
 // Ex. 2 instances, 1 CPU core, 1Gb RAM ?
 |Scale Unit|Instances|CPU|RAM Gb|
 |-----|-----|-----|-----|
-|1|2|1|1|
-|2|3|1|2|
+|1|2|1|.25|
+|2|3|1|.5|
 
 ## High Availability - Geo replication
 
@@ -147,3 +147,45 @@ As a separate discussion we need to define how do we make our service High Avail
 * Do we enable same scale as in the primary region? (Costly)
 * How much control do we give to the customer in UI? Just a checkbox? or they can choose region pairing.
 * We will not offer HA in every region (see above Region pairing map) and we need to build logic when customer chooses HA option, by looking up our internal region pairing map.
+
+## Features
+
+### Geo Expansion
+
+For GA time frame we should follow Ring 2 expansion plan as it is a subset of Ring 1 (GA + 30 days). This means following User Stories
+
+|Story  |URL  |Note  |
+|---------|---------|---------|
+|Define region specific infrastructure stamp|||
+|Deploy in East US (Public / United States)|         |         |
+|Deploy in East US 2 (Public / United States)|         |         |
+|Deploy in South Central US (Public / United States)    |         |       |Deploy in West US 2 (Public / United States)|||
+|Deploy in West Europe (Public / Europe)|||
+|Deploy in North Europe (Public / Europe)|||
+|Deploy in UK South (Public / United Kingdom)|||
+|Deploy in Southeast Asia (Public / Asia Pacific)|||
+|Deploy in Sweden Central (Public / Sweden)|||
+|Deploy in Australia East (Public / Australia)|||
+|Update ARM manifest with new endpoints|||
+|Update Billing with region specific Billing meeters|||
+
+### Geo Redundancy
+
+|Story  |URL  |Note  |
+|---------|---------|---------|
+|Define region pairing for HA     |         |         |
+|Update Azure UI with HA Option in creation     |         |         |
+|Update Azure UI with HA Option after service creation     |||   
+|Update Azure UI to show status of HA and region redundancy      |||
+|Create Cosmos DB replica in paired region|||
+|Provision account in paired region|||
+|Update traffic manager for traffic rerouting|||
+|Create option for users to disable region redundancy|||
+|Remove account in paired region on disabling region redundancy|||
+
+### Service Scaling
+
+|Story  |URL  |Note  |
+|---------|---------|---------|
+|Define base scale unit for account     |         |         |
+|
