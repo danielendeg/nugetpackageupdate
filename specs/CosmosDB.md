@@ -27,7 +27,7 @@ N/A
 
 ## Service creation
 
-During service creation we will make **Cosmos DB throughput (RU/s)** field editable, so customers can specify their custom value. We will cap this at 10.000 RU (and show this in (i) tooltip). If customer want to lift the limit of 10.000 RU, then they will still need to file a ticket with Azure.
+During service creation we will make **Cosmos DB throughput (RU/s)** field editable, so customers can specify their custom value. We will cap this at 10.000 RU (and show this in (i) tooltip). If customer want to lift the limit of 10,000 RU, then they will still need to file a ticket with Azure.
 
 ![](media/CosmosDB-create.png)
 
