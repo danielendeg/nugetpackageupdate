@@ -1,4 +1,4 @@
-# Configurable Cosmos DB Thoughput
+# Configurable Cosmos DB Throughput
 
 Currently Azure API for FHIR does not allow you to specify custom Cosmos DB settings during service creation or later when the service is provisioned. This includes RU setting, replication settings and consistency level settings. There is also a lack of information on what is the state of the underlying database and its settings (Size of the database, number of documents/records, replica location and performance indicators)
 
