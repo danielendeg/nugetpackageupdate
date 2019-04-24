@@ -12,7 +12,7 @@ When customers provision Azure API for FHIR today, we automatically set their un
 
 # Scenarios
 
-* As a Azure user I want to set a custom RU value at service creation time
+* As a Azure user I want to set a custom RU value at service creation time. Default that we show to the customer is 400
 * As a Azure user I want to change RU value to higher or lower, depending on current state of the database and RU.
 * As Azure user I want to see some statistic around Cosmos DB usage in Cosmos DB blade in Azure API for FHIR
     + Current RU value used by Cosmos DB (this number changes based on amount of data ingested)
@@ -32,6 +32,11 @@ During service creation we will make **Cosmos DB throughput (RU/s)** field edita
 ![](media/CosmosDB-create.png)
 
 ## After service creation
+
+After service creation, customer can go to Azure API for FHIR settings and select Cosmos DB Settings blade. Here they can change the value of RU to a custom value.
+We will cap this at 10,000 RU (and show this in (i) tooltip). If customer want to lift the limit of 10,000 RU, then they will still need to file a ticket with Azure. 
+
+![](media/CosmomsDB-manage.png)
 
 # Test Strategy
 
