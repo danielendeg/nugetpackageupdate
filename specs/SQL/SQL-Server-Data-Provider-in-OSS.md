@@ -99,11 +99,12 @@ We're not going to specify the exact schema and indexes in this document, becaus
 #### `Resource`
 
 - Used to store the raw resource contents, along with its version number and creation timestamp.
-- The raw resource could be zipped to save space, or it could be stored as JSON (even if was added as XML) so that we could use T-SQL JSON functions on the resource if desired. **To be discussed**
+- The raw resource will be compressed on the FHIR server in order to save space (5x on average with Synthea data). If we ever want to operate on the JSON data from within T-SQL, we would need to use the `DECOMPRESS` function on the resource data first.
+
 - Fields:
-  - **`ResourceId`**
+  - **`ResourceSurrogateId`**
   - `ResourceTypeId`
-  - `ExternalId`
+  - `ResourceId`
   - `Version`
   - `Timestamp`
   - `RawResource`
@@ -112,7 +113,7 @@ We're not going to specify the exact schema and indexes in this document, becaus
 
 - Used to store configurable claims about the principal that created or updated a resource version
 - Fields:
-  - `ResourceId`
+  - `ResourceSurrogateId`
   - `ClaimType`
   - `ClaimValue`
 
@@ -121,101 +122,143 @@ We're not going to specify the exact schema and indexes in this document, becaus
 - Stores date/datetime search parameter values
 - Fields:
   - `ResourceTypeId`
-  - `ResourceId`
+  - `ResourceSurrogateId`
   - `SearchParamId`
-  - `CompositeInstanceId` (see [Composite Search Parameters](#composite-search-parameters))
-  - *`StartTime`*
-  - *`EndTime`*
+  - `IsHistory`
+  - *`DateFrom`*
+  - *`DateTo`*
 
 #### `NumberSearchParam`
 
 - Stores number search parameter values
 - Fields:
   - `ResourceTypeId`
-  - `ResourceId`
+  - `ResourceSurrogateId`
   - `SearchParamId`
-  - `CompositeInstanceId` (see [Composite Search Parameters](#composite-search-parameters))
-  - *`Number`*
+  - `IsHistory`
+  - *`NumberFrom`*
+  - *`NumberTo`*
 
 #### `QuantitySearchParam`
 
 - Stores quantity search parameter values
 - Fields:
   - `ResourceTypeId`
-  - `ResourceId`
+  - `ResourceSurrogateId`
   - `SearchParamId`
-  - `CompositeInstanceId` (see [Composite Search Parameters](#composite-search-parameters))
-  - *`System`*
-  - *`Code`*
-  - *`Quantity`*
+  - `IsHistory`
+  - *`QuantityCodeId`*
+  - *`QuantityFrom`*
+  - *`QuantityTo`*
 
 #### `ReferenceSearchParam`
 
 - Stores reference search parameter values
 - Fields:
   - `ResourceTypeId`
-  - `ResourceId`
+  - `ResourceSurrogateId`
   - `SearchParamId`
-  - `CompositeInstanceId` (see [Composite Search Parameters](#composite-search-parameters))
+  - `IsHistory`
   - *`ReferenceResourceTypeId`*
-  - *`ReferenceExternalId`*
+  - *`ReferenceResourceId`*
+  - *`ReferenceVersion`*
 
 #### `StringSearchParam`
 
 - Stores sting search parameter values
 - Fields:
   - `ResourceTypeId`
-  - `ResourceId`
+  - `ResourceSurrogateId`
   - `SearchParamId`
-  - `CompositeInstanceId` (see [Composite Search Parameters](#composite-search-parameters))
+  - `IsHistory`
   - *`Value`*
 
 #### `TokenSearchParam`
 
-- Stores token search parameter values
+- Stores token search parameter values, without the text field
 - Fields:
   - `ResourceTypeId`
-  - `ResourceId`
+  - `ResourceSurrogateId`
   - `SearchParamId`
-  - `CompositeInstanceId` (see [Composite Search Parameters](#composite-search-parameters))
-  - *`System`*
+  - `IsHistory`
+  - *`SystemId`*
   - *`Code`*
-  - *`TextHash`*
-- The `TextHash` field is a SHA256 hash of the text representation of the code to satisfy queries like `/Condition?code:text=headache`. The text search will be done against the [TokenText](#token-text) table.
+
+#### `TokenTextSearchParam`
+
+- Stores the text field of token search parameter values
+- Fields:
+  - `ResourceTypeId`
+  - `ResourceSurrogateId`
+  - `SearchParamId`
+  - `IsHistory`
+  - *`Text`*
+
+(#token-text) table.
 
 #### `UriSearchParam`
 
 - Stores URI search parameter values
 - Fields:
   - `ResourceTypeId`
-  - `ResourceId`
+  - `ResourceSurrogateId`
   - `SearchParamId`
-  - `CompositeInstanceId` (see [Composite Search Parameters](#composite-search-parameters))
-  - *`UriId`*
-- The `UriId` field is a reference to a Uri in the [Uri](#uri) table.
-
-#### `TokenText`
-
-- Stores token search parameter text values. We expect a lot of reuse of these values so the hypothesis that normalizing can help performance
-- Fields:
-  - `Hash`
-  - `Text`
-
-#### `Uri`
-
-- Similar to the [Token Text](#token-text) field, we **might** store URIs in a dedicated table, because we expect a lot of duplicates. Performance tests will reveal whether this is the right approach.
-- Fields:
-  - **`UriId`**
-  - `Uri`
+  - `IsHistory`
+  - *`Uri`*
 
 #### `CompartmentAssignment`
 
 - Stores the compartments that a resource is part of
 - Fields:
   - `ResourceTypeId`
-  - `ResourceId`
+  - `ResourceSurrogateId`
+  - `IsHistory`
   - *`CompartmentId`*
-  - *`ReferenceExternalId`*
+  - *`ReferenceResourceId`*
+
+#### `System`
+
+- Stores the unique systems referenced in `TokenSearchParam.System` and `QuantityCode.SystemId`.
+- Fields:
+  - `SystemId`
+  - *`System`*
+
+#### `QuantityCode`
+
+- Stores the unique codes referenced in `QuantitySearchParam.QuantityCodeId`.
+- Fields:
+  - `QuantityCodeId`
+  - *`SystemId`*
+  - *`Code`*
+
+### Indexes
+
+The search parameter tables will generally have the following indexes:
+
+- Clustered Index:
+  - ResourceSurrogateId
+  - SearchParameterId
+  - [Type-specific fields, such as Code, System, Quantity, etc.]
+- Non-clustered Index (Filtered on IsHistory=0)
+  - [Type-specific fields, such as Code, System, Quantity, etc.]
+  - ResourceTypeId
+
+This index design will allow for inner-loop joins for single-compartment or single-resource referenced searches, such as "find all weight observations for patient x where the weight was greater than 100 kg". The query plan for this kind of query will be a non-clustered index range scan on `ReferenceSearchParam` with an inner loop join using the using a clustered index seek.
+
+### Page Compression
+
+We will be using page compression on most parameter tables and indexes where we expect a lot of duplicated strings.
+
+### Duplicated Strings
+
+Many codes, systems, and URIs are duplicated across FHIR resources. Some examples from a database with 100k Synthea patients:
+
+- There are only 42 distinct systems
+- There are only 34 distinct codes in the `QuantitySearchParam` table
+- There are around 800 distinct token text strings.
+- The top 20 URIs in the `UriSearchParam` table are reused extensively, but there is a very long tail.
+
+We will adopt the strategy of using integer identifiers for systems and quantity codes and storing them in-memory in the FHIR server. Other strings, such as those in TokenText, we will rely on page compression. The reason for this is that insertion logic gets more expensive and can cause more blocking if it needs to upsert into other tables.
 
 ### Composite Search Parameters
 
@@ -229,14 +272,14 @@ WHERE r.ResourceTypeId = @p0
       AND EXISTS(
           SELECT *
           FROM dbo.TokenSearchParam token
-          WHERE token.ResourceId = r.ResourceId
+          WHERE token.ResourceSurrogateId = r.ResourceSurrogateId
                 AND token.SearchParamId = @p1
                 AND token.System = @p2
                 AND token.Code = @p3
                 AND EXISTS(
                     SELECT *
                     FROM dbo.QuantitySearchParam quantity
-                    WHERE quantity.ResourceId = r.ResourceId
+                    WHERE quantity.ResourceSurrogateId = r.ResourceSurrogateId
                           AND quantity.SearchParamId = @p4
                           AND quantity.Quantity < @p5
                           AND quantity.CompositeInstanceId = token.CompositeInstanceId
@@ -244,7 +287,14 @@ WHERE r.ResourceTypeId = @p0
       )
 ```
 
-The other approach would be to generate a table for each combination of parameter types in composite across all search parameters, in effect denormalizing the composite search parameter storage. In the base STU3 model, this would require tables for Reference+Token, Token+Token, Date+Token, Quantity+Token, String+Token, and Number+Number+Token. And of course, when we support extensions, that set could grow.
+The other approach would be to generate a table for each combination of parameter types in composite across all search parameters, in effect denormalizing the composite search parameter storage. In the base STU3 model, this would require tables for:
+
+- Reference$Token
+- Token$Token
+- Token$Date
+- Token$Quantity
+- Token$String
+- Token$Number$Number.
 
 The query for the same search as before would now look something like this:
 
@@ -255,14 +305,16 @@ WHERE r.ResourceTypeId = @p0
           SELECT *
           FROM QuantityTokenCompositeSearchParameter composite
           WHERE composite.SearchParamId = @p1
-                AND composite.ResourceId = r.ResourceId
+                AND composite.ResourceSurrogateId = r.ResourceSurrogateId
                 AND composite.Token1System = @p2
                 AND composite.Token1Code = @p3
-                AND composite.Quantity1Quantity = @p5
+                AND composite.Quantity2Quantity = @p5
       )
 ```
 
-As you can see, this version has only one `EXISTS` subquery, so we would expect it to perform better. The main drawback of this approach is the additional complexity of generating these tables dynamically (and therefore versioning them would not be done in just static T-SQL). Also note the denormalization would cause more duplicated data in the database when component search parameters have different values.
+As you can see, this version has only one `EXISTS` subquery, so we would expect it to perform better. The main drawback of this approach is the additional complexity of managing these extra tables (and therefore versioning them would not be done in just static T-SQL).
+
+The decision is to go with the second option, because searches on composite parameters are very useful and common. We will not be generating these tables dynamically, but instead will create tables for combinations that are defined in STU3 and R4.
 
 ### String Column Lengths
 
@@ -273,7 +325,7 @@ The maximum index sizes allowed by SQL Server are 900 bytes and 1700 bytes for c
 | `TokenSearchParameter.Code`    | `varchar(128)`  |
 | `StringSearchParam.Value`      | `nvarchar(512)` |
 | `QuantitySearchParameter.Code` | `varchar(128)`  |
-| `TokenText.Text`               | `nvarchar(434)` |
+| `TokenTextSearchParam.Text`    | `nvarchar(434)` |
 | `Uri.Uri`                      | `varchar(512)`  |
 
 As mentioned later, varchars SQL Server 2019 can optionally be UTF8-encoded, in case codes and URIs have non-latin characters.
@@ -307,14 +359,14 @@ WHERE r.ResourceTypeId = @p0
       AND NOT EXISTS (
         SELECT *
         FROM Resource r2
-        WHERE r.ResourceId = r2.ResourceId
+        WHERE r.ResourceSurrogateId = r2.ResourceSurrogateId
         AND r2.Version > r.Version
       )
 ```
 
 Another approach would be to have a `ResourceHistory` table and when a resource is updated, we copy the current version to the history table. This would make updates more expensive (and a bit trickier from a concurrency perspective), but would improve read performance.
 
-We can do something similar with the search parameter tables. We either leave them as-is or archive entries to history tables on updates. Note that we need to maintain search parameters for enforcing RBAC on history data.
+We can do something similar with the search parameter tables. We either leave them as-is or archive entries to history tables on updates. Note that we need to maintain search parameters for enforcing RBAC on history data. We also need this to support chained searches where references are to a specific FHIR resource's version.
 
 ### Using Temporal Tables
 
@@ -340,6 +392,10 @@ COMMIT;
 ```
 
 This is a bit messy and we would need to ensure that all other writes are blocked during this time. Also the server would need to have alter table permissions, which otherwise would not be needed.
+
+### Decision
+
+Because references between FHIR resources can specify a target resource version, we will keep historical search parameters in the same table. Nonclustered indexes on search parameter tables will be filtered, including on search parameters for the current version of a resource.
 
 ## Search Paging
 
@@ -369,16 +425,22 @@ We will aim for keyset pagination, but may need to fall back to offset if perfor
 **Open question**: if we support ordering by last updated time, you could see the same resource show up twice in different pages if it is updated while a client is enumerating a search feed. Is this acceptable? The other option is for all pages of a search to be based on a snapshot taken at at the first page. The SQL could look something like this:
 
 ``` SQL
-DECLARE @maxResourceId BIGINT = (SELECT MAX(ResourceId) from dbo.Resource)
+DECLARE @maxResourceSurrogateId BIGINT = (SELECT MAX(ResourceSurrogateId) from dbo.Resource)
 
 SELECT * FROM Resource r
 WHERE NOT EXISTS (
       SELECT * FROM Resource r2
       WHERE r2.Id = r.Id
-      AND ((r.ResourceId <= @maxResourceId AND r2.Version > r.Version) OR
-           (r.ResourceId > @maxResourceId AND r2.Version < @maxResourceId))
+      AND ((r.ResourceSurrogateId <= @maxResourceSurrogateId AND r2.Version > r.Version) OR
+           (r.ResourceSurrogateId > @maxResourceSurrogateId AND r2.Version < @maxResourceSurrogateId))
 )
 ```
+
+### Paging and Slow Queries
+
+Some complex population-level queries can be slow to execute (many seconds or even minutes), and often the entire resultset needs to be computed by the database to retrieve a particular page. So it's not hard to create examples of queries that can take minutes to execute per page. A much more efficient approach would be to to snapshot the query result's resource surrogate IDs in tempDB and base the paged requests on this snapshot. Clients would have a certain amount of time to fetch the next page of data before the snapshot is discarded.
+
+This approach is obviously more complex. We would need to have a recurring task that purges these result sets. We would need to be concerned about tempdb storage exhaustion. And we would need to he careful that RBAC roles of the principal have not changed in between requests.
 
 ## Total
 
@@ -397,7 +459,7 @@ Inserting a resource involves writes to potentially all tables. We will be using
 ``` SQL
 BEGIN TRANSACTION
 
-DECLARE @resourceId bigint
+DECLARE @resourceSurrogateId bigint
 DECLARE @version int = SELECT MAX(Version) FROM dbo.Resource WHERE ResourceTypeId = @resourceTypeId AND Id = @id) + 1
 
 IF @version IS NULL
@@ -406,11 +468,11 @@ IF @version IS NULL
 INSERT INTO dbo.Resource
 (ResourceTypeId, Id, Version, LastUpdated, RawResource)
 VALUES (@resourceTypeId, @id, @version, SYSUTCDATETIME(), @rawResource)
-SET @resourceId = SCOPE_IDENTITY();
+SET @resourceSurrogateId = SCOPE_IDENTITY();
 
 INSERT INTO dbo.StringSearchParam
-(ResourceTypeId, ResourceId, SearchParamId, CompositeInstanceId, Value)
-SELECT ResourceTypeId, @resourceId, SearchParamId, CompositeInstanceId, Value FROM @tvpStringSearchParam
+(ResourceTypeId, ResourceSurrogateId, SearchParamId, CompositeInstanceId, Value)
+SELECT ResourceTypeId, @resourceSurrogateId, SearchParamId, CompositeInstanceId, Value FROM @tvpStringSearchParam
 
 INSERT INTO dbo.TokenText (Hash, Text)
 SELECT Hash, Text
@@ -418,12 +480,12 @@ FROM @tvpTokenText p
 WHERE NOT EXISTS (SELECT 1 FROM dbo.TokenText where [Hash] = p.Hash)
 
 INSERT INTO dbo.TokenSearchParam
-(ResourceTypeId, ResourceId, SearchParamId, CompositeInstanceId, System, Code, TextHash)
-SELECT ResourceTypeId, @resourceId, SearchParamId, CompositeInstanceId, System, Code, TextHash FROM @tvpTokenSearchParam
+(ResourceTypeId, ResourceSurrogateId, SearchParamId, CompositeInstanceId, System, Code, TextHash)
+SELECT ResourceTypeId, @resourceSurrogateId, SearchParamId, CompositeInstanceId, System, Code, TextHash FROM @tvpTokenSearchParam
 
 INSERT INTO dbo.DateSearchParam
-(ResourceTypeId, ResourceId, SearchParamId, CompositeInstanceId, StartTime, EndTime)
-SELECT ResourceTypeId, @resourceId, SearchParamId, CompositeInstanceId, StartTime, EndTime FROM @tvpDateSearchParam
+(ResourceTypeId, ResourceSurrogateId, SearchParamId, CompositeInstanceId, StartTime, EndTime)
+SELECT ResourceTypeId, @resourceSurrogateId, SearchParamId, CompositeInstanceId, StartTime, EndTime FROM @tvpDateSearchParam
 
 DECLARE @dummy int
 DECLARE @uriMerged TABLE ([UriId] int, [Uri] varchar(512))
@@ -438,23 +500,23 @@ WHEN MATCHED THEN
 OUTPUT inserted.* INTO @uriMerged;
 
 INSERT INTO dbo.ReferenceSearchParam
-(ResourceTypeId, ResourceId, SearchParamId, CompositeInstanceId, BaseUriId, ReferenceResourceTypeId, ReferenceResourceId)
-SELECT p.ResourceTypeId, @resourceId, p.SearchParamId, p.CompositeInstanceId, m.UriId, p.ReferenceResourceTypeId, p.ReferenceResourceId
+(ResourceTypeId, ResourceSurrogateId, SearchParamId, CompositeInstanceId, BaseUriId, ReferenceResourceTypeId, ReferenceResourceSurrogateId)
+SELECT p.ResourceTypeId, @resourceSurrogateId, p.SearchParamId, p.CompositeInstanceId, m.UriId, p.ReferenceResourceTypeId, p.ReferenceResourceSurrogateId
 FROM @tvpReferenceSearchParam p
 LEFT JOIN @uriMerged m
 ON p.[BaseUri] = m.[Uri]
 
 INSERT INTO dbo.QuantitySearchParam
-(ResourceTypeId, ResourceId, SearchParamId, CompositeInstanceId, System, Code, Quantity)
-SELECT ResourceTypeId, @resourceId, SearchParamId, CompositeInstanceId, System, Code, Quantity FROM @tvpQuantitySearchParam
+(ResourceTypeId, ResourceSurrogateId, SearchParamId, CompositeInstanceId, System, Code, Quantity)
+SELECT ResourceTypeId, @resourceSurrogateId, SearchParamId, CompositeInstanceId, System, Code, Quantity FROM @tvpQuantitySearchParam
 
 INSERT INTO dbo.NumberSearchParam
-(ResourceTypeId, ResourceId, SearchParamId, CompositeInstanceId, Number)
-SELECT ResourceTypeId, @resourceId, SearchParamId, CompositeInstanceId, Number FROM @tvpNumberSearchParam
+(ResourceTypeId, ResourceSurrogateId, SearchParamId, CompositeInstanceId, Number)
+SELECT ResourceTypeId, @resourceSurrogateId, SearchParamId, CompositeInstanceId, Number FROM @tvpNumberSearchParam
 
 INSERT INTO dbo.UriSearchParam
-(ResourceTypeId, ResourceId, SearchParamId, CompositeInstanceId, Uri)
-SELECT ResourceTypeId, @resourceId, SearchParamId, CompositeInstanceId, Uri FROM @tvpUriSearchParam
+(ResourceTypeId, ResourceSurrogateId, SearchParamId, CompositeInstanceId, Uri)
+SELECT ResourceTypeId, @resourceSurrogateId, SearchParamId, CompositeInstanceId, Uri FROM @tvpUriSearchParam
 
 COMMIT TRANSACTION
 
@@ -477,6 +539,18 @@ For this reason, we will enable [Read Committed Snapshot Isolation (RCSI)](https
 
 During updates, we run the risk of both versions of a resource appearing in a search result. RCSI will be our solution here too.
 
+## Ingestion Performance
+
+After doing some experiments, we found ingestion performance against a Premium tier 8-core Azure SQL instance to be capped at around 8k-10k patients per hour. The bottleneck is page latch contention because all concurrent writes are writing to the same pages because of the resource surrogate ID sequence. 
+
+Eliminating the surrogate ID was about 2x slower. Using a pool of sequences improves performance somewhat, but it was not a major breakthough.
+
+Modifying the insert stored procedure to process a patient bundle at a time improved performace to 48k patients per hour.
+
+### In-Memory Tables
+
+To improve the performance of single-resource writes though the HTTP endpoint, particularly loads that are very spiky, we can consider the ["shock absorber" or "landing pad"](https://cloudblogs.microsoft.com/sqlserver/2013/09/19/in-memory-oltp-common-design-pattern-high-data-input-rateshock-absorber/) design pattern. This pattern uses in-memory tables to ingest data, and periodically moves the rows to disk-based tables.
+
 ### Transactions
 
 While we will not be implementing fhir [transactions](https://www.hl7.org/fhir/http.html#transaction) right away, we will need to think about what the appropriate isolation level should be. Serializable is the most predictable, but throughput will suffer if many concurrent transactions read or write the same data.
@@ -497,7 +571,61 @@ So we will need a structured way of specifying which configuration combinations 
 
 Also, some tests will only apply to certain configurations. For example, tests that verify search parameter chaining should not run against Cosmos DB, where the functionality is not supported.
 
-How exactly we achieve this (scripts? an xunit extension? lots of test class inheritance? code generation?) will be small (or not so small) effort in itself.
+We will develop an extension to [xUnit.net](https://github.com/xunit/xunit) that will allow parameterizing a test fixture's constructor. 
+
+A test class can look something like this:
+
+``` csharp
+[FixtureVariants(FhirVersion.Stu3 | FhirVersion.R4, DataStore.Sql | DataStore.Cosmos)]
+public class MyTests : IClassFixture<MyFixture>
+{
+    private readonly ITestOutputHelper _output;
+    private readonly MyFixture _myFixture;
+
+    public MyTests(ITestOutputHelper output, MyFixture myFixture)
+    {
+        _output = output;
+        _myFixture = myFixture;
+    }
+
+    [FhirVariantFact]
+    public void MyTest()
+    {
+        _output.WriteLine(_myFixture.DataStore.ToString());
+        _output.WriteLine(_myFixture.FhirVersion.ToString());
+    }
+
+    [FhirVariantFact(dataStore: DataStore.Sql)]
+    public void SqlOnlyTest()
+    {
+        _output.WriteLine(_myFixture.DataStore.ToString());
+        _output.WriteLine(_myFixture.FhirVersion.ToString());
+    }
+}
+```
+
+The the class uses a fixture that can look like this:
+
+``` csharp
+public class MyFixture
+{
+    public DataStore DataStore { get; }
+    public FhirVersion FhirVersion { get; }
+
+    public MyFixture(FhirVersion fhirVersion, DataStore dataStore)
+    {
+        DataStore = dataStore;
+        FhirVersion = fhirVersion;
+
+        // Initialize based on data store and FHIR version...
+
+    }
+}
+```
+
+With a custom xUnit `XunitTestFramework` implementation, we can create synthetic test classes for the cartesian product or variant combinations, each of which will instantiate a fixture with one of the supported combinations of variants.
+
+![xUnit tests in VS](images/xunit-tests.png)  
 
 # Security
 
