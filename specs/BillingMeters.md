@@ -17,7 +17,7 @@ Following are the scenarios that we want to bill customers for our service usage
     - Cosmos DB Storage usage
     - Network egress for replication between regions if Geo-Redundancy is enabled
     - Network egress for traffic from service to the internet
-* Custom meeter
+* Custom meter
     - Azure API for FHIR /h charge for using the service. We start charging this meter after service is created and then keep emitting
 
 # Metrics
@@ -25,22 +25,22 @@ Following are the scenarios that we want to bill customers for our service usage
 
 # Design
 
-## Cosmoms DB
+## Cosmos DB
 When emitting meeters in billing agent, we will emit two Cosmos DB specific meeters. Every hour we will emit RU meeter GUID for the amount of RU that is provisioned on Cosmos DB(unit is 100 RU) into customer subscription. On top of that we will also emit Cosmos DB storage usage to customer subscription.
 
 For Azure API for FHIR per hour usage, we will emit our meter GUID to customer subscription for every hour of service use for every scale unit. If customer had Geo-Redundancy setting, we will emit charge for every account in another paired region.
 
-In case customer uses more than one scale unit of service (performance reasion), we will emit factor of that to the customer subscription. For example if customer has two scale units of service running in our cluster, we will emit two meeters per hour to their subscription.
+In case customer uses more than one scale unit of service (performance reason), we will emit factor of that to the customer subscription. For example if customer has two scale units of service running in our cluster, we will emit two meeters per hour to their subscription.
 
-On top of that we will emit network egress meter with the amount of data consumed in region to region traffic, ter service to the internet trffic.
+On top of that we will emit network egress meter with the amount of data consumed in region to region traffic and network traffic from service to the internet.
 
 # Test Strategy
 
-N/A
+
 
 # Security
 
-N/A
+
 
 # Other
 
