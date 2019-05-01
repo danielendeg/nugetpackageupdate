@@ -1,9 +1,9 @@
 # Metrics and Diagnostic Logs - Shoebox onboarding
 
 For customers to monitor the service, we need to surface different performance counters and diagnostic logs. There are two types of logs we want to expose:
-	
-	* Diagnostics logs: This are various system and security logs and metrics from the service that customer can pipe into their Storage Account, Stream to event hub or send to Log Analytics
-	* Metrics: This are various performance counters that we can show on Metrics dashboard, where customer can see the performance of the service, size of the database etc (see Scenarios)
+
+* Diagnostics logs: This are various system and security logs and metrics from the service that customer can pipe into their Storage Account, Stream to event hub or send to Log Analytics
+* Metrics: This are various performance counters that we can show on Metrics dashboard, where customer can see the performance of the service, size of the database etc (see Scenarios)
 
 [[_TOC_]]
 
