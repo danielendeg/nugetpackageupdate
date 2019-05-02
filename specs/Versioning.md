@@ -20,7 +20,7 @@ The versions that are in scope today are v3.0.1 and v4.0.0 only
 ## Requirements
 ### Selecting the version of the FHIR 
 - Customers should be able to select which version of the FHIR specificaion they would like to deploy when creating Azure API for FHIR. 
-- The option to make this selection should be offered in the "Additional Selections" tab
+- The option to make this selection should be offered in the "Additional Settings" tab
 - The field should be name "FHIR version"
 - The field should be a required field
 - All version options should be made available via a drop downbox and should be listed in descending order
