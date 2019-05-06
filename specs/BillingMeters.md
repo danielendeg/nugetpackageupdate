@@ -26,7 +26,7 @@ Following are the scenarios that we want to bill customers for our service usage
 # Design
 
 ## Cosmos DB
-When emitting meeters in billing agent, we will emit two Cosmos DB specific meeters. Every hour we will emit RU meeter GUID for the amount of RU that is provisioned on Cosmos DB(unit is 100 RU) into customer subscription. On top of that we will also emit Cosmos DB storage usage to customer subscription.
+When emitting meters in billing agent, we will emit two Cosmos DB specific meeters. Every hour we will emit RU meeter GUID for the amount of RU that is provisioned on Cosmos DB(unit is 100 RU) into customer subscription. On top of that we will also emit Cosmos DB storage usage to customer subscription.
 
 For Azure API for FHIR per hour usage, we will emit our meter GUID to customer subscription for every hour of service use for every scale unit. If customer had Geo-Redundancy setting, we will emit charge for every account in another paired region.
 

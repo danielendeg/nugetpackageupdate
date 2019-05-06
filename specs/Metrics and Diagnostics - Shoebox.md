@@ -2,8 +2,8 @@
 
 For customers to monitor the service, we need to surface different metrics and diagnostic logs. There are two types of logs we want to expose:
 
-* Diagnostics logs: This are various system and security logs and metrics from the service that customer can pipe into their Storage Account, Stream to event hub or send to Log Analytics
-* Metrics: This are various performance counters that we can show on Metrics dashboard, where customer can see the performance of the service, size of the database etc (see Scenarios)
+* Diagnostics logs: These are various system and security logs and metrics from the service that customers can pipe into their Storage Account, Stream to event hub or send to Log Analytics
+* Metrics: These are various metrics that we can show on Metrics dashboard, where customer can see the performance of the service, size of the database etc (see Scenarios)
 
 [[_TOC_]]
 
@@ -20,7 +20,6 @@ Access to Metrics and diagnostics logs are core requirement by any customer in o
 				- Critical, Error, Warning, Information
 * Metrics
 	+ Overview
-		- Show current regions where service is running (world map)
         - Number of API Calls (Total, per second) - (averaged over a minute)
         - Statistic over what operations were performed on FHIR
         - Status Code returned for operations
