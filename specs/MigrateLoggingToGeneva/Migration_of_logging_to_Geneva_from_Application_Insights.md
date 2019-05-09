@@ -25,7 +25,7 @@ We will remove AI logging from the code, clean up the AI connector and AI tables
 ### ETW logging
 If we choose to go the route of custom ETW events then we can use the Ifx user defined events. For these you would not need to install the custom schema for each event on the Windows machine you are running on.  You need to intialize an ifx session in order to emit the logs from your service to ETW. This allows IFX and MA to know what the generated eventIds will be by allowing them to access a shared memory space to hand off the ids.  We currently do this IFX initialization for the ifx audit logger.  For the custom properties in an event you would create a .bond file, in your source project, which contains structs used to define what properties will be added to the event.  There is a standard set of properties that will be added to the event as well.  Those schemas are defined here https://microsoft.sharepoint.com/teams/WAG/EngSys/Monitor/AmdWiki/Common%20Schema.aspx The "sessionName" in the mds config file is the same name you will use when initializing the IFX logger.  We need to create an event structure that we can safely use in the OSS implementaion of the FHIR Server.  We can have some common columns between the two implementations and leave free form json column for custom things.  That would allow us to quickly query some things and then parse the custom column when we need more information.
 
-We can create an IfxEventLogger class similar to what we already have for the IFX Audit logging (ILogger implementation).  We can use the custom events with the Audit schema if we find that useful.  The Ifx Correlation Context can set an activity id based on the asp .net correlation id we generate for a particular web request to associate these ETW logs.  The correlation context api allows us to pass the context across thread, process and machine boundaries by saving the context to a blob and then retreiving it on the other side.  For Audit Logs we should be able to set the Activity Id and other Event Schemas have a Correlation Vector. The caveat is that the tooling used to decode these correlation vectors are no longer being developed with new features, but the tools and API are not being decomissioned.  Geneva mentioned using the Codex package (https://codex.microsoft.com) which is IFX logging compatible and has great tooling around using the correlation vectors for tracing and debugging.  However, the financial cost for the Codex service and what they offer is more than what we need and does not fit as a great option.  A note here is that there are no plans to remove the tooling or the Correlation Context API as larger teams like Azure Compute are heavily reliant on this api.  If the tooling has the type of data we need and we don't care about new features then we would still use this.
+We can create an IfxEventLogger class implemented as an ILogger implementation.  We can use the custom events with the Audit schema if we find that useful.  The Ifx Correlation Context can set an activity id based on the asp .net correlation id we generate for a particular web request to associate these ETW logs.  The correlation context api allows us to pass the context across thread, process and machine boundaries by saving the context to a blob and then retreiving it on the other side.  For Audit Logs we should be able to set the Activity Id and other Event Schemas have a Correlation Vector. The caveat is that the tooling used to decode these correlation vectors are no longer being developed with new features, but the tools and API are not being decomissioned.  Geneva mentioned using the Codex package (https://codex.microsoft.com) which is IFX logging compatible and has great tooling around using the correlation vectors for tracing and debugging.  However, the financial cost for the Codex service and what they offer is more than what we need and does not fit as a great option.  A note here is that there are no plans to remove the tooling or the Correlation Context API as larger teams like Azure Compute are heavily reliant on this api.  If the tooling has the type of data we need and we don't care about new features then we would still use this.
 
 Bond file example
 ``` C#
@@ -37,31 +37,80 @@ struct MyOperationEventPartC:Ifx.OperationSchema
 	10: required wstring PartCField1;
 	20: required wstring PartCField2;
 };
+
+struct MyPartAEventPartC:Ifx.PartASchema
+{
+	10: required wstring PartCField1;
+	20: required wstring PartCField2;
+};
 ```
 C# Usage
 ``` C#
-   using MyNamespace;
-   ...
-            MyNamespace.MyOperationEventPartC myOpEvent = new MyNamespace.MyOperationEventPartC
-            {
-                PartCField1 = "PartC Field 1",
-                PartCField2 = "PartC Field 2"
-            };
+using MyNamespace;
+public class IfxEventLogger : ILogger
+{
+	public IfxEventLogger()
+	{
+		IfxInitializer.Initialize("AuditLog");
+	}
 
-            /*
-             * Instrumenting an internal call.
-             */
+	...
 
-            // The default operation type of a newly created operation is Internal call.
-            // Once we exit the using statement the log is emitted to the ETW
-            using (ExtendedOperation<MyNamespace.MyOperationEventPartC> operation = new ExtendedOperation<MyNamespace.MyOperationEventPartC>("Internal Call"))
-            {
-                // Set PartC.
-                operation.PartC = myOpEvent;
+	public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception exception, Func<TState, Exception, string> formatter)
+	{
+		// Use the state to parse Key values pairs and assign them to the columns or have 
+		// all the common properties passed into the IfxEventLogger when it gets instantiated
+		var stateDictionary = state as IReadOnlyList<KeyValuePair<string, object>>;
 
-                // Set result for the operation.
-                operation.SetResult(OperationResult.Success);
-            }
+		MyNamespace.MyOperationEventPartC myOpEvent = new MyNamespace.MyOperationEventPartC
+		{
+			PartCField1 = "PartC Field 1",
+			PartCField2 = "PartC Field 2"
+		};
+
+		MyNamespace.MyPartAEventPartC myPartAEvent = new MyNamespace.MyPartAEventPartC
+		{
+			PartCField1 = "PartC Field 1",
+			PartCField2 = "PartC Field 2"
+		};
+
+		/*
+		* Instrumenting an internal call.
+		*/
+
+		// The default operation type of a newly created operation is Internal call.
+		// Once we exit the using statement the log is emitted to the ETW
+		// Duration and operation end time for this specific operation are also added.  
+		// However, this will not be useful in an ILogger implementation
+		using (ExtendedOperation<MyNamespace.MyOperationEventPartC> operation = new ExtendedOperation<MyNamespace.MyOperationEventPartC>("Internal Call"))
+		{
+			// Set PartC.
+			operation.PartC = myOpEvent;
+			// Set result for the operation.
+			operation.SetResult(OperationResult.Success);
+		}
+
+		// Or is you wanted to pass in duration and operation end time for the event you could do the below.
+		// However, you cannot use the PartC Schema and you add everything as one string in the resultDescription.
+
+		Operation.Log(
+			"Test Operation", // Operation Name
+			"1.0", // Operation version
+			"123.123.123.123", // Caller IP Address
+			null, // target endpoint address
+			OperationApiType.InternalCall,
+			OperationResult.Success,
+			"Read 1000 bytes", // resultSignature
+			"File: abc.txt", // resultDescription
+			new DateTime(2017, 12, 31, 14, 15, 35), // Operation end time
+			111222, // duration in milliseconds
+			false, // does not impact qos i.e. emit operation event
+			"some resource type",
+			"some resource id");
+
+		// You can log a non-operation event if you use just PartA Schema instead of the Operation Schema
+		IfxEvent.Log(myPartAEvent);
+	}
 ```
 
 Example MDS Config (This is a snipet of what would be added for the events in the bond file above)
@@ -92,7 +141,11 @@ Example MDS Config (This is a snipet of what would be added for the events in th
 ```
 
 ### Performance Counters
-We are not using any custom performance counters currently.  There are some counters which are not a part of the .Net Core CLR.  If we can see the perf counters using Perf Mon then the Monitoring Agent can read those.  If we expose any perf counter via ETW, EventSource for Event Tracing those can also be picked up with the Monitoring agent.  However, if we want counters like the error rate then we would have to consume the ILogger entries for Kesteral and use those to create metrics.  There is documentation on turning logs into metrics for Geneva.  This would allow emitting those metrics to the Hot Path.  I also did some digging in the Kestrel source code to see where they are logging to.  They do have an EventSource logger with the event name of "Microsoft-AspNetCore-Server-Kestrel".  It is more efficient to emit metrics from our code directly, but since kestrel is outside our code base this is an alternative.  We can use EventCounters for .Net Core to create metrics we would like to see as part of our code.  
+We are not using any custom performance counters currently.  There are some counters which are not a part of the .Net Core CLR.  For any exsiting counters, if we can see the perf counters using Perf Mon then the Monitoring Agent can read those and we only need to add them to the MDS config to start consuming them.  
+
+If we expose any perf counters via ETW, EventSource or Event Tracing those can also be picked up with the Monitoring agent and pushed to the Warm path.  We could then set up a connector with conversion rules for each log we want to turn into metrics.  These metrics would be availalble in the Hot path in 5-20 minutes after being emitted for the monitoring agent to collect.  Not ideal as you can no longer rely on those metrics for ICM events.  The Hot Path will only take new data up to 20 minutes old.  If the data is delayed for processing and ends up out of that window then the data is ignored in the Hot Path.
+
+If we want counters like the error rate then we could consume the ILogger entries for Kesteral and use those to create metrics.  Then use the above process to allow emitting those metrics to the Hot Path.  I also did some digging in the Kestrel source code to see where they are logging to.  They do have an EventSource logger with the event name of "Microsoft-AspNetCore-Server-Kestrel".  It is more efficient to emit Ifx metrics from our code directly, but since kestrel is outside our code base this is an alternative.  There is a performance hit for collecting these metrics using Derived Events as it may overload the monitoring agent if we have too many Event rules or logs to process and we could end up losing logs as the Derived Event processing is low priority for the monitoring agent.  Using CentralBond, instead of locally on the machine, to do the Derviced Events is even worse and cannot handle much of a load for this process.
 
 
 Here are the current Perf Counters we currently collect and push to Geneva Hot Path.  
@@ -227,6 +280,23 @@ https://genevamondocs.azurewebsites.net/collect/references/ifxref/ifxCorrelation
 The AI Connector for Geneva is not supported for the Test Geneva endpoint.  So we can only send the Prod AI logs to Geneva, which can be annoying having to look in a different place for logs in the test environment.
 
 For the IFX Audit logger we only have a single column to use which makes querying the data more of a chore and slower with all the parsing of the data in the column.  The audit logger was not meant for debugging logs.  We should use custom IFX events for debugging data.  This would allow us to create custom events and give us more control over the content of the log. See ETW Logging section above.
+
+### Common Properties for new Event Schema Logs
+* Standard set of environment information for all logs
+    - ServiceFabric ServiceTypeName
+    - ServiceFabric ServiceName
+    - ServiceFabric ServiceManifestVersion
+    - ServiceFabric ReplicaOrInstanceId
+    - ServiceFabric NodeType
+    - ServiceFabric NodeName
+    - ServiceFabric PublishAddress
+    - ServiceFabric ClusterName
+    - ServiceEnvironment GroupName
+    - ServiceEnvironment Name
+    - ServiceEnvironment AzureSubscriptionName
+* Custom Dimensions field to contain a key:value json string
+    - This will contain any data specific to a particular service that is useful.
+    - This will include the original log message, containing the key-value pairs, and the format string used for the log.
 
 ## Test Strategy
 We can create separate tables in the Dgrep so we can compare data flowing in from Application Insights and what we are capturing through the Monitoring Agent.  Once confirmed we can turn off the Application Insights logging.
