@@ -294,7 +294,7 @@ The other approach would be to generate a table for each combination of paramete
 - Token$Date
 - Token$Quantity
 - Token$String
-- Token$Number$Number.
+- Token\$Number\$Number.
 
 The query for the same search as before would now look something like this:
 
