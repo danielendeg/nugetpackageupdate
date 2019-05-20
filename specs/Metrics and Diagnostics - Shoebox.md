@@ -14,23 +14,23 @@ Access to Metrics and diagnostics logs are core requirement by any customer in o
 # Scenarios
 
 * Diagnostics logs:
-    + Security Logs (Data plane):
+    + Security Logs (Data plane): - P1
         - CRUD operations on the service (Read, Write, Update, Delete)
-		+ Application Logs:
-				- Critical, Error, Warning, Information
+    + Application Logs:
+        - Critical, Error, Warning, Information - P1
 * Metrics
 	+ Overview
-        - Number of API Calls (Total, per second) - (averaged over a minute)
-        - Statistic over what operations were performed on FHIR
-        - Status Code returned for operations
-        - CPU time, Memory working set and number of connections to the service
+        - Number of API Calls (Total, per second) - (averaged over a minute) - P1
+        - Statistic over what operations were performed on FHIR - P2
+        - Status Code returned for operations - P2
+        - CPU time, Memory working set and number of connections to the service - P1
 	+ Database
 		- Cosmos DB Average throughput RU/s) - averaged over a minute
-        - Cosmos DB Database Size in B 
-        - Cosmos DB Index Size in B 
-        - Cosmos DB Number of requests exceeded capacity (agregated over 1 minute interval) - Http 429
+        - Cosmos DB Database Size in B - P1
+        - Cosmos DB Index Size in B - P2
+        - Cosmos DB Number of requests exceeded capacity (agregated over 1 minute interval) - Http 429 - P1
 	+ Availability
-        - Availabiliy of the service against defined [SLA](../roadmap/SLA.md#introduction)
+        - Availabiliy of the service against defined [SLA](../roadmap/SLA.md#introduction) - P2
 
 # Metrics
 
