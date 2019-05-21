@@ -46,7 +46,6 @@ Ring 2 requires us to be in all Hero regions withing 30 days of GA. To satisfy A
 |UK South (Public / United Kingdom) |Hero|**UK West (Public / United Kingdom)*** |Satellite|Yes |
 |Australia East (Public / Australia) |Hero | ||No|
 |Southeast Asia (Public / Asia Pacific) |Hero | ||No |
-|Sweden Central (Public / Sweden) |Hero|||No |
 
 ***Note**: UK West (Public / United Kingdom) and North Central US (Public / United States)  are Satellite/Hub regions, but we are already deployed there and use them for HA.
 
@@ -69,7 +68,6 @@ Currently Azure API for FHIR sits in Ring 1 (moved from Ring 2). Current Azure r
 |Germany West Central (Public / Germany)|Hub|| |No|
 |Switzerland North (Public / Switzerland)|Hub|| |No|
 |Norway East (Public / Norway)|Hub|||No|
-|Sweden Central (Public / Sweden)|Hero|||No|
 |East Asia (Public / Asia Pacific)|Hub|Southeast Asia (Public / Asia Pacific)|Hero|Yes|
 |Brazil South (Public / Brazil)|Hub|||No|
 |Australia East (Public / Australia)|Hero|||No|
@@ -123,7 +121,6 @@ For Ring 2 service we need to be in all Hero regions by GA + 30 days.
 |25|Germany West Central|Hub|Feb 2020||
 |26|Brazil South|Hub|Feb 2020||
 |27|Norway East|Hub|Feb 2020|
-|28|Sweden Central|Hero|September 2019||
 |29|**UK West**|Satellite|Nov 2018||
 
 ## Service scaling
@@ -162,7 +159,6 @@ For GA time frame we should follow Ring 2 expansion plan as it is a subset of Ri
     + North Europe,
     + UK South,
     + Southeast Asia,
-    + Sweden Central,
     + Australia East
 
 #### Suggested VSTS user stories
@@ -177,7 +173,6 @@ For GA time frame we should follow Ring 2 expansion plan as it is a subset of Ri
 |Deploy in North Europe (Public / Europe)|||
 |Deploy in UK South (Public / United Kingdom)|||
 |Deploy in Southeast Asia (Public / Asia Pacific)|||
-|Deploy in Sweden Central (Public / Sweden)|||
 |Deploy in Australia East (Public / Australia)|||
 |Update ARM manifest with new endpoints|||
 |Update Billing with region specific Billing meeters|||
