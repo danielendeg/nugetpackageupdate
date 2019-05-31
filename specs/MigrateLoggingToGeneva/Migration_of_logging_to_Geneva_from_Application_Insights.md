@@ -9,144 +9,55 @@ The purpose is to have all logging captured by the Geneva Monitoring Agent rathe
 We will do this work in phases.  For a time, we will have logs from both AI and the Monitoring Agent.  We will send the monitoring agent logs (where applicable) to their own tables so we do not make it look like there are twice as many exceptions.  Once we are satisfied that we are capturing what we need, we can start to add our ICM alerting, adjust or move queries to use the new tables and set up new synthetic transactions.  The final phase will be to remove the Application Insights logging.
 
 ### Phase 0
-In this phase we will we prototyping a few things to make sure it aligns with what we need for PaaS and OSS.  
+In this phase we will be prototyping a few things to make sure it aligns with what we need for PaaS and OSS.  
 * Kestrel Logging and turning it into metrics. 
 * IFX Custom Event logging and the ILogger implmentation.
+* 1DS SDK and new Microsoft.Logging.Extensions.ApplicationInsights LoggingProvider.
 
 ### Phase 1
-In this phase the goal is to reach 100% parity with what we are currently logging for Application Insights.  This includes ETW logs, Perf Counters, health reporting and web requests.  We will tackle a single service at a time in this phase.  Once all services have reached an appropriate level of parity we will move to Phase 2.
+In this phase the goal is to reach 100% parity with what we are currently logging for Application Insights.  This includes ETW logs, Perf Counters, health reporting and web requests.  We will upgrade the current Application Insights nuget packages to add support for using telemetry channels for both Geneva and AI. This will allow using the current AI hooks, but also emitting that data directly to the Geneva monitoring agent.  This is helpful as in phase 3 we can just remove the AI channel from all the projects to stop emitting to AI in Azure. After the upgrade, we will tackle a single service at a time, by adding both channels and the trackTrace and trackException code (as an ILogger implementation). This is done to get the custom properties from our enrichers as the new AI Logging Provider does not support adding a modified TelemetryConfiguration, which is where our custom properties are stored and this would allow only supporting the default AI in memory channel.  Once all services have reached an appropriate level of parity we will move to Phase 2.
 
 ### Phase 2
-Here we will create our ICM Alerting correlation rules based on the new tables in Geneva.  Set up the connector to stream logs from Geneva to Kusto and then from Kusto to PowerBI.  Then update all our existing Kusto and PowerBI queries.
+Here we will create our ICM Alerting correlation rules based on the new tables in Geneva.  Set up the connector to stream logs from Geneva to Kusto and then from Kusto to PowerBI.  Then update all our existing Kusto and PowerBI queries. We will also replace the current AI synthetic web tests with Geneva Synthetics.
 
 ### Phase 3
-We will remove AI logging from the code, clean up the AI connector and AI tables from Geneva, remove AI ICM alerts where applicable and clean up any necessary Azure assests for AI and update deployment scripts and ARM templates where needed.
+We will remove the AI channel from all projects, clean up the AI connector and AI tables from Geneva, remove AI ICM alerts where applicable and clean up any necessary Azure assests (runbooks, webtests, and Icm Connector) for AI and update deployment scripts and ARM templates where needed.
 
 ### ETW logging
-If we choose to go the route of custom ETW events then we can use the Ifx user defined events. For these you would not need to install the custom schema for each event on the Windows machine you are running on.  You need to intialize an ifx session in order to emit the logs from your service to ETW. This allows IFX and MA to know what the generated eventIds will be by allowing them to access a shared memory space to hand off the ids.  We currently do this IFX initialization for the ifx audit logger.  For the custom properties in an event you would create a .bond file, in your source project, which contains structs used to define what properties will be added to the event.  There is a standard set of properties that will be added to the event as well.  Those schemas are defined here https://microsoft.sharepoint.com/teams/WAG/EngSys/Monitor/AmdWiki/Common%20Schema.aspx The "sessionName" in the mds config file is the same name you will use when initializing the IFX logger.  We need to create an event structure that we can safely use in the OSS implementaion of the FHIR Server.  We can have some common columns between the two implementations and leave free form json column for custom things.  That would allow us to quickly query some things and then parse the custom column when we need more information.
+There are several different approaches here.  There is instrumenting with IFX, logging straight to EventSource, or using the 1DS SDK. After prototyping all 3 options using the 1DS SDK (updated Application Insights nugets to use telemetry channels) was chosen.  This would allow using the existing Application Insights code and adding telemetry channels for emitting the data.  We will add a channel for AI and one for Geneva.  There is some code updating as some of the AddApplicationsInsights extensions are being removed in favor of a new extension.  This is due partially because the AI Logging provider has been split off into the Microsoft.Logging.Extensions namespace.  The new provider does not use any modified TelemetryConfiguration, it creates a default configuration that uses the AI in memory channel only and this behavior cannot be overridden. As an alternative, we will implement a LoggingProvider that uses TelemetryConfiguration.TrackTrace and TelemetryConfiguration.TrackException.  This will allow us to use our existing Logger messages and will allow us to use the logger enrichers and filters we already have for telemetry.  The custom properties will show up each as their own column in the DGrep TracingTelemetry and ExceptionTelemetry respectively.
 
-We can create an IfxEventLogger class implemented as an ILogger implementation.  We can use the custom events with the Audit schema if we find that useful.  The Ifx Correlation Context can set an activity id based on the asp .net correlation id we generate for a particular web request to associate these ETW logs.  The correlation context api allows us to pass the context across thread, process and machine boundaries by saving the context to a blob and then retreiving it on the other side.  For Audit Logs we should be able to set the Activity Id and other Event Schemas have a Correlation Vector. The caveat is that the tooling used to decode these correlation vectors are no longer being developed with new features, but the tools and API are not being decomissioned.  Geneva mentioned using the Codex package (https://codex.microsoft.com) which is IFX logging compatible and has great tooling around using the correlation vectors for tracing and debugging.  However, the financial cost for the Codex service and what they offer is more than what we need and does not fit as a great option.  A note here is that there are no plans to remove the tooling or the Correlation Context API as larger teams like Azure Compute are heavily reliant on this api.  If the tooling has the type of data we need and we don't care about new features then we would still use this.
+IFX was not chosen as it is not as actively being worked on as Geneva seems to be pushing people to use 1DS to instrument if they are not already using IFX. Also, the IFX Correlation API does not have any tools available to support using the correlation vector that is generated.  The alternative is to use Codex which is expensive and overkill for our use of correlation vector and correlation id.  IFX does offer creating a custom event schema, but would require us to create new enrichers and log filters to work with IFX events and operations.  Also, maintaining a bond file for custom event and operation schemas can get annoying as any new common property we want to add will require modification to both code and the bond file.
 
-Bond file example
-``` C#
-import "Ifx.bond"
+For EventSource we would have to capture all events from the Applications event log table and filter by the event names we want, either at the Monitoring agent config level or in DGREP when querying the tables.  EventSource has a standard schema which is a plus and minus. The downside is we only get one field which is a standard string and we would have to format our messages to make them more easily parsable. 
 
-namespace MyNamespace
-struct MyOperationEventPartC:Ifx.OperationSchema
-{
-	10: required wstring PartCField1;
-	20: required wstring PartCField2;
-};
-
-struct MyPartAEventPartC:Ifx.PartASchema
-{
-	10: required wstring PartCField1;
-	20: required wstring PartCField2;
-};
-```
-C# Usage
-``` C#
-using MyNamespace;
-public class IfxEventLogger : ILogger
-{
-	public IfxEventLogger()
-	{
-		IfxInitializer.Initialize("AuditLog");
-	}
-
-	...
-
-	public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception exception, Func<TState, Exception, string> formatter)
-	{
-		// Use the state to parse Key values pairs and assign them to the columns or have 
-		// all the common properties passed into the IfxEventLogger when it gets instantiated
-		var stateDictionary = state as IReadOnlyList<KeyValuePair<string, object>>;
-
-		MyNamespace.MyOperationEventPartC myOpEvent = new MyNamespace.MyOperationEventPartC
-		{
-			PartCField1 = "PartC Field 1",
-			PartCField2 = "PartC Field 2"
-		};
-
-		MyNamespace.MyPartAEventPartC myPartAEvent = new MyNamespace.MyPartAEventPartC
-		{
-			PartCField1 = "PartC Field 1",
-			PartCField2 = "PartC Field 2"
-		};
-
-		/*
-		* Instrumenting an internal call.
-		*/
-
-		// The default operation type of a newly created operation is Internal call.
-		// Once we exit the using statement the log is emitted to the ETW
-		// Duration and operation end time for this specific operation are also added.  
-		// However, this will not be useful in an ILogger implementation
-		using (ExtendedOperation<MyNamespace.MyOperationEventPartC> operation = new ExtendedOperation<MyNamespace.MyOperationEventPartC>("Internal Call"))
-		{
-			// Set PartC.
-			operation.PartC = myOpEvent;
-			// Set result for the operation.
-			operation.SetResult(OperationResult.Success);
-		}
-
-		// Or is you wanted to pass in duration and operation end time for the event you could do the below.
-		// However, you cannot use the PartC Schema and you add everything as one string in the resultDescription.
-
-		Operation.Log(
-			"Test Operation", // Operation Name
-			"1.0", // Operation version
-			"123.123.123.123", // Caller IP Address
-			null, // target endpoint address
-			OperationApiType.InternalCall,
-			OperationResult.Success,
-			"Read 1000 bytes", // resultSignature
-			"File: abc.txt", // resultDescription
-			new DateTime(2017, 12, 31, 14, 15, 35), // Operation end time
-			111222, // duration in milliseconds
-			false, // does not impact qos i.e. emit operation event
-			"some resource type",
-			"some resource id");
-
-		// You can log a non-operation event if you use just PartA Schema instead of the Operation Schema
-		IfxEvent.Log(myPartAEvent);
-	}
-```
-
-Example MDS Config (This is a snipet of what would be added for the events in the bond file above)
+Example MDS Config (This is a snipet of what would be added for the events captured by the Geneva channel using the 1DS SDK)
 
 ``` XML
 <Events>
-    <IfxEvents sessionName="ifxsession">
-      <Event
-          id="Ifx.PartASchema/MyNamespace.MyOperationEventPartC"
-          eventName="MyOperationEventPartC" />
-    </IfxEvents>
+    <OneDSProviders>
+      <OneDSProvider name="Microsoft.OndeDSProviderTest" storeType="CentralBond">
+        <DefaultEvent eventName="OtherEvents" />
+        <Event eventName="AvailabilityTelemetry" />
+        <Event eventName="DependencyTelemetry" />
+        <Event eventName="EventTelemetry" />
+        <Event eventName="ExceptionTelemetry" />
+        <Event eventName="MetricTelemetry" />
+        <Event eventName="PageViewTelemetry" />
+        <Event eventName="RequestTelemetry" />
+        <Event eventName="TraceTelemetry" />
+      </OneDSProvider>
+    </OneDSProviders>
   </Events>
-  <!-- Populate IFx PartA fields with provided values -->
-  <EnvelopeSchema>
-    <Field name="AppVer">"My_AppVer"</Field>
-    <Field name="AppId">"My_AppId"</Field>
-    <Field name="IKey">"My_IKey"</Field>
-    <Extension name="Cloud">
-      <Field name="Name">GetEnvironmentVariable("MONITORING_TENANT")</Field>
-      <Field name="Role">GetEnvironmentVariable("MONITORING_ROLE")</Field>
-      <Field name="RoleVer">"My_Cloud_RoleVer"</Field>
-      <Field name="RoleInstance">GetEnvironmentVariable("MONITORING_ROLE_INSTANCE")</Field>
-      <Field name="Environment">"My_Environment"</Field>
-      <Field name="Location">"My_Region"</Field>
-      <Field name="DeploymentUnit">"My_Cloud_DeploymentUnit"</Field>
-    </Extension>
-  </EnvelopeSchema>
 ```
 
 ### Performance Counters
 We are not using any custom performance counters currently.  There are some counters which are not a part of the .Net Core CLR.  For any exsiting counters, if we can see the perf counters using Perf Mon then the Monitoring Agent can read those and we only need to add them to the MDS config to start consuming them.  
 
-If we expose any perf counters via ETW, EventSource or Event Tracing those can also be picked up with the Monitoring agent and pushed to the Warm path.  We could then set up a connector with conversion rules for each log we want to turn into metrics.  These metrics would be availalble in the Hot path in 5-20 minutes after being emitted for the monitoring agent to collect.  Not ideal as you can no longer rely on those metrics for ICM events.  The Hot Path will only take new data up to 20 minutes old.  If the data is delayed for processing and ends up out of that window then the data is ignored in the Hot Path.
+We can use the TelemetryConfiguration.GetMetric to create and track metrics.  These metrics can be emitted to the monitoring agent and pushed to the HotPath as long as the MDM Account is configured in the MDS Config.
 
-If we want counters like the error rate then we could consume the ILogger entries for Kesteral and use those to create metrics.  Then use the above process to allow emitting those metrics to the Hot Path.  I also did some digging in the Kestrel source code to see where they are logging to.  They do have an EventSource logger with the event name of "Microsoft-AspNetCore-Server-Kestrel".  It is more efficient to emit Ifx metrics from our code directly, but since kestrel is outside our code base this is an alternative.  There is a performance hit for collecting these metrics using Derived Events as it may overload the monitoring agent if we have too many Event rules or logs to process and we could end up losing logs as the Derived Event processing is low priority for the monitoring agent.  Using CentralBond, instead of locally on the machine, to do the Derviced Events is even worse and cannot handle much of a load for this process.
+An alternative and less efficient eay is to expose any perf counters via ETW, EventSource or Event Tracing those can also be picked up with the Monitoring agent and pushed to the Warm path.  We could then set up a connector with conversion rules for each log we want to turn into metrics.  These metrics would be availalble in the Hot path in 5-20 minutes after being emitted for the monitoring agent to collect.  Not ideal as you can no longer rely on those metrics for ICM events.  The Hot Path will only take new data up to 20 minutes old.  If the data is delayed for processing and ends up out of that window then the data is ignored in the Hot Path.
 
+As for trying to capture and use the Kestrel ILogger logs to create metrics it would be better to track these using TelemetryConfiguration.GetMetric, which is the most efficient way to track these metrics.  At least for the metrics that the AI telemtry modules are not already emitting.
 
 Here are the current Perf Counters we currently collect and push to Geneva Hot Path.  
 
@@ -224,7 +135,7 @@ In Geneva we are not able to log the following Perf Counters as they are not ava
 ```
 
 ### ICM Logging
-We can create correlation rules in ICM to replace the runbooks and AI Connectors we are using to trigger ICM alerts from Application Insights, as the data we need will exist in Geneva and ICM can work directly with this source.
+We can create correlation rules in ICM to replace the runbooks and AI Connectors we are using to trigger ICM alerts from Application Insights, as the data we need will exist in Geneva and ICM can work directly with this source. We can still keep the IcmAlert = true in our logs for logs we know we want to alert on immediately and require no aggregation of errors over a certain period. It is a pure preference how we chose to manage it.
 
 ### Data Aggregation and Existing queries
 We are using two different solutions for data analytics PowerBI and Kusto.  We can continue to use Kusto after moving away from Application Insights.  There is a connector in Geneva we can use to stream logs to Kusto
@@ -232,7 +143,7 @@ https://genevamondocs.azurewebsites.net/connectors/Geneva%20to%20Kusto/overview.
 Currently for PowerBI we use the Application Insights REST API to run Kusto queries for the data we need.  If we continue to use Kusto and stream the logs we want from Geneva, we can connect PowerBI to Kusto to create the dashboards that we need. https://docs.microsoft.com/en-us/azure/kusto/tools/powerbi 
 
 ### System Availability and Health
-Right now, this is handled by the Cluster Agent service.  After the Monitoring Agent was setup, there are a lot of statndard health events collected for service fabric.  
+Right now, this is handled by the Cluster Agent service.  After the Monitoring Agent was setup, there are a lot of standard health events collected for service fabric.  
 
 Service Fabric Health Monitoring tables in Geneva
 ``` XML
@@ -262,24 +173,23 @@ Service Fabric Health Monitoring tables in Geneva
 ```
 
 ### Synthetic Web Tests and Alerts
-We should use the Geneva Runner with for our external web tests.  We do not host the runner, we only upload it to Geneva after we write the code for it.  The Geneva Runner is .Net based and does not support .Net Core.  We can set up a runner instance in multiple regions and have it ping a list of endpoints.  We will register the namespace (What we want to name the runner as it will be the same as the project name as well) with our warm path so when we deploy it to Geneva the correct account to push the data can be determined.  To look up the data once it is processing we will need to go to "Logs" select the "Namespace" for that runner and look at the "RunnerCentralEventTable".  We can deploy this Runner to multiple different regions (Geneva has 40 some are backups and some are for specific implementations) so we can still ping from at least 16 different instances like we are currently doing for AI.
+We should use the Geneva Synthetics (formally Geneva Runner) for our external web tests.  We do not host the runner, we only upload it to Geneva after we write the code for it.  The Geneva Runner is .Net based and does not support .Net Core.  We can set up a runner instance in multiple regions and have it ping a list of endpoints.  We will register the namespace (What we want to name the runner as it will be the same as the project name as well) with our warm path so when we deploy it to Geneva the correct account to push the data can be determined.  To look up the data once it is processing we will need to go to "Logs" select the "Namespace" for that runner and look at the "RunnerCentralEventTable".  We can deploy this Runner to multiple different regions (Geneva has 40 some are backups and some are for specific implementations) so we can still ping from at least 16 different instances like we are currently doing for AI.
 
-To get the active endpoints we want to run tests on, we could create an API to get the endpoints that have been created for that environment, for the runner to access, and have a service to periodically update the list.  Then the Runner services can contact the API to get the list of endpoints they need to ping.  Or we can just have a service that does the aggregation of the active endpoints and places the list in KeyVault.  Then the monitor can connect to KeyVault and grab the list periodically.  Say every 5 or 10 minutes.  We will have to think about what we want to do for deprovisioning to reduce the number of false positives for ICM alerting.  We could decrease the time inbetween recreation of the endpoint list and if we get an endpoint failure on the Runner side we can have it grab the list again to see if that endpoint stills exists before reporting it as an actual failure.
+To get the active endpoints we want to run tests on, we could create an API to get the endpoints that have been created for that environment, for the runner to access, and have a service to periodically update the list.  Then the Runner services can contact the API to get the list of endpoints they need to ping.  Or we can just have a service that does the aggregation of the active endpoints and places the list in KeyVault.  Then the monitor can connect to KeyVault and grab the list periodically.  Say every 5 or 10 minutes.  We will have to think about what we want to do for deprovisioning to reduce the number of false positives for ICM alerting.  We could decrease the time inbetween recreation of the endpoint list and if we get an endpoint failure on the Runner side we can have it grab the list again to see if that endpoint still exists before reporting it as an actual failure.
 
 ### Logging table names
 There is a decision to make here.  We can either reuse the Application Insights table names we have in Geneva right now or use the new ones we will create for the new logs we pick up using the Monitoring Agent.  Since we are planning on doing a multi-phase approach, I would suggest using the new ones we create.  Otherwise, we will need to update the ICM correlation rules, Kusto queries and anything else that is reliant on the table names.  There also could be a column name conflict, with the old tables, given how the new logs will be captured.
 
 ### Web Requests
-Currently we are logging to both AI and using the IFX Audit logger for Geneva.  AI will log to the “Requests” table and the IFX logger will log to "AsmIfxAuditApp" and "AsmIfxAuditDiag".  For other services they are logging only using Application Insights.  We can use IFX Operational logging to track requests for success and failures.  The correlation Context is built into the IFX Operational logger at the thread level and we can use the IFX Correlation Context to pass between processes or machine boundaries to track the request all the way through.  To get the debug information we can extend the Operational Schema with IFX custom events in order to add stack traces and other properties we want.
+Currently we are logging to both AI and using the IFX Audit logger for Geneva.  AI will log to the “Requests” table and the IFX logger will log to "AsmIfxAuditApp" and "AsmIfxAuditDiag".  For other services they are logging only using Application Insights.  We can continue to use the same AI telemetry modules we are currently using for web requests as those will be captured and emitted to the Geneva channel and picked up by the monitoring agent.
 
-For the correllation Id we associate web requests and audit logs using Applications Insights libraries to handle this.  We can use the IFx CorrelationContext API from genevea to pass around a context to be able to associate our logs.  We can set a correlation Id we create and send with the intial request as the System.Diagnostics.Trace.CorrelationManager.ActivityId property. The API can then save the context to a serialized blob and return that context with the ActivityId which can be passed through the header of our web calls.  Then the receiving service can call to deserialize and use that context given the ActivityId.  Then that context information can be added to the logs we generate where needed.
-https://genevamondocs.azurewebsites.net/collect/references/ifxref/ifxCorrelationContext.html 
+For the correllation Id and correlation vector we continue to use the same logic AI is using.
 
 ### Items of note about the current implementation for logging
 
 The AI Connector for Geneva is not supported for the Test Geneva endpoint.  So we can only send the Prod AI logs to Geneva, which can be annoying having to look in a different place for logs in the test environment.
 
-For the IFX Audit logger we only have a single column to use which makes querying the data more of a chore and slower with all the parsing of the data in the column.  The audit logger was not meant for debugging logs.  We should use custom IFX events for debugging data.  This would allow us to create custom events and give us more control over the content of the log. See ETW Logging section above.
+For the IFX Audit logger we only have a single column to use which makes querying the data more of a chore and slower with all the parsing of the data in the column.  The audit logger was not meant for debugging logs. See ETW Logging section above for what we plan to do regarding diagnostic logs.
 
 ### Common Properties for new Event Schema Logs
 * Standard set of environment information for all logs
