@@ -1,0 +1,25 @@
+{
+    "resourceType": "StructureDefinition",
+    "id": "PatientWithNoExtensions",
+    "url": "http://microsoft.com/fhir/StructureDefinition/PatientWithNoExtensions",
+    "name": "PatientWithNoExtensions",
+    "status": "draft",
+    "date": "2017-04-19T07:44:43+10:00",
+    "publisher": "Microsoft Healthcare NExT",
+    "description": "Example Patient with no extensions",
+    "fhirVersion": "3.0.1",
+    "kind": "resource",
+    "abstract":false,
+    "type":"Patient",
+    "baseDefinition":"http://hl7.org/fhir/StructureDefinition/Patient",
+    "derivation":"constraint",
+    "differential":{
+        "element": [
+            {
+                "id":"Patient.extension",
+                "path":"Patient.extension",
+                "max": "0"
+            }
+        ]
+    }
+}
