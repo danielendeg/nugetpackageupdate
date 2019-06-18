@@ -47,17 +47,18 @@ Metrics will be exposed in Azure portal under Monitoring section, initially show
 * Database
 * Availability
 
-![](media/MetricsCosmosDBover.png)
+![](../media/MetricsCosmosDBover.png)
 
-![](media/MetricsCosmosDBdata.png)
 
-![](media/MetricsCosmosDBaval.png)
+![](../media/MetricsCosmosDBdata.png)
+
+![](../media/MetricsCosmosDBaval.png)
 
 ## Diagnostics Log
 
-![](media/DiagnosticOver.png)
+![](../media/DiagnosticOver.png)
 
-![](media/DiagnosticDet.png)
+![](../media/DiagnosticDet.png)
 
 
 # Test Strategy
