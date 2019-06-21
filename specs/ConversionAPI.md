@@ -340,7 +340,7 @@ We can invite customers into the API management instance, let them subscribe to 
 
 When they consume the API, they will not provide a specific account identifier. We will write a policy in API management that, based on their subscription, determines which account they have and translates to appropriate, account prefixed URLs for the conversion API. The API management proxy will be responsible for obtaining a token for the backend API:
 
-![converter with apim](ConverterApi/converter-api-mvp.png)
+![converter with apim](ConversionApi/converter-api-mvp.png)
 
 The use of API management is unlikely to be part of a product in the end, but it will allow us to leverage all the tools of APIM during the pilot phase instead of having to implement account management, etc.
 
