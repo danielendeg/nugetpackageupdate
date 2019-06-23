@@ -1,12 +1,12 @@
-Customers that wish to use the Azure API for FHIR or the Open Source FHIR Server for Azure will often need to convert legacy data formats (e.g., HL7 v2) to FHIR for ingestion into the FHIR service. It is difficult to create a one-size-fits-all data converter since implementation of standards such as HL7 v2 varies from organization to organization. We are aiming to build a templates based conversion engine that will allow customers to leverage a library of existing conversion templates and adjust them for their organizational needs. 
+Customers that wish to use the Azure API for FHIR or the Open Source FHIR Server for Azure will often need to convert legacy data formats (e.g., HL7 v2) to FHIR for ingestion into the FHIR service. It is difficult to create a one-size-fits-all data converter since implementation of standards such as HL7 v2 varies from organization to organization. We are aiming to build a templates based conversion engine that will allow customers to leverage a library of provided conversion templates and adjust them for their organizational needs.
 
-The project will include a conversion API, a set of standard templates, and tooling for authoring templates (not covered in this document). This is an initial MVP implementation to enable testing with a few select customers. Based on the feedback
+The project will include a conversion API, a set of standard templates, and tooling for authoring templates (not covered in this document). This is an initial MVP implementation to enable testing with a few select customers. Based on the feedback we receive, a full production environment will be designed.
 
 [[_TOC_]]
 
 # Business Justification
 
-The feedback received after the launch of the Azure API for FHIR has been consistent: customers need a way to convert legacy HL7 v2 data (and possibly other formats) to FHIR. They want a mapping tool that does not require deploying an integration engine (Mirth Connect, Iguana, Rhapsody, etc). There is an opportunity to provide such a conversion tool as an API service where we could charge based on number of API calls and offer a high availability service.
+The feedback received after the launch of the Azure API for FHIR has been consistent: customers need a way to convert legacy HL7 v2 data (and possibly other formats) to FHIR. They want a mapping tool that does not require deploying an integration engine (Mirth Connect, Iguana, Rhapsody, etc). There is an opportunity to provide such a conversion tool as an API service where we could charge based on number of API calls and offer a high availability service. The service would be consumed in the same manner as cognitive services (e.g., face api).
 
 # Scenarios
 
@@ -16,8 +16,8 @@ The feedback received after the launch of the Azure API for FHIR has been consis
 
 # Metrics
 
-* Number of conversion API calls.
 * Feedback from early customers.
+* Number of conversion API calls.
 * Conversion errors.
 * Conversion time.
 * CPU/Memory load.
@@ -88,7 +88,7 @@ The format supports helper functions and partials. The service will provide a nu
 
 ## Accounts
 
-The service would be able service multiple conversion accounts. An account is an entity for which a set of named conversion templates are maintained. Suppose account `123` has a template named `patient.hbs`, account `345` could also have a template named `patient.hbs`. Each account will be identified by a string (could be a guid). All operations on the API are done in the context of an account.
+The service will be able service multiple conversion accounts. An account is an entity for which a set of named conversion templates are maintained. Suppose account `123` has a template named `patient.hbs`, account `345` could also have a template named `patient.hbs`. Each account will be identified by a string (could be a guid). All operations on the API are done in the context of an account.
 
 ## URL Scheme
 
@@ -122,7 +122,7 @@ The service will come with a set of built-in templates. The names of built-in te
 GET [base]/{account}/templates/$default
 ```
 
-will reference a built-in template called `default`. Built-in template cannot be modified and are the same for all accounts. 
+will reference a built-in template called `default`. Built-in templates cannot be modified and are the same for all accounts.
 
 ## Managing templates
 
@@ -143,13 +143,13 @@ The body will contain the template body. When a template is received the templat
      {{>account-patientId-partial.hbs}}
     ```
     i.e., it will be prefixed with the account identifier.
-1. Attempt to pre-compile the template.
+1. Attempt to pre-compile (validate) the template.
 1. Store the template in blob storage.
 
 Possible responses are:
-* `201`: Created
-* `200`: OK, template updated
-* `400`: Bad request, with some message indicating why the template could not be compiled and stored.
+* `201`: Created, new template stored.
+* `200`: OK, template updated.
+* `400`: Bad request, with some message indicating why the template could not be compiled and/or stored.
 
 ### List templates
 
@@ -168,6 +168,7 @@ GET [base]/{account}/templates/{template-name}
 
 Response:
 * `200`: OK, template returned in body, Content-Type: `text/plain`.
+* `404`: Not found. Template doesn't exist.
 
 ## Data conversion
 
@@ -282,7 +283,7 @@ function(birthDate) {
 }
 ```
 
-To assist with the editing experience (in VS Code or a browser based app) We will provide a way to list available helper functions:
+To assist with the editing experience (in VS Code or a browser based app), we will provide a way to list available helper functions:
 
 ```
 GET [base]/{account}/helpers
@@ -326,7 +327,7 @@ Response:
 
 ## Access control
 
-The API will optionally use OAuth for access control. If enabled, a consumer of the API must present a valid access token.
+The API will (optionally) use OAuth for access control. If enabled, a consumer of the API must present a valid access token.
 
 In the MVP we will not attempt to use the access token to identify the specific converter account that is being used. A valid token will grant access to all converter accounts. See use of API management below for details on how accounts will be handled.
 
@@ -380,22 +381,24 @@ Validation would default to `false`.
  
 ## Cached templates and cache invalidation
 
-When a consumer accesses the conversion API the required template(s) will be pre-compiled and registered with handlebars. The use of a common set of standard start templates (prefixed with `$` as mentioned above) will hopefully mean than many partials will be shared among customers and a large number of customers will be able to be served on an instance of the service. 
+When a consumer accesses the conversion API, the required template(s) will be pre-compiled and registered with handlebars. The use of a common set of standard start templates (prefixed with `$` as mentioned above) will mean (needs to be validated) than many partials will be shared among customers and a large number of customers will be able to be served on an instance of the service.
 
 In the MVP phase, we anticipate just a few customers (< 10) but in a final production version there could be many customers and growth of the pre-compiled template cache would be a concern that may have to be mitigated. In the MVP, we will punt on this for now.
 
 Some of the strategies to consider in production would be:
 
 1. Using a hash of the templates to refer to partials when they are converted so that templates that are the same in several customers would always share the same pre-compiled version regardless of what name the customer may use to refer to them with. This would require maintaining some record (database) of the dependency graph of the templates so that when a partial template gets updated, templates that reference it will get rehashed forcing a recompile when they are used.
-1. Keeping track of when the templates are used an invalidating (deleting from cache) ones that have not been accessed recently.
+1. Keeping track of when the templates are used and invalidating (deleting from cache) ones that have not been accessed recently.
 1. Routing specific accounts primarily to the same service instances to reduce the spread of all customers over all service instances.
 
 # Test Strategy
 
-Unit and integration tests will be built for the API. Deployment and E2E testing (with APIM will also be included).
+Unit and integration tests will be built for the API. Deployment and E2E testing (with APIM) will also be included.
 
 # Security
 
-Security will primarily be handles in APIM as described above. Global access to the API backend will be secured with OAuth. The API will not store any healthcare data. The templates *should* not contain PHI or PII and none of the messages that will be converted will be stored.
+Security will primarily be handled in APIM as described above. Global access to the API backend will be secured with OAuth.
+
+The API will not store any healthcare data. The templates *should* not contain PHI or PII and none of the messages that will be converted will be stored.
 
 A security review should be conducted.
