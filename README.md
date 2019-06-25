@@ -8,7 +8,7 @@ Want to join us?  See our job openings at https://aka.ms/resolutejobs.  Learn mo
 * Public Preview announcement: https://dougseven.com/2019/02/07/setting-azure-on-fhir/
 * Open source FHIR repo: https://github.com/microsoft/fhir-server
 * Azure API for FHIR: https://azure.microsoft.com/en-us/services/azure-api-for-fhir/
-* [Feature backlog](https://microsofthealth.visualstudio.com/Health/Resolute/_backlogs/backlog/Resolute/Features)
+* [Feature backlog](https://microsofthealth.visualstudio.com/Health/_backlogs/backlog/Resolute/Features)
 * Why [Resolute](https://en.wikipedia.org/wiki/Resolute,_Nunavut)?
 
 # Contents
