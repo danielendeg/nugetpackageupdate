@@ -1,5 +1,5 @@
 
-# Log Analitics Schema definittion
+# Log Analytics Schema definittion
 
 ## Application Audit log
 
@@ -10,9 +10,10 @@
 |CorrelationId|String|Required in all schemas|$.correlationId|
 |RequestUri|String||$.properties.requestUri|
 |OperationName|String| |$.properties.operationName|
+|OperationResult|String| | |
 |ResultType|String||$.properties.resultType|
 |AuditEventCategory|String||$.properties.auditEventCategory|
-|CallerIPAddress|String||$.properties.callerIPAddress|
+|CallerIPAddress|String|P2|$.properties.callerIPAddress|
 |CallerIdentityType|String||$.properties.callerIdentityType|
 |CallerIdentity|String||$.properties.callerIdentity|
 
