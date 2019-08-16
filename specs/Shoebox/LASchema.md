@@ -11,11 +11,12 @@
 |CorrelationId|String|Required in all schemas|$.correlationId|
 |RequestUri|String|The request URI|$.uri|
 |FhirResourceType|String|The resource type the operation was executed for|$.properties.FhirResourceType|
-|StatusCode|String|The HTTP status code. (e.g., 200)|$.resultSignature|
+|StatusCode|Int|The HTTP status code. (e.g., 200)|$.resultSignature|
 |ResultType|String|The available value currently are ‘Started’, ‘Succeeded’, or ‘Failed’|$.resultType|
-|OperationDuration|String|The milliseconds it took to complete this request.|$.durationMs|
-|AuditEventCategory|String|The log category. We are currently emitting ‘Audit’ for the value.|$.category|
+|OperationDurationMs|Int|The milliseconds it took to complete this request.|$.durationMs|
+|LogCategory|String|The log category. We are currently emitting ‘AuditLogs’ for the value.|$.category|
 |CallerIPAddress|String|The caller’s IP address|$.callerIpAddress|
 |CallerIdentityIssuer|String|Issuer|$.identity.iss|
-|CallerIdentity|String|Object_Id|$.identity.oid|
+|CallerIdentityObjectId|String|Object_Id|$.identity.oid|
+|CallerIdentity|Dynamic|A generic property bag containing identity information.|$.identity|
 |Location|String|The location of the server that processed the request(e.g., South Central US)|$.location|
