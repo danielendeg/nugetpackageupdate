@@ -104,8 +104,8 @@ For Ring 2 service we need to be in all Hero regions by GA + 30 days.
 |8|East US 2|Hero|Aug 2019||
 |9|South Central US|Hero|Aug 2019||
 |10|**West US 2**|Hero|Nov 2018||
-|11|West US|Hub|Aug 2019||
-|12|Central US|Hub|Aug 2019||
+|11|West US|Hub|Feb 2020||
+|12|Central US|Hub|Feb 2020||
 |13|**North Central US**|Hub|Nov  2018|
 |14|Japan East|Hub|Feb 2020|
 |15|East Asia|Hub|Feb 2020||
