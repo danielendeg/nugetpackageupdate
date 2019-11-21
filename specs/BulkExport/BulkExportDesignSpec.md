@@ -121,11 +121,11 @@ We will have the following new section in the configuration file.
 
 Note:
 
-- We could consider copy some of these throttling settings to the job record itself so that these can be tweaked on individual job basis.
+- We could consider copying some of these throttling settings to the job record itself so that these can be tweaked on individual job basis.
 
 ### $export operation
 
-The caller can call $export operation by calling the API endpoint such as the following.
+The caller can call the $export operation by calling the API endpoint such as the following.
 
 `GET [fhir base]/$export?_outputFormat=application%2Ffhir%2Bndjson&_destinationType=azure-block-blob&_destinationConnectionSettings=ew0KICAiY29ubmVjdGlvblN0cmluZyI6ICJzZXJ2aWNlJmNvbXA9cHJvcGVydGllcyZzdj0yMDE1LTA0LTA1JnNzPWJmJnNydD1zJnN0PTIwMTUtMDQtMjlUMjIlM0ExOCUzQTI2WiZzZT0yMDE1LTA0LTMwVDAyJTNBMjMlM0EyNlomc3I9YiZzcD1ydyZzaXA9MTY4LjEuNS42MC0xNjguMS41LjcwJnNwcj1odHRwcyZzaWc9RiU2R1JWQVo1Q2RqMlB3NHRnVTdJbFNUa1dnbjdiVWtrQWc4UDZIRVNYd21mJTRCIg0KfQ==`
 
@@ -133,12 +133,12 @@ The $export operation will simply queue a job by creating a new job record in th
 
 #### Supporting destination
 
-One change that we are making in additional to the bulk data export spec is to include the ability for the user to specify the destination location, which are specified by `_destinationType` and `_destinationConnectionSettings` query parameters.
+One change that we are making in addition to the bulk data export spec is to include the ability for the user to specify the destination location, which are specified by `_destinationType` and `_destinationConnectionSettings` query parameters.
 
-- `_destinationType` - initially we will only support `azure-block-blob`. For prototyping to show we could support additional service providers, we might also implement `AmazonS3`.
-- `_destinationConnectionSettings` - the value is base64 encoding of the type specific connection string. For `azure-block-blob`, this will be base64 encoding of SAS token (or connection string). For `AmazonS3`, this will be base64 encoding of the pre-signed query URL.
+- `_destinationType` - initially we will only support `azure-block-blob`. For prototyping and to show we could support additional service providers, we might also implement `AmazonS3`.
+- `_destinationConnectionSettings` - the value is the base64 encoding of the type-specific connection string. For `azure-block-blob`, this will be the base64 encoding of the SAS token (or connection string). For `AmazonS3`, this will be the base64 encoding of the pre-signed query URL.
 
-Because of the nature of the connection string, we need to treat it as a secret. In the OSS implementation, we will create an abstract interface `ISecretStore` with specific implementation using Azure KeyVault. Specifically, for KeyVault, the payload will be encoded as base64 string.
+Because of the nature of the connection string, we need to treat it as a secret. In the OSS implementation, we will create an abstract interface `ISecretStore` using Azure KeyVault. Specifically, for KeyVault, the payload will be encoded as a base64 string.
 
 ``` json
 {
@@ -147,11 +147,11 @@ Because of the nature of the connection string, we need to treat it as a secret.
 }
 ```
 
-One of the require properties to be returned in the response of the polling API is the original `request`. We will not be returning the `_destinationType` and `_destinationConnectionSettings` parameters.
+One of the required properties to be returned in the response of the polling API is the original `request`. We will not be returning the `_destinationType` and `_destinationConnectionSettings` parameters.
 
 #### De-duping the bulk export job
 
-We need to be able to identify and de-dup the bulk export job. This is needed if the user calls the $export operation to queue a new bulk job but failed to get the response for whatever reason (such as network failure). In this case, the job is already queued in the server but the user never received the location to poll the job status. It's likely that user will try to queue a job again but instead of queuing a new job, we would want to return the existing job.
+We need to be able to identify and de-dup the bulk export job. This is needed if the user calls the $export operation to queue a new bulk job but failed to get the response for whatever reason (such as a network failure). In this case, the job is already queued in the server but the user never received the location to poll the job status. It's likely that the user will try to queue a job again, but, instead of queuing a new job, we would want to return the existing job.
 
 We will generate a hash of the job based the following parameters:
 
@@ -162,9 +162,9 @@ If there is a matching job with state `Queued` or `Running`, we return `202 Acce
 
 Note:
 
-- We will use hash instead of checking the properties directly because the parts of the input will be stored in the database and parts of the input might be stored in the secret store.
-- Alternatively, we could return `302 Found` and redirect the caller to the existing job but that's not in the spec and client might not be able to react to it.
-- If `_since` parameter is not supplied, then the server defaults the timestamp at the time the request is received. If another request comes in later that matches the existing job, we will return the existing job, even though technically the value for `_since` is different. If `_since` parameter is supplied, then it will be treated as different job and so if the caller always append the current timestamp in the request, then we might have multiple job queued.
+- We will use the hash instead of checking the properties directly because some parts of the input will be stored in the database and other parts of the input might be stored in the secret store.
+- Alternatively, we could return `302 Found` and redirect the caller to the existing job, but that's not in the spec and the client might not be able to react to it.
+- If the `_since` parameter is not supplied, then the server defaults the timestamp at the time the request is received. If another request comes in later that matches the existing job, we will return the existing job, even though the value for `_since` is technically different. If the `_since` parameter is supplied, then it will be treated as different job. Therefore, if the caller always appends the current timestamp in the request, then we might have multiple jobs queued.
 - We could expand the evaluation of the de-duping logic to include time range and so forth in the future.
 
 #### Location of the bulk export job
@@ -173,22 +173,22 @@ We need to return a location for the caller to check the status of the export jo
 
 `Content-Location: [fhir base]/_operations/export/a0a13edb-ce1c-4347-8dca-8abfc6a7d453`
 
-To avoid being mixed up with the valid resources, we will use name `_operations` to distinguish the endpoint. The [FHIR spec](https://www.hl7.org/fhir/structuredefinition.html#invs) constrains the resource name to start with capitalized letter from A-Z so using a name that starts with underscore should be okay.
+To avoid being mixed up with the valid resources, we will use the name `_operations` to distinguish the endpoint. The [FHIR spec](https://www.hl7.org/fhir/structuredefinition.html#invs) constrains the resource name to start with a capitalized letter from A-Z, so using a name that starts with an underscore should be okay.
 
 #### Queuing a new bulk export job
 
-1. User calls one of the FHIR API endpoint with `$export` operation.
+1. User calls one of the FHIR API endpoints with the `$export` operation.
 2. Validate the call to make sure `$export` operation is supported.
    - If the endpoint is `[base]/Group/[id]/$export`, return `501 Not Implemented`.
    - If the endpoint is not `[base]/$export` or `[base]/Patient/$export`, return `400 Bad Request`.
 3. Validate parameters to make sure required parameters are supplied.
-4. Validate the `destinationType` to make sure we know how to handle it and validate `destinationConnectionSettings` to make sure it is valid.
-5. Check to make sure the caller has the privilege to call $export operation.
+4. Validate the `destinationType` to make sure we know how to handle it, and validate `destinationConnectionSettings` to make sure it is valid.
+5. Check to make sure the caller has the privilege to call the $export operation.
    - Return `403 Forbidden` if the caller does not have privilege.
 6. Generate the hash based on the input parameters and check to see if there is an existing job.
    - Return `202 Accepted` with the location of the existing job if there is a matching job with state `Queued` or `Running`.
 7. Check to see if job can be executed.
-   - If the number of job currently executing is greater than or equal to the threshold (initially 1), return `429 Too Many Requests`.
+   - If the number of jobs currently executing is greater than or equal to the threshold (initially 1), return `429 Too Many Requests`.
    - Do we need this step? If we are simply queuing and the client is expected to poll, we could just queue the job and let the worker handle it whenever it becomes available.
 8. Create a new secret and store the secret in the secret store.
    - If storing the secret in the secret store fails, return `500 Internal Server Error`.
@@ -198,8 +198,8 @@ To avoid being mixed up with the valid resources, we will use name `_operations`
 
 Note:
 
-- We could also check the connection to the destination here and fail if we get Unauthorized or other type of non-retryable exception without having to queue a job and fail the job immediately.
-- We could optimistically execute the logic and knowing that there could be a possibility that a duplicated job might get inserted. Alternatively, we could use distributed lock but that seems heavy weight.
+- We could also check the connection to the destination here and fail if we get `Unauthorized` or other type of non-retryable exception without having to queue a job and fail the job immediately.
+- We could optimistically execute the logic, knowing that there could be a possibility that a duplicated job might get inserted. Alternatively, we could use a distributed lock but that seems heavy weight.
 
 ``` json
 {
@@ -273,7 +273,7 @@ Note:
 
 ### Bulk export job worker
 
-We need a worker that runs in the background continuously to pick up the bulk export job.
+We need a worker that runs in the background continuously to pick up the bulk export jobs.
 
 In the OSS implementation, we will use the `IHostedService` to create a hosted service. The implementation assumes there is one worker that is responsible for dispatch potentially multiple jobs.
 
@@ -284,7 +284,7 @@ In the OSS implementation, we will use the `IHostedService` to create a hosted s
 4. Repeat #3 until `MaximumConcurrency` is reached.
 5. Sleep `PollingIntervalInSeconds` and repeat #1.
 
-In the managed environment, we have different options how to implement the worker. We could have one process dedicated for each account. This ensures isolation and availability to each account but if there is no export job to be executed, the process is simply taking up resources for no good reason. Alternatively, We could host a pool of workers that can be shared by list of accounts. To start simple, we can host the background worker in-proc like in OSS implementation.
+In the managed environment, we have different options when it comes to how to implement the worker. We could have one process dedicated for each account. This would ensure isolation and availability to each account. However, if there were no export job to be executed, the process would simply be taking up resources for no good reason. Alternatively, we could host a pool of workers that could be shared by list of accounts. To start simple, we can host the background worker in-proc like we do in the OSS implementation.
 
 Note:
 
@@ -292,7 +292,7 @@ Note:
 
 #### Fault tolerance
 
-Because we could be potentially moving large amount of data between two different remote locations, numerous type of error could happen. We need to be fault tolerant and be able to resume the export process.
+Because we could potentially be moving large amounts of data between two different remote locations, numerous types of error could happen. We need to be fault tolerant and able to resume the export process.
 
 For the initial implementation, we will be using Azure Blob storage, specifically using the [block blob](https://docs.microsoft.com/en-us/rest/api/storageservices/understanding-block-blobs--append-blobs--and-page-blobs).
 
