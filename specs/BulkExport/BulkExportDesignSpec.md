@@ -12,7 +12,7 @@ Customers would like to be able to export their data for various purposes. We wo
   - User must be able to call `GET [base]/Patient/$export` to export all patients.
   - User must be able to call `GET [base]/$export` to export all resources.
   - User must specify the `_destinationType` query parameter to specify the destination type and `_destinationConnectionSettings` query parameter to specify the destination connection settings. `_destinationConnectionSettings` would be base64 encoding of a JSON payload that's specific to the `_destinationType`.
-    - User must be able to use Azure Blob Storage. `_destinationType` will be `AzureBlockBlob` and `_destinationConnectionSettings` will be base64 encoding of SAS token (or connection string).
+    - User must be able to use Azure Blob Storage. `_destinationType` will be `azure-block-blob` and `_destinationConnectionSettings` will be base64 encoding of SAS token (or connection string).
     - If unknown `_destinationType` is specified, then `400 Bad Request` should be returned.
     - If valid `_destinationType` is specified but the invalid `_destinationConnectionSettings` is specified, then `400 Bad Request` should be returned.
   - User must have privilege to queue an export job. If user does not have the corresponding privilege, then `403 Forbidden` should be returned.
@@ -127,7 +127,7 @@ Note:
 
 The caller can call $export operation by calling the API endpoint such as the following.
 
-`GET [fhir base]/$export?_outputFormat=application%2Ffhir%2Bndjson&_destinationType=AzureBlockBlob&_destinationConnectionSettings=ew0KICAiY29ubmVjdGlvblN0cmluZyI6ICJzZXJ2aWNlJmNvbXA9cHJvcGVydGllcyZzdj0yMDE1LTA0LTA1JnNzPWJmJnNydD1zJnN0PTIwMTUtMDQtMjlUMjIlM0ExOCUzQTI2WiZzZT0yMDE1LTA0LTMwVDAyJTNBMjMlM0EyNlomc3I9YiZzcD1ydyZzaXA9MTY4LjEuNS42MC0xNjguMS41LjcwJnNwcj1odHRwcyZzaWc9RiU2R1JWQVo1Q2RqMlB3NHRnVTdJbFNUa1dnbjdiVWtrQWc4UDZIRVNYd21mJTRCIg0KfQ==`
+`GET [fhir base]/$export?_outputFormat=application%2Ffhir%2Bndjson&_destinationType=azure-block-blob&_destinationConnectionSettings=ew0KICAiY29ubmVjdGlvblN0cmluZyI6ICJzZXJ2aWNlJmNvbXA9cHJvcGVydGllcyZzdj0yMDE1LTA0LTA1JnNzPWJmJnNydD1zJnN0PTIwMTUtMDQtMjlUMjIlM0ExOCUzQTI2WiZzZT0yMDE1LTA0LTMwVDAyJTNBMjMlM0EyNlomc3I9YiZzcD1ydyZzaXA9MTY4LjEuNS42MC0xNjguMS41LjcwJnNwcj1odHRwcyZzaWc9RiU2R1JWQVo1Q2RqMlB3NHRnVTdJbFNUa1dnbjdiVWtrQWc4UDZIRVNYd21mJTRCIg0KfQ==`
 
 The $export operation will simply queue a job by creating a new job record in the database. A worker will then pick it up and process it asynchronously.
 
@@ -135,14 +135,14 @@ The $export operation will simply queue a job by creating a new job record in th
 
 One change that we are making in additional to the bulk data export spec is to include the ability for the user to specify the destination location, which are specified by `_destinationType` and `_destinationConnectionSettings` query parameters.
 
-- `_destinationType` - initially we will only support `AzureBlockBlob`. For prototyping to show we could support additional service providers, we might also implement `AmazonS3`.
-- `_destinationConnectionSettings` - the value is base64 encoding of the type specific connection string. For `AzureBlockBlob`, this will be base64 encoding of SAS token (or connection string). For `AmazonS3`, this will be base64 encoding of the pre-signed query URL.
+- `_destinationType` - initially we will only support `azure-block-blob`. For prototyping to show we could support additional service providers, we might also implement `AmazonS3`.
+- `_destinationConnectionSettings` - the value is base64 encoding of the type specific connection string. For `azure-block-blob`, this will be base64 encoding of SAS token (or connection string). For `AmazonS3`, this will be base64 encoding of the pre-signed query URL.
 
 Because of the nature of the connection string, we need to treat it as a secret. In the OSS implementation, we will create an abstract interface `ISecretStore` with specific implementation using Azure KeyVault. Specifically, for KeyVault, the payload will be encoded as base64 string.
 
 ``` json
 {
-    "destinationType": "AzureBlockBlob",
+    "destinationType": "azure-block-blob",
     "destinationConnectionSettings": "ew0KICAiY29ubmVjdGlvblN0cmluZyI6ICJzZXJ2aWNlJmNvbXA9cHJvcGVydGllcyZzdj0yMDE1LTA0LTA1JnNzPWJmJnNydD1zJnN0PTIwMTUtMDQtMjlUMjIlM0ExOCUzQTI2WiZzZT0yMDE1LTA0LTMwVDAyJTNBMjMlM0EyNlomc3I9YiZzcD1ydyZzaXA9MTY4LjEuNS42MC0xNjguMS41LjcwJnNwcj1odHRwcyZzaWc9RiU2R1JWQVo1Q2RqMlB3NHRnVTdJbFNUa1dnbjdiVWtrQWc4UDZIRVNYd21mJTRCIg0KfQ=="
 }
 ```
