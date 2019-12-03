@@ -6,6 +6,7 @@ New to the team?  See the [Project Resolute Team OneNote](onenote:https://micros
 Want to join us?  See our job openings at https://aka.ms/resolutejobs.  Learn more:
 * FHIR: https://www.hl7.org/fhir/
 * Public Preview announcement: https://dougseven.com/2019/02/07/setting-azure-on-fhir/
+* General Availability announcement: https://azure.microsoft.com/en-us/blog/azure-api-for-fhir-moves-to-general-availability/
 * Open source FHIR repo: https://github.com/microsoft/fhir-server
 * Azure API for FHIR: https://azure.microsoft.com/en-us/services/azure-api-for-fhir/
 * [Feature backlog](https://microsofthealth.visualstudio.com/Health/_backlogs/backlog/Resolute/Features)
