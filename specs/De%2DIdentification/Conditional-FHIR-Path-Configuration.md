@@ -52,8 +52,9 @@ Our current design is a general FHIR path to redact all Period regardless of the
 Group.member.period
 ```
 
-When a member entity is a type of Patient, Practitioner or PractitionerRole, we may need to redact the period field. 
-In this case, the FHIR Path of Period that need to be redacted is :
+When a member entity is a type of Patient, Practitioner or PractitionerRole, we may need to redact the period field. But when it's not among these sensitive types, we might not redact the period field.
+
+In this case, we can modify the FHIR Path of Period that need to be redacted to below:
 ```
 Group.member.where(entity.type = 'Patient' or entity.type = 'Practitioner' or entity.type = 'PractitionerRole' or entity.reference.contains('Patient') or entity.reference.contains('Practitioner')).period
 ```
@@ -67,3 +68,6 @@ Group.member.where(entity.reference.contains('Patient')).period
 Group.member.where(entity.reference.contains('Practitioner')).period
 ```
 The functions adds more capabilities to FHIR Path and are helpful to solve the sibling dependencies between elements. But it also makes the config file more complicated.
+
+## Investigation on Account
+
