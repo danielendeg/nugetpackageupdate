@@ -67,6 +67,3 @@ Group.member.where(entity.reference.contains('Patient')).period
 Group.member.where(entity.reference.contains('Practitioner')).period
 ```
 The functions adds more capabilities to FHIR Path and are helpful to solve the sibling dependencies between elements. But it also makes the config file more complicated.
-
-## Investigation on Account
-
