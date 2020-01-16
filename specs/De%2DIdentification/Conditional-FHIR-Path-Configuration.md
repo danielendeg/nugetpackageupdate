@@ -22,7 +22,7 @@ As an example:
 ```
 telecom.where(use = 'home').value
 ```
-The function feature can help us find elements with conditions on their parents or siblings. Here we conduct some investigation against two resources: **Group**.
+The function feature can help us find elements with conditions on their parents or siblings. Here we conduct some investigation against the **Group** resource.
 
 # Investigation on Group members
 Here is the schema of [Group resources](https://www.hl7.org/fhir/group.html) with members:
@@ -58,7 +58,7 @@ In this case, we can modify the FHIR Path of Period that need to be redacted to 
 Group.member.where(entity.type = 'Patient' or entity.type = 'Practitioner' or entity.type = 'PractitionerRole' or entity.reference.contains('Patient') or entity.reference.contains('Practitioner')).period
 ```
 We write a few conditions here because there are many forms to describe Reference in FHIR and the type field might be missing in [some cases](https://www.hl7.org/fhir/group-example-member.json.html)
-We can split the expression above into several short expressions as it is very complicated.
+We can split the expression above into several short expressions to improve readability (the matched nodes will be the same if we perform a union action between the result collections).
 ```
 Group.member.where(entity.type = 'Patient').period
 Group.member.where(entity.type = 'Practitioner').period
