@@ -1,11 +1,9 @@
-## Problem Definition
+# Problem Definition
 Whether some FHIR paths are sensitive or not can depends on its parents or siblings. 
 It’s not sure how to handle these cases in current config file design. 
 For example, shown in following figure, “member” of Resource Group can refer to Patient or Device. 
 If it refers to Patient in “entity”, “entity”’s sibling path “period” should be de-identified. 
 But when it refers to Device, “period” should not be de-identified. 
-Another example is that if Attachment is used as a reference, 
-it should also be considered when to de-identify it as well.
 ## FHIR Path based Solution
 In our current design, we utilize FHIR Path to location elements in resources to perform de-identification actions. 
 The first fundamental operation is to select a set of elements by their path:
@@ -23,9 +21,9 @@ As an example:
 ```
 telecom.where(use = 'home').value
 ```
-The function feature can help us find elements with conditions on their parents or siblings. Here we conduct some investigation against two resources: **Group** and **Account**.
+The function feature can help us find elements with conditions on their parents or siblings. Here we conduct some investigation against two resources: **Group**.
 
-## Investigation on Group members
+# Investigation on Group members
 Here is the schema of [Group resources](https://www.hl7.org/fhir/group.html) with members:
 ```
 {
@@ -69,5 +67,4 @@ Group.member.where(entity.reference.contains('Practitioner')).period
 ```
 The functions adds more capabilities to FHIR Path and are helpful to solve the sibling dependencies between elements. But it also makes the config file more complicated.
 
-## Investigation on Account
 
