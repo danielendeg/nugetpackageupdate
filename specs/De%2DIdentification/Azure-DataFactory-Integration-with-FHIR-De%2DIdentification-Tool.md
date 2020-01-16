@@ -12,7 +12,7 @@ But when users want to de-identify a FHIR dataset, which may comes from an *Expo
 # Scenario
 Our scenario is to enable users access FHIR De-Identification Tool through Azure Data Factory. We provide two ways to use Azure Data Factory with De-Id tool, the manual way and the automatic way.
 - If a user is quite familiar with Azure Data Factory, he can set up Data Factory in Azure Portal manually with our CustomActivityProject. 
-- Users can create and run an De-Identification Azure Data Factory with a powershell script. Users need provide a Data Factory Configuration as the script input and log in with their Azure credentials to authorize automatic resource management. Below is an example user configuration file.
+- Users can create and run an De-Identification Azure Data Factory with a powershell script. Users need provide a Data Factory Configuration as the script input and log in with their Azure credentials to authorize automatic resource management. Below is an example of user configuration file.
 ```json
 {
     "dataFactoryName": "[Your data factory name]",
