@@ -51,5 +51,8 @@ The custom activity works like below:
 - Upload the redacted file.
 
 # Tests
-
+It's not easy to test Azure Data Factory automatically. Maybe we can design tests like below
+- Unit tests to ensure custom activity works given sample activity inputs.
+- E2E tests for ADF integration script to ensure the deployment works.
+- Efficiency tests for large datasets to ensure De-Identification task completes.
 
