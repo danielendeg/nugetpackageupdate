@@ -4,7 +4,7 @@ It’s not sure how to handle these cases in current config file design.
 For example, shown in following figure, “member” of Resource Group can refer to Patient or Device. 
 If it refers to Patient in “entity”, “entity”’s sibling path “period” should be de-identified. 
 But when it refers to Device, “period” should not be de-identified. 
-## FHIR Path based Solution
+# FHIR Path based Solution
 In our current design, we utilize FHIR Path to location elements in resources to perform de-identification actions. 
 The first fundamental operation is to select a set of elements by their path:
 ```
