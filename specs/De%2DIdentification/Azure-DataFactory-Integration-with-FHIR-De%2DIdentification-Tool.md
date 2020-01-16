@@ -11,7 +11,13 @@ But when users want to de-identify a FHIR dataset, which may comes from an *Expo
 Our scenario is to enable users access FHIR De-Identification Tool through Azure Data Factory.
 
 # Design
+Azure Data Factory supports different data transformations.
+Since our De-Id tool is written against .Net Core, we have two transformation options, the Azure Function activity & the custom Activity. Here we exclude Azure Function that is not suitable for long running tasks as the dataset might be very large.
+
+We design the data flow in custom activity as below:
+
+
+If users are quite familiar with Azure Data Factory, he can setup Data Factory and run tranform pipel
 
 # Tests
 
-If users are quite familiar with Azure Data Factory, he can setup Data Factory and run tranform pipel
