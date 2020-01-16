@@ -1,3 +1,5 @@
+[[_TOC_]]
+
 # Problem Definition
 Whether some FHIR paths are sensitive or not can depends on its parents or siblings. 
 It’s not sure how to handle these cases in current config file design. 
