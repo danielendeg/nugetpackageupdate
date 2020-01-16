@@ -10,7 +10,20 @@ For a  FHIR data response data like a json file, users can simply build our De-I
 But when users want to de-identify a FHIR dataset, which may comes from an *Export* action in FHIR server, it's better for him to have an visualized experience in monitoring the data transform job. Thus, [Azure Data Factory](https://docs.microsoft.com/en-us/azure/data-factory/) is our first choice.
 
 # Scenario
-Our scenario is to enable users access FHIR De-Identification Tool through Azure Data Factory.
+Our scenario is to enable users access FHIR De-Identification Tool through Azure Data Factory. We provide two ways to use Azure Data Factory with De-Id tool, the manual way and the automatic way.
+- If a user is quite familiar with Azure Data Factory, he can set up Data Factory in Azure Portal manually with our CustomActivityProject. 
+- Users can create and run an De-Identification Azure Data Factory with a powershell script. Users need provide a Data Factory Configuration as the script input and log in with their Azure credentials to authorize automatic resource management. Below is an example user configuration file.
+```json
+{
+    "dataFactoryName": "[Your data factory name]",
+    "resourceLocation": "WestUS",
+    "inputContainerName": "[Your input container name]",
+    "outputContainerName": "[Your output container name]",
+    "storageAccountName":"[Your storage account hosting input, output and activity application]",
+    "storageAccountKey":"[Your storage account key]"
+}
+```
+In this spec, we will discuss the second way in detail.
 
 # Design
 
@@ -21,10 +34,8 @@ On the contrary, custom activity utilize Azure Batch service as computing enviro
 
 ![Azure Batch Job Schedule Framework](/.attachments/tech_overview_03%20(1)-dcef1066-a5f0-4dee-8ffe-d81406ab20b7.png)
 
+Hence, we design our Azure Data Factory Integration as below
 
-
-
-If users are quite familiar with Azure Data Factory, he can setup Data Factory and run tranform pipel
-
+1. Automatic script will build 
 # Tests
 
