@@ -23,10 +23,10 @@ Our scenario is to enable users access FHIR De-Identification Tool through Azure
     "storageAccountKey":"[Your storage account key]"
 }
 ```
-In this spec, we will discuss the second way in detail.
+In this spec, we will discuss the second way in details.
 
 # Design
-
+### Azure Data Factory Integration
 Azure Data Factory supports different data transformations.
 Since our De-Id tool is written against .Net Core, we have two transformation options, the Azure Function activity & the custom Activity. The FHIR dataset might be very large and the De-Identification process might be time consuming. Hence, we exclude Azure Function that is not suitable for [long running tasks](https://docs.microsoft.com/en-us/azure/azure-functions/functions-best-practices). 
 
@@ -34,8 +34,22 @@ On the contrary, custom activity utilize Azure Batch service as computing enviro
 
 ![Azure Batch Job Schedule Framework](/.attachments/tech_overview_03%20(1)-dcef1066-a5f0-4dee-8ffe-d81406ab20b7.png)
 
-Hence, we design our Azure Data Factory Integration as below
+Hence, we design our Azure Data Factory Integration in three steps:
+1. Script will build the custom activity application and copy the output folder to Azure Blob storage.
+2. Script will create Azure resource group, Azure batch service and Azure Data Factory resources.
+3. Script will create and run Azure Data Factory pipeline with generated configurations.
 
-1. Automatic script will build 
+### De-Id custom activity
+De-Id custom activity is the core application that performs the FHIR De-Identification task. This activity takes a blob container as input and write the redacted resources to the output container. The execution command is 
+```
+Fhir.DeIdentification.CustomActivity.exe [-f/--force] // set -f option to overwrite existing blobs in output container
+```
+The custom activity works like below:
+- List all blobs in input container.
+- Downloads a resource file.
+- Redact the downloaded file.
+- Upload the redacted file.
+
 # Tests
+
 
