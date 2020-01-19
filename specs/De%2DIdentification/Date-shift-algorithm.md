@@ -21,3 +21,13 @@ User can choose to de-identify dates and dateTimes by shifting them within a pre
 
 1. If the date or dateTime object does not contain exact day, like "yyyy", "yyyy-MM", there's no date that can be shifted and default redaction will be applied.
 2. If the age implied from date or dateTime object is over 89, all information of the object including year, month and date will be redacted according to HIPAA's requirements.
+
+# Q&A
+
+1. Why resource ID is used in the date shift algorithm
+
+If we generate the amount by which dates are shifted only by the key, every date value in the dataset will be shifted with the same offset. However, if resource ID is involved, the offset will be different among different resources, bringing in more randomness. Besides, dates within the same resource will have the same offset, which helps avoid the conflict between dates. For example, if the offset is different within the same resource, the start value may be later than the end value of Period instance.
+
+2. Why use BKDR as the hash function
+
+This hash function comes from Brian Kernighan and Dennis Ritchie's book "The C Programming Language". It is a simple hash function using a strange set of possible seeds which all constitute a pattern of 31....31...31 etc. The implementation is very concise and meets our needs.
