@@ -7,7 +7,7 @@ For a  FHIR data response data like a json file, users can simply build our De-I
 ```
 ./FHIR.DeIdentification.Tool.exe resource.json resource.redacted.json
 ```
-For big datasets that comes from export result of FHIR server, users can use the libraries and build an extension to ADF to de-identify the data in the cloud from one blob storage to another (copy).
+For big datasets that comes from export result of FHIR server, users can use the libraries and build an extension to ADF to de-identify the data in the cloud from one blob storage to another.
 
 # Scenario
 Our scenario is to enable users access FHIR De-Identification Tool through Azure Data Factory. We provide two ways to use Azure Data Factory with De-Id tool, the manual way and the automatic way.
