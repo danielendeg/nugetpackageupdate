@@ -21,7 +21,7 @@ Users can create and run an De-Identification Azure Data Factory with a powershe
     "storageAccountKey":"[Your storage account key]"
 }
 ```
-In this spec, we will discuss the second way in details.
+
 
 # Design
 ### Azure Data Factory Integration
