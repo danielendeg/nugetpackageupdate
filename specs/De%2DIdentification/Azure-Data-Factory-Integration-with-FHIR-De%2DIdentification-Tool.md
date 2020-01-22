@@ -3,10 +3,10 @@
 # Business Justification
 Customers usually need FHIR de-identification against either a FHIR data response or a FHIR dataset.
 * For a FHIR data response data like a json file, users can simply build our De-Id tool and run it in console.
-* For big datasets that comes from export result of FHIR server, users can use the libraries and build an extension to ADF to de-identify the data in the cloud from one blob storage to another.
+* For datasets that come from export result of FHIR server, users can use the libraries and build an extension to ADF to de-identify the data in the cloud from one blob storage to another.
 
 # Scenario
-Users can create and run an De-Identification Azure Data Factory with a powershell script. Users need to provide a Data Factory Configuration and log in with their Azure credentials to authorize automatic resource management. Below is an example of user configuration file.
+Users can create and run an De-Identification Azure Data Factory with a powershell script. Users need to provide a Data Factory Configuration to specify resource names and storage connection settings. Below is an example of user configuration file.
 ```json
 {
     "dataFactoryName": "[Your data factory name]",
@@ -27,7 +27,7 @@ users can create a Custom activity with the De-Identification logic and use that
 
 ![ADF.jpg](/.attachments/ADF-f7f075d6-29ea-4e64-b19b-00b38edba106.jpg)
 
-Here is the De-Identification framework using Azure Data Factory pipeline. 
+Here we attach the De-Identification framework using Azure Data Factory pipeline. 
 We will describe the Azure Data Factory integration work as two parts: 
 * **Custom Activity** that denotes the De-Identification logic to transform data.
 * **Azure Data Factory Deployment** that denotes the Azure resource management logic that create and manages all resources needed by Azure Data Factory.
@@ -54,7 +54,7 @@ The command to run the deploy script is
 The ConfigFile parameter is the filepath of user configuration and it has a default value of "AzureDataFactorySettings.json". The SubscriptionId parameter enables user to selectwhich subscription to deploy the resources. The RunPipelineOnly parameters can be used when user has deployed all resources and just want to run the De-Identification pipeline.
 
 # Error handling & logging
-If an error occured in the de-identfication custom activty, e.g. failures in parses the input resource document or deidetifying resourses, the custom activity will throw an exception and execution result of the ADF pipeline will be Failed.
+If an error occurs in the de-identfication custom activty, e.g. failures in parses the input resource document or deidetifying resourses, the custom activity will throw an exception and execution result of the ADF pipeline will be Failed.
  
 Whenever user runs the pipeline with the script we provided, the execution result will be displayed on the console like
 ```
@@ -62,8 +62,8 @@ Whenever user runs the pipeline with the script we provided, the execution resul
 [2020-01-22 02:04:43] Pipeline is running...status: InProgress
 [2020-01-22 02:05:06] Pipeline run finished. The status is: Succeeded
 
-ResourceGroupName : adfdeid2021resourcegroup
-DataFactoryName   : adfdeid2021
+ResourceGroupName : adfdeid2020resourcegroup
+DataFactoryName   : adfdeid2020
 RunId             : d84a33a0-aceb-4fd1-b37c-3c06c597201b
 PipelineName      : AdfDeIdentificationPipeline
 LastUpdated       : 1/22/2020 6:04:51 AM
