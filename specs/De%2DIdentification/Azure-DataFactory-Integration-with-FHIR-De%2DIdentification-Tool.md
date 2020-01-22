@@ -2,49 +2,54 @@
 
 # Business Justification
 Customers usually need FHIR de-identification against either a FHIR data response or a FHIR dataset.
-
-For a  FHIR data response data like a json file, users can simply build our De-Id tool and run it with the following command,
-```
-./FHIR.DeIdentification.Tool.exe resource.json resource.redacted.json
-```
-For big datasets that comes from export result of FHIR server, users can use the libraries and build an extension to ADF to de-identify the data in the cloud from one blob storage to another.
+* For a FHIR data response data like a json file, users can simply build our De-Id tool and run it in console.
+* For big datasets that comes from export result of FHIR server, users can use the libraries and build an extension to ADF to de-identify the data in the cloud from one blob storage to another.
 
 # Scenario
-Users can create and run an De-Identification Azure Data Factory with a powershell script. Users need provide a Data Factory Configuration as the script input and log in with their Azure credentials to authorize automatic resource management. Below is an example of user configuration file.
+Users can create and run an De-Identification Azure Data Factory with a powershell script. Users need to provide a Data Factory Configuration and log in with their Azure credentials to authorize automatic resource management. Below is an example of user configuration file.
 ```json
 {
     "dataFactoryName": "[Your data factory name]",
     "resourceLocation": "WestUS",
-    "inputContainerName": "[Your input container name]",
-    "outputContainerName": "[Your output container name]",
-    "storageAccountName":"[Your storage account hosting input, output and activity application]",
-    "storageAccountKey":"[Your storage account key]"
+    "batchComputeNodeSize":"compute node size of Azure batch service",
+    "sourceStorageAccountName":"[source storage account hosting input data, activity application]",
+    "sourceStorageAccountKey":"[source storage account key]",
+    "destinationStorageAccountName":"[destination storage account hosting output data]",
+    "destinationStorageAccountKey":"[destinationstorage account key]",
+    "sourceContainerName": "[source container name]",
+    "destinationContainerName": "[destination container name]",
+    "activityContainerName":"[container name of custom activity application]"
 }
 ```
-
-
 # Design
-### Azure Data Factory Integration
-Azure Data Factory supports different data transformations.
-Since our De-Id tool is written against .Net Core, we have two transformation options, the Azure Function activity & the custom Activity. The FHIR dataset might be very large and the De-Identification process might be time consuming. Hence, we exclude Azure Function that is not suitable for [long running tasks](https://docs.microsoft.com/en-us/azure/azure-functions/functions-best-practices). 
+The De-Identification data transformation process on FHIR resources isn't directly supported by Azure Data Factory,
+users can create a Custom activity with the De-Identification logic and use that activity in a pipeline. 
 
-On the contrary, custom activity utilize Azure Batch service as computing environment which has adequate computing resources. The job schedule strategy in Azure Batch service is listed below
+![ADF.jpg](/.attachments/ADF-f7f075d6-29ea-4e64-b19b-00b38edba106.jpg)
 
-![Azure Batch Job Schedule Framework](/.attachments/tech_overview_03%20(1)-dcef1066-a5f0-4dee-8ffe-d81406ab20b7.png)
+Here is the De-Identification framework using Azure Data Factory pipeline. 
+We will describe the Azure Data Factory integration work as two parts: 
+* **Custom Activity** that denotes the De-Identification logic to transform data.
+* **Azure Data Factory Deployment** that denotes the Azure resource management logic that create and manages all resources needed by Azure Data Factory.
 
-Hence, we design our Azure Data Factory Integration in three steps:
-1. Script will build the custom activity application and copy the output folder to Azure Blob storage.
-2. Script will create Azure resource group, Azure batch service and Azure Data Factory resources.
-3. Script will create and run Azure Data Factory pipeline with generated configurations.
+### Custom Activity
+Since our De-Id tool is written with .Net Core framework, we have two transformation options do the integration, the Azure Function activity & the Custom activity. The FHIR dataset might be very large and the De-Identification process might be time consuming. Hence, an Azure Function activity is not suitable for the de-identification task and we utilize custom activity as the core function for ADF De-Identification.
+The logic of our De-Identification custom activity is to download all resource blobs from the source Azure blob storage, de-identify all resource files (currently the file Format is *.ndjson*), and upload the de-identified blob to the destination Azure blob storage.
 
-### De-Id custom activity
-De-Id custom activity is the core application that performs the FHIR De-Identification task. This activity takes a blob container as input and write the redacted resources to the output container. The execution command is 
+![custom activity.jpg](/.attachments/custom%20activity-bbd3d18c-02f2-4f26-83c6-19b282b418e6.jpg)
+
+### Azure Data Factory Deployment
+As shown in the picture of Azure Data Factory Framework, users need to configure several dependent resources along with Azure Data Factory. We provide a Powershell script to help users deploy these resources. We list the core steps for deploying a Azure Data Factory pipeline for FHIR De-Identification:
+1. Build the custom activity application and copy the application folder to Azure Blob storage.
+2. Create Azure resource group, Azure batch service and Azure Data Factory resources.
+3. Run Azure Data Factory pipeline and show pipeline results.
+
+The command to run the deploy script is
 ```
-Fhir.DeIdentification.CustomActivity.exe [-f/--force] // set -f option to overwrite existing blobs in output container
+.\DeployAzureDataFactoryPipeline.ps1 
+    [-ConfigFile AzureDataFactorySettings.json]
+    [-SubscriptionId a2bd7a81-579e-45e8-8d88-22db48695abd]
+    [-RunPipelineOnly]
 ```
-The custom activity works like below:
-- List all blobs in input container.
-- Downloads a resource file.
-- Redact the downloaded file.
-- Upload the redacted file.
+The ConfigFile parameter is the filepath of user configuration and it has a default value of "AzureDataFactorySettings.json". The SubscriptionId parameter enables user to selectwhich subscription to deploy the resources. The RunPipelineOnly parameters can be used when user has deployed all resources and just want to run the De-Identification pipeline.
 
