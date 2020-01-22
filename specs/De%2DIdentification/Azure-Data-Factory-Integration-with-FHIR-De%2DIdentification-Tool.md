@@ -53,3 +53,44 @@ The command to run the deploy script is
 ```
 The ConfigFile parameter is the filepath of user configuration and it has a default value of "AzureDataFactorySettings.json". The SubscriptionId parameter enables user to selectwhich subscription to deploy the resources. The RunPipelineOnly parameters can be used when user has deployed all resources and just want to run the De-Identification pipeline.
 
+# Error handling & logging
+If an error occured in the de-identfication custom activty, e.g. failures in parses the input resource document or deidetifying resourses, the custom activity will throw an exception and execution result of the ADF pipeline will be Failed.
+ 
+Whenever user runs the pipeline with the script we provided, the execution result will be displayed on the console like
+```
+[2020-01-22 02:04:20] Pipeline is running...status: InProgress
+[2020-01-22 02:04:43] Pipeline is running...status: InProgress
+[2020-01-22 02:05:06] Pipeline run finished. The status is: Succeeded
+
+ResourceGroupName : adfdeid2021resourcegroup
+DataFactoryName   : adfdeid2021
+RunId             : d84a33a0-aceb-4fd1-b37c-3c06c597201b
+PipelineName      : AdfDeIdentificationPipeline
+LastUpdated       : 1/22/2020 6:04:51 AM
+Parameters        : {}
+RunStart          : 1/22/2020 6:04:15 AM
+RunEnd            : 1/22/2020 6:04:51 AM
+DurationInMs      : 35562
+Status            : Succeeded
+Message           :
+Activity 'Output' section:
+"exitcode": 0
+"outputs": [
+  "https://deid.blob.core.windows.net/adfjobs/d04171de-aba5-4f43-a0fc-456a2f004382/output/stdout.txt",
+  "https://deid.blob.core.windows.net/adfjobs/d04171de-aba5-4f43-a0fc-456a2f004382/output/stderr.txt"
+]
+"computeInformation": "{\"account\":\"adfdeid2021batch\",\"poolName\":\"adfpool\",\"vmSize\":\"standard_d1_v2\"}"
+"effectiveIntegrationRuntime": "DefaultIntegrationRuntime (West US)"
+"executionDuration": 31
+"durationInQueue": {
+  "integrationRuntimeQueue": 0
+}
+"billingReference": {
+  "activityType": "ExternalActivity",
+  "billableDuration": {
+    "Managed": 0.016666666666666666
+  }
+}
+```
+If the job failed, users can find the detailed outputs and error logs in azure blob storage. These logs can be helpful for monitoring jobs and debugging errors.
+
