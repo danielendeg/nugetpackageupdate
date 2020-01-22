@@ -2,7 +2,7 @@
 
 # Business Justification
 Customers usually need FHIR de-identification against either a FHIR data response or a FHIR dataset.
-* For a FHIR data response data like a json file, users can simply build our De-Id tool and run it in console.
+* For a FHIR data response data like a json file, users can simply build our De-Id console application and run it.
 * For datasets that come from export result of FHIR server, users can use the libraries and build an extension to ADF to de-identify the data in the cloud from one blob storage to another.
 
 # Scenario
