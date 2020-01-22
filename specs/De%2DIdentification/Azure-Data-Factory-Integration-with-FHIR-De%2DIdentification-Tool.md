@@ -51,7 +51,7 @@ The command to run the deploy script is
     [-SubscriptionId a2bd7a81-579e-45e8-8d88-22db48695abd]
     [-RunPipelineOnly]
 ```
-The ConfigFile parameter is the filepath of user configuration and it has a default value of "AzureDataFactorySettings.json". The SubscriptionId parameter enables user to selectwhich subscription to deploy the resources. The RunPipelineOnly parameters can be used when user has deployed all resources and just want to run the De-Identification pipeline.
+The ConfigFile parameter is the filepath of user configuration and it has a default value of "AzureDataFactorySettings.json". The SubscriptionId parameter enables user to select which subscription to deploy the resources. The RunPipelineOnly parameters can be used when user has deployed all resources and just want to run the De-Identification pipeline.
 
 # Error handling & logging
 If an error occurs in the de-identfication custom activty, e.g. failures in parses the input resource document or deidetifying resourses, the custom activity will throw an exception and execution result of the ADF pipeline will be Failed.
