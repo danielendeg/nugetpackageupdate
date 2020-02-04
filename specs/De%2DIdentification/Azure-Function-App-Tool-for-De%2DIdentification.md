@@ -46,7 +46,7 @@ We use http trigger and durable function implement as async API for de-identific
 {
     "instanceId":"<taskid>",
     "runtimeStatus":"Failed",
-    "output":"Orchestrator function 'TransformFromStorage_Orchestrator' failed: The activity function 'TransformFromStorage' failed: \"Container: not-exist-container not exist\". See the function execution logs for additional details.",
+    "output":"Orchestrator function 'TransformFromStorage_Orchestrator' failed: The activity function 'TransformFromStorage' failed: \"Container: fake-container not exist\". See the function execution logs for additional details.",
     "createdTime":"2020-02-04T13:43:46Z",
     "lastUpdatedTime":"2020-02-04T13:43:48Z",
     # ... <Other properties for durable function result>
@@ -109,7 +109,7 @@ Customer can find detail error message from ADF Activity result (Web Activity pu
 ```json
 {
     "errorCode": "2108",
-    "message": "{\"name\":\"TransformFromStorage_Orchestrator\",\"instanceId\":\"c92644840fe4451a9045bc11ffd7627d\",\"runtimeStatus\":\"Failed\",\"input\":{\"$type\":\"DeIdentification.TransformRequest, DeIdentification\",\"InputContainer\":\"not-exist-container\",\"InputFileName\":\"not-exist-file\",\"OutputContainer\":\"not-exist-file\"},\"customStatus\":null,\"output\":\"Orchestrator function 'TransformFromStorage_Orchestrator' failed: The activity function 'TransformFromStorage' failed: \\\"Container: not-exist-container not exist\\\". See the function execution logs for additional details.\",\"createdTime\":\"2020-02-04T13:51:31Z\",\"lastUpdatedTime\":\"2020-02-04T13:51:34Z\"}",
+    "message": "{\"name\":\"TransformFromStorage_Orchestrator\",\"instanceId\":\"c92644840fe4451a9045bc11ffd7627d\",\"runtimeStatus\":\"Failed\",\"input\":{\"$type\":\"DeIdentification.TransformRequest, DeIdentification\",\"InputContainer\":\"not-exist-container\",\"InputFileName\":\"not-exist-file\",\"OutputContainer\":\"not-exist-file\"},\"customStatus\":null,\"output\":\"Orchestrator function 'TransformFromStorage_Orchestrator' failed: The activity function 'TransformFromStorage' failed: \\\"Container: fake-container not exist\\\". See the function execution logs for additional details.\",\"createdTime\":\"2020-02-04T13:51:31Z\",\"lastUpdatedTime\":\"2020-02-04T13:51:34Z\"}",
     "failureType": "UserError",
     "target": "DeId-Result-WebActivity",
     "details": []
