@@ -63,11 +63,34 @@ In this ADF pipeline, we trigger durable function for each storage blob in the c
 
 # User Scenario
 1. Prepare resource
-We would provide scripts for customer to create and deploy all resources. Following resources would be used.
-- Key Vault (Customer provide): Used for store credential.
-- Storage (Customer provide): Used for store resource files (*.ndjson).
-- Function App (Script create): Used for handle De-Id tasks.
-- Data Factory (Script create): Used for De-Id pipeline.
+
+   We would provide scripts for customer to build function and prepare all azure resources. Following resources would be used.
+   - Key Vault (Customer provide): Used for store credential.
+   - Storage (Customer provide): Used for store resource files (*.ndjson).
+   - Function App (Script create): Used for handle De-Id tasks.
+   - Data Factory (Script create): Used for De-Id pipeline.
+
+* Commands Sample:
+```sh
+.\Prepare-Resource.ps1  
+    [-Region] <String>
+    [-ResourceGroup] <String> 
+    [-SecretStore] <String>
+    [-StorageConnectionString] <String>
+    [-FunctionName] <String>
+    [-DataFactoryName] <String>     
+```
+-SecretStore: the key vault name
+
+2. Run ADF pipeline
+```
+Invoke-AzDataFactoryV2Pipeline
+      [-ResourceGroupName] <String>
+      [-DataFactoryName] <String>
+      [-PipelineName] <String>
+      [-ParameterFile <String>]
+```
+
 
 
 
