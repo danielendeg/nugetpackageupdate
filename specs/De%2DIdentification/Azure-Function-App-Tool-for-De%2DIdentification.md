@@ -5,8 +5,9 @@ Customer can use De-Identification function app integrate with ADF pipeline or u
 
 # User scenario with Function App 
 1. Integrate with ADF Pipeline
-![ADF Flow.jpg](/.attachments/ADF%20Flow-7ebd3c80-ce3a-4af8-b76c-baaee97e494a.jpg)
 - In this ADF pipeline, we trigger durable Function for every storage blob in the container, the function app would upload the result to destination container.
-- We can suggest customer do following operations (copy activity, data flow activity...) after all blob upload complete or in the foreach loop. 
+- We can suggest customer do following operations (copy activity, data flow activity...) after all blob upload complete or in the foreach loop.
+ 
+![ADF Flow.jpg](/.attachments/ADF%20Flow-7ebd3c80-ce3a-4af8-b76c-baaee97e494a.jpg)
 
 2. Stand-alone Function App as web service
