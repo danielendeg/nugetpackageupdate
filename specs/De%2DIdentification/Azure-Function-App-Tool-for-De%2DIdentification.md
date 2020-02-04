@@ -19,19 +19,22 @@ We use http trigger and durable function implement as async API for de-identific
 
 ```
 
+Durable function has different timeout for 3 hosting plan. Currently we would expect 10 mins for 1G single file, customer can choose hosting plan based on their usage.
+| Hosting Plan  | Default Timeout   | Maximum Timeout   |
+| :------------ | :----------:      | -----------:      |
+|  Consumption  | 5 min             | 10 min            |
+|  Premium      | 30 min            | 60 min            |
+|  App Service  | 30 min            | Unlimit           |
+
 # Integrate with ADF Pipeline
 In this ADF pipeline, we trigger durable function for each storage blob in the container, the function app would download data from storage and upload the result to destination container. Customer can extend the pipeline with following activities for further ETL & Analysis tasks.
 
 ![ADF Pipeline.jpg](/.attachments/ADF%20Pipeline-54653e1f-fab7-40ac-8e1b-ef6418a2e9c9.jpg)
 
 * ADF support activity parallel execution through foreach activity (maxium number == 50). For every blob we can trigger a function call would help accelerate the pipeline execution.
-* Durable function has different timeout for 3 hosting plan. Currently we would expect 10 mins for 1G single file, customer can choose hosting plan based on their usage.
+* 
 
-| Hosting Plan  | Default Timeout   | Maximum Timeout   |
-| :------------ | :----------:      | -----------:      |
-|  Consumption  | 5 min             | 10 min            |
-|  Premium      | 30 min            | 60 min            |
-|  App Service  | 30 min            | Unlimit           |
+
 
 * 
 
