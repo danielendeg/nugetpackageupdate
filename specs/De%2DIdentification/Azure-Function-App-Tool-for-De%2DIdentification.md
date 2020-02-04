@@ -13,7 +13,7 @@ We use http trigger and durable function implement as async API for de-identific
 }
 ```
 
-* Accept response 
+* Accept response (Follow durable function pattern)
 ```json
 {
     "id": "<taskid>",
@@ -27,7 +27,16 @@ We use http trigger and durable function implement as async API for de-identific
 
 * Result Response
 ```json
-
+{
+  "instanceId": "<taskid>",
+  "runtimeStatus": "<durable function status>",
+  "output": 
+  {
+    "OutputContainer": "<OutputContainer>",
+    "OutputFileName": "<OutputFileName>"
+  }
+  # ... <Other properties for durable function result>
+}
 ```
 
 Durable function has different timeout for 3 hosting plan. Currently we would expect 10 mins for 1G single file, customer can choose hosting plan based on their usage.
