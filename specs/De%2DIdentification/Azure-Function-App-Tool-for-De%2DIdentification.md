@@ -91,16 +91,18 @@ Invoke-AzDataFactoryV2Pipeline
       [-ParameterFile <String>]
 ```
 
+# Future Work
+1. Single big file performance improvement
+
+   Currently resource file (*.ndjson) might be very large > GB, that cause bad performance for single function call. To improve this we can split the big file into small files and execute in parallel. ADF currently support data flow activity which supports such operation. We can leverage DataFlow Activity integrate with current pipeline to do split and merge operation.
+
+2. Extend Function App to support more trigger
+   Function app support blob trigger directly, use function app as a standalone tool with blob trigger can help customer De-Identify resource file backend without any manual operation. 
 
 
+   
 
 
-
-
-
-
-
- 
 
 
 
