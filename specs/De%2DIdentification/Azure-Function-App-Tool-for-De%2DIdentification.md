@@ -1,3 +1,5 @@
+[[_TOC_]]
+
 # Overview
 Azure Function App support customer deploy serverless application with pay-per-use pricing model. With Azure Functions, the cloud infrastructure provides all the up-to-date servers to keep application running at auto scale. Function App also supports long running application with durable mode which is supported by ADF. Customer can use the function app as a standalone tool not only for web request.
 
@@ -58,6 +60,16 @@ In this ADF pipeline, we trigger durable function for each storage blob in the c
 * For credential, we would suggest customer to store the connection string & function key in the key vault, data factory can use key vault linked service to reference the secret. 
 * In the pipeline de-identify operation uses same storage account (different containers) for both source and destination to decouple with other operation like copy, transform... 
 * Pipeline parameter: <SourceContainer> & <DestinationContainer>. Customer provides the parameters during execution.
+
+# User Scenario
+1. Prepare resource
+We would provide scripts for customer to create and deploy all resources. Following resources would be used.
+- Key Vault (Customer provide): Used for store credential.
+- Storage (Customer provide): Used for store resource files (*.ndjson).
+- Function App (Script create): Used for handle De-Id tasks.
+- Data Factory (Script create): Used for De-Id pipeline.
+
+
 
 
 
