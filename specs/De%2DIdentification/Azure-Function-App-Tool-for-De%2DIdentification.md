@@ -41,6 +41,18 @@ We use http trigger and durable function implement as async API for de-identific
 }
 ```
 
+* Failed Result Response
+```json
+{
+    "instanceId":"<taskid>",
+    "runtimeStatus":"Failed",
+    "output":"Orchestrator function 'TransformFromStorage_Orchestrator' failed: The activity function 'TransformFromStorage' failed: \"Container: not-exist-container not exist\". See the function execution logs for additional details.",
+    "createdTime":"2020-02-04T13:43:46Z",
+    "lastUpdatedTime":"2020-02-04T13:43:48Z",
+    # ... <Other properties for durable function result>
+}
+```
+
 Durable function has different timeout for 3 hosting plan. Currently we would expect 10 mins for 1G single file, customer can choose hosting plan based on their usage.
 | Hosting Plan  | Default Timeout   | Maximum Timeout   |
 | :------------ | :----------:      | -----------:      |
