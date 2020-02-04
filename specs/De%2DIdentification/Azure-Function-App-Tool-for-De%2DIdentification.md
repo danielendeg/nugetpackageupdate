@@ -1,19 +1,44 @@
 # Overview
-Azure Function App support customer deploy serverless application with pay-per-use pricing model. With Azure Functions, the cloud infrastructure provides all the up-to-date servers to keep application running at auto scale. Function App also supports long running application with durable mode which is supported by ADF. Customer can use the function app as a standalone tool not only for web request. 
+Azure Function App support customer deploy serverless application with pay-per-use pricing model. With Azure Functions, the cloud infrastructure provides all the up-to-date servers to keep application running at auto scale. Function App also supports long running application with durable mode which is supported by ADF. Customer can use the function app as a standalone tool not only for web request.
+
+# Function App Design
+We use http trigger and durable function implement as async API for de-identification task. The logic of the function is to download the single blob file from storage, de-identify resource file and upload result to destination blob.
+
+* Request for start de-identification
+```json
+
+```
+
+* Accept response 
+```json
+
+```
+
+* Result Response
+```json
+
+```
 
 # Integrate with ADF Pipeline
-In this ADF pipeline, we trigger durable function for each storage blob in the container, the function app would upload the result to destination container. Customer can extend the pipeline with following activities like copy, data flow... 
+In this ADF pipeline, we trigger durable function for each storage blob in the container, the function app would download data from storage and upload the result to destination container. Customer can extend the pipeline with following activities for further ETL & Analysis tasks.
 
-![ADF Flow.jpg](/.attachments/ADF%20Flow-7ebd3c80-ce3a-4af8-b76c-baaee97e494a.jpg)
+![ADF Pipeline.jpg](/.attachments/ADF%20Pipeline-54653e1f-fab7-40ac-8e1b-ef6418a2e9c9.jpg)
 
-- 
+* ADF support activity parallel execution through foreach activity (maxium number == 50). For every blob we can trigger a function call would help accelerate the pipeline execution.
+* Durable function has different timeout for 3 hosting plan. Currently we would expect 10 mins for 1G single file, customer can choose hosting plan based on their usage.
 
-# Security
+| Hosting Plan  | Default Timeout   | Maximum Timeout   |
+| :------------ | :----------:      | -----------:      |
+|  Consumption  | 5 min             | 10 min            |
+|  Premium      | 30 min            | 60 min            |
+|  App Service  | 30 min            | Unlimit           |
 
-# User scenario
-1. Deploy function app
-2. Deploy Data Factory with arm template
-3. Trigger Pipeline Run
+* 
 
-# Further improvement
-1. Big Single File
+
+
+ 
+
+
+
+
