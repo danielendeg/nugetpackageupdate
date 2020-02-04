@@ -32,7 +32,8 @@ In this ADF pipeline, we trigger durable function for each storage blob in the c
 ![ADF Pipeline.jpg](/.attachments/ADF%20Pipeline-54653e1f-fab7-40ac-8e1b-ef6418a2e9c9.jpg)
 
 * ADF support activity parallel execution through foreach activity (maxium number == 50). For every blob we can trigger a function call would help accelerate the pipeline execution.
-* 
+* For Storage credential, we would suggest customer to store the connection string in the key vault, data factory can use key vault linked service to reference the secret. 
+* In the pipeline de-identify operation uses same storage account (different containers) for both source and destination to decouple with other operation like copy, transform... 
 
 
 
