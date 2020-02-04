@@ -103,6 +103,19 @@ Invoke-AzDataFactoryV2Pipeline
       [-ParameterFile <String>]
 ```
 
+3. Troubleshot at De-Identification function failure
+
+Customer can find detail error message from ADF Activity result, here's one sample error:
+```json
+{
+    "errorCode": "2108",
+    "message": "{\"name\":\"TransformFromStorage_Orchestrator\",\"instanceId\":\"c92644840fe4451a9045bc11ffd7627d\",\"runtimeStatus\":\"Failed\",\"input\":{\"$type\":\"DeIdentification.TransformRequest, DeIdentification\",\"InputContainer\":\"not-exist-container\",\"InputFileName\":\"not-exist-file\",\"OutputContainer\":\"not-exist-file\"},\"customStatus\":null,\"output\":\"Orchestrator function 'TransformFromStorage_Orchestrator' failed: The activity function 'TransformFromStorage' failed: \\\"Container: not-exist-container not exist\\\". See the function execution logs for additional details.\",\"createdTime\":\"2020-02-04T13:51:31Z\",\"lastUpdatedTime\":\"2020-02-04T13:51:34Z\"}",
+    "failureType": "UserError",
+    "target": "DeId-Result-WebActivity",
+    "details": []
+}
+```
+
 # Future Work
 1. Single big file performance improvement
 
