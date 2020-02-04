@@ -46,6 +46,9 @@ Durable function has different timeout for 3 hosting plan. Currently we would ex
 |  Premium      | 30 min            | 60 min            |
 |  App Service  | 30 min            | Unlimit           |
 
+* Credentials used by function would be stored in the key vault, and referenced by application configuration through key vault path.
+* Support function key authentication first. (Request with function key in url)
+
 # Integrate with ADF Pipeline
 In this ADF pipeline, we trigger durable function for each storage blob in the container, the function app would download data from storage and upload the result to destination container. Customer can extend the pipeline with following activities for further ETL & Analysis tasks.
 
@@ -57,7 +60,6 @@ In this ADF pipeline, we trigger durable function for each storage blob in the c
 
 
 
-* 
 
 
 
