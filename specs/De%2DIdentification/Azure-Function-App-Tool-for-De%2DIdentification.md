@@ -105,7 +105,7 @@ Invoke-AzDataFactoryV2Pipeline
 
 3. Troubleshot at De-Identification function failure
 
-Customer can find detail error message from ADF Activity result, here's one sample error:
+Customer can find detail error message from ADF Activity result (Web Activity pull status and show error result), here's one sample error:
 ```json
 {
     "errorCode": "2108",
@@ -115,6 +115,7 @@ Customer can find detail error message from ADF Activity result, here's one samp
     "details": []
 }
 ```
+For those unexpected error like internal server error and no meaningful infomations in result, details execution logs can be find in function app monitoring page.
 
 # Future Work
 1. Single big file performance improvement
