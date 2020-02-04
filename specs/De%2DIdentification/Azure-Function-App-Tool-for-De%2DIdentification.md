@@ -6,12 +6,23 @@ We use http trigger and durable function implement as async API for de-identific
 
 * Request for start de-identification
 ```json
-
+{ 
+  "InputContainer": "<InputContainer>", 
+  "InputFileName": "<InputFileName>",  
+  "OutputContainer": "<OutputContainer>"
+}
 ```
 
 * Accept response 
 ```json
-
+{
+    "id": "<taskid>",
+    "statusQueryGetUri": "https://***.azurewebsites.net/runtime/webhooks/durabletask/instances/**?taskHub=DurableFunctionsHub&connection=Storage&code=*****",
+    "sendEventPostUri": "***",
+    "terminatePostUri": "***",
+    "rewindPostUri": "***",
+    "purgeHistoryDeleteUri": "***"
+}
 ```
 
 * Result Response
