@@ -1,0 +1,16 @@
+title Azure RBAC for Azure API for FHIR
+
+Client->FHIR: /Patien?name=bob
+FHIR->GroupCache:GetGroups(oid)
+GroupCache-->Account RS: If stale get graph token
+Account RS-->GroupCache:Graph token
+GroupCache-->MSGraph:If stale, enumerate groups
+MSGraph-->GroupCache:Groups for oid
+GroupCache->FHIR:Groups for oid
+FHIR->AuthEngine: oid and groups, is action allowed on resource?
+AuthEngine-->Account RS: Get token for https://management.azure.com
+Account RS-->AuthEngine: Token for https://management.azure.com
+AuthEngine-->Microsoft.Authorization: if stale, pull roles, assignments
+Microsoft.Authorization-->AuthEngine: Roles, assignments
+AuthEngine->FHIR: Allow/Disallow
+FHIR->Client: Response

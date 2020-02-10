@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css"
+        integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+
+    <script src="https://secure.aadcdn.microsoftonline-p.com/lib/1.0.0/js/msal.js"></script>
+
+    <title>Tenant gymnastics example app</title>
+</head>
+
+<body onload="init()">
+    <div class="container-fluid">
+
+        <nav class="navbar navbar-expand-sm bg-light navbar-light" id="navbar">
+            <a class="navbar-brand" href="#">Tenant Gym</a>
+
+            <ul class="navbar-nav mr-auto">
+                <li class="nav-item">
+                    <input size=50 type="text" class="form-control" id="input-arm-tenant-name"
+                        value="cloudynerd.onmicrosoft.com" aria-label="Tenant domain or guid"
+                        aria-describedby="arm-tenant-button">
+                </li>
+                <li class="nav-item">
+                    <button class="btn btn-dark navbar-btn" onclick="signInArm()">Login</button>
+                </li>
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" id="tenant-dropdown-button" role="button"
+                        data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        Graph Tenant
+                    </a>
+                    <div id="tenant-dropdown" class="dropdown-menu" aria-labelledby="navbarDropdown">
+                    </div>
+                </li>
+                
+            </ul>
+
+            <div id="signedInUser">
+                <!-- Display field for who you are signed in as -->
+            </div>
+
+            <div class="pl-2">
+            <button class="btn btn-dark navbar-btn" onclick="signOutArm()">Logout</button>
+            </div>
+        </nav>
+
+        <div id="graph-user">
+
+        </div>
+        <div id="graph-information">
+
+        </div>
+    </div>
+
+        <script src="http://code.jquery.com/jquery-3.4.1.min.js"
+            integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
+        <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"
+            integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo"
+            crossorigin="anonymous"></script>
+        <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js"
+            integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6"
+            crossorigin="anonymous"></script>
+
+        <script type="text/javascript">
+            var graphMSALObject = null;
+            var armMSALObject = null;
+
+            var armRequestObj = {
+                scopes: ["https://management.azure.com/user_impersonation"]
+            }
+
+            var graphRequestObj = {
+                scopes: ["openid", "profile", "https://graph.microsoft.com/User.Read", "https://graph.microsoft.com/User.ReadBasic.All"]
+            }
+
+            function getMSALConfigForTenant(tenant) {
+                return {
+                    auth: {
+                        clientId: 'eea71d81-8d8a-437f-85b3-3e0bed4753a9',
+                        authority: 'https://login.microsoftonline.com/' + tenant
+                    },
+                    cache: {
+                        cacheLocation: "localStorage",
+                        storeAuthStateInCookie: true
+                    }
+                }
+            }
+
+            function getArmMSALObject() {
+                var tenant = document.getElementById('input-arm-tenant-name').value;
+                if (armMSALObject === undefined || armMSALObject === null || armMSALObject.config.auth.authority.indexOf(tenant) == -1) {
+                    armMSALObject = new Msal.UserAgentApplication(getMSALConfigForTenant(tenant));
+                }
+                return armMSALObject;
+            }
+
+            function getGraphMSALObject(tenantId) {
+                if (graphMSALObject === undefined || graphMSALObject === null || graphMSALObject.config.auth.authority.indexOf(tenantId) == -1) {
+                    armMSALObject = new Msal.UserAgentApplication(getMSALConfigForTenant(tenantId));
+                }
+                return armMSALObject;
+            }
+
+            function init() {
+                populateArmSignedInInformation();
+            }
+
+            function populateArmSignedInInformation() {
+                if (getArmMSALObject().getAccount() !== null) {
+                    $("#signedInUser").html('ARM User ' + getArmMSALObject().getAccount().userName + ' (' + getArmMSALObject().getAccount().idToken.tid + ')');
+                    populateTenants();
+                }
+                else {
+                    $("#signedInUser").html('Please sign in to ARM tenant');
+                }
+            }
+
+            function populateTenants() {
+                var req = {
+                    scopes: armRequestObj.scopes,
+                    authority: "https://login.microsoftonline.com/" + document.getElementById('input-arm-tenant-name').value
+                }
+
+                getArmMSALObject().acquireTokenSilent(req).then(function (tokenResponse) {
+                    retrieveTenants(tokenResponse.accessToken);
+                }).catch(function (error) {
+                    getArmMSALObject().acquireTokenPopup(req).then(function (tokenResponse) {
+                        retrieveTenants(tokenResponse.accessToken);
+                    }).catch(function (error) {
+                        console.error(error);
+                    })
+                });
+            }
+
+            function retrieveTenants(token)
+            {
+                $.ajax({
+                    url: 'https://management.azure.com/tenants?api-version=2019-11-01',
+                    type: 'GET',
+                    datatype: 'json',
+                    beforeSend: function (request) {
+                        request.setRequestHeader("Authorization", "Bearer " + token);
+                    },
+                    success: function (tenantInformation) {
+                        $("#tenant-dropdown").html('');
+                        $.each(tenantInformation.value, function (index, item) {
+                            $("#tenant-dropdown").append("<a class=\"dropdown-item\" onClick=\"queryGraph('" + item.tenantId + "')\" href=\"#\">" + item.displayName + " (" + item.tenantId + ")" + "</a>");
+                        });
+                    },
+                    error: function (response) {
+                        alert("Error getting tenants: " + response.responseJSON.error.message);
+                    }
+                });
+            }
+
+            function requiresInteraction(errorCode) {
+                if (!errorCode || !errorCode.length) {
+                    return false;
+                }
+                return errorCode === "consent_required" || errorCode === "interaction_required" || errorCode === "login_required";
+            }
+
+            function queryGraph(tenantId) {
+
+                var req = {
+                    scopes: graphRequestObj.scopes,
+                    authority: "https://login.microsoftonline.com/" + tenantId
+                }
+
+                getGraphMSALObject(tenantId).acquireTokenSilent(req).then(function (tokenResponse) {
+                    populateGraphInformation(tokenResponse.accessToken);
+                }).catch(function (error) {
+                    getGraphMSALObject(tenantId).acquireTokenPopup(req).then(function (tokenResponse) {
+                        populateGraphInformation(tokenResponse.accessToken);
+                    }).catch(function (error) {
+                        console.error(error);
+                    })
+                });
+            }
+
+            function parseJwt (token) {
+                var base64Url = token.split('.')[1];
+                var base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+                var jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
+                    return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+                }).join(''));
+
+                return JSON.parse(jsonPayload);
+            };
+
+            function populateGraphInformation(token) {
+                $.ajax({
+                    url: 'https://graph.microsoft.com/beta/users',
+                    type: 'GET',
+                    datatype: 'json',
+                    beforeSend: function (request) {
+                        request.setRequestHeader("Authorization", "Bearer " + token);
+                    },
+                    success: function (users) {
+                        claims = parseJwt(token);
+
+                        userInformation = "<div class='m-5'>Parsing tenant <b>" + claims.tid + '</b> as user <b>' + claims.unique_name + "</b>";
+                        userInformation += "<div class='m-2'><div class='m-1'>Users:</div><ul>";
+                        $.each(users.value, function(index, item) {
+                            userInformation += '<li>' + item.userPrincipalName;
+                        })
+                        userInformation += '</ul></div>';
+                        $("#graph-information").html(userInformation);
+                    },
+                    error: function (response) {
+                        alert("Error getting tenants: " + response.responseJSON.error.message);
+                    }
+                });
+            }
+
+            function signInArm() {
+                getArmMSALObject().loginPopup(armRequestObj).then(function (loginResponse) {
+                    populateArmSignedInInformation();
+                }).catch(function (error) {
+                    console.log(error);
+                })
+            }
+
+            function signOutArm() {
+                getArmMSALObject().logout();
+            }
+
+        </script>
+
+</body>
+
+</html>

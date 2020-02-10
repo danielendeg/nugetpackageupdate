@@ -1,0 +1,10 @@
+title Azure API for FHIR Azure RBAC API
+
+Client->FHIR: /Patien?name=bob
+FHIR->DecisionCache:IsAllowed(oid, slice, action)
+DecisionCache-->Account RS: If stale get ARM token
+Account RS-->DecisionCache:ARM token
+DecisionCache-->Microsoft.Authorization:IsAllowed?
+Microsoft.Authorization-->DecisionCache:Decision
+DecisionCache->FHIR:Allow/Disalow
+FHIR->Client: Response

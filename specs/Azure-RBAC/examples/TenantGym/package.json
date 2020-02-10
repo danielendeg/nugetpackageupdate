@@ -1,0 +1,13 @@
+{
+  "name": "portaltenants",
+  "version": "1.0.0",
+  "description": "Test application for tenant gymnastics",
+  "scripts": {
+    "start": "http-server -p 9090 -c-1"
+  },
+  "author": "Michael S. Hansen",
+  "license": "MIT",
+  "dependencies": {
+    "http-server": "^0.12.1"
+  }
+}
