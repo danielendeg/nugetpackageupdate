@@ -38,6 +38,7 @@ We have considered a number of architectural proposals. The leading contenter ha
 ![Dicom Arch](images/DICOM-server-arch.png)
 
 ### Data consistency
+SQL files
 
 ### FHIR integration
 

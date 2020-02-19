@@ -15,11 +15,11 @@ DICOM files contain a file header portion, File Meta Information portion, and a 
 
 Following the header is the File Meta Information. This portion follows a tagged file format, and contains information about the file, the series and study it belongs to, and the patient that it belongs to. 
 
-![Dicom file](DICOM-file.png)
+![Dicom file](images/DICOM-file.png)
 
 In the DICOM model, a patient can have 1..n studies (sometimes referred to as exams or procedures). Each study consists of 1..n series. A series generally equates to a specific type (modality) of data, or the position of a patient on the acquisition device. Each series contains 1..n DICOM object instances (most commonly images, but also reports, waveform objects, etc.). All of this information is contained in each DICOM object of a study. Therefore, if a study is performed on a patient, containing 2 series, each with 10 instances, all of the instanceswill contain the patient and study information in it's header. The instances will also contain information regarding the series it is in, as well as its instance information.
 
-![Dicom model](DICOM-model.png)
+![Dicom model](images/DICOM-model.png)
 
 #### Additional Resources
 - [DICOM Introduction presentation](https://microsoft.sharepoint.com/teams/msh/Shared%20Documents/Project%20Resolute/Medical%20Imaging%20and%20Media/Introduction%20to%20DICOM.pptx?d=wa2f95d3a33164cce8cdcf1ac3d2644c8)
