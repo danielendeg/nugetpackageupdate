@@ -8,7 +8,7 @@
 ## Design 
 
 ### Raw storage
-**Azure Blob storage** will be used to store the unstructured data. Since there are so many codecs supported for both ingress and egress, we will store the incoming dcm file **as is** and transcode on the way out, if needed and supported. This will also serve as the master store for original data. We will store 2 blobs for each dicom instance
+*Azure Blob storage* will be used to store the unstructured data. Since there are so many codecs supported for both ingress and egress, we will store the incoming dcm file *as is* and transcode on the way out, if needed and supported. This will also serve as the master store for original data. We will store 2 blobs for each dicom instance
 1. Original DICOM file in  the virtual path /container/{StudyUID}/{SeriesUID}/{SOPInstanceUID}/file.dcm
 2. Metadata portion of the DICOM file for faster metadata GET in azure Blob storage using the virtual path /container/{StudyUID}/{SeriesUID}/{SOPInstanceUID}/file_metadata.dcm
 
