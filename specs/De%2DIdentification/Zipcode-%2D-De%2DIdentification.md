@@ -14,43 +14,17 @@ Covered entities may include the first three digits of the ZIP code if, accordin
 
 Configuraiton method, instead of "redact", "partialZCTA" is used to enable this option, with Paramenter configuration to specify those 20,000 or fewer ZIP codes. 
 
-Example Configuration for the specific approach is like the following (based on 2000 Census Data)
+Example Configuration for the specific approach is like the following (based on 2010 Census Data)
 
 ```sh
-{
-  "parameters": {
-    "dateShiftKey": “U2FsdGVkX1+3rvbK5uAUEDUAFiqv778FN9s1CZwCjiU=”,
-    "maskingCharacter": “*”,
-    "restrictedZCTA": {
-        "036",
-        "692",
-        "878",
-        "059",
-        "790",
-        "879",
-        "063",
-        "821",
-        "884",
-        "102",
-        "823",
-        "890",
-        "203",
-        "830",
-        "893",
-        "556",
-        "831"
-    }
-  }
-}
 
 
-Another example configuration based on 2010 Census Data
-
-{
-  "parameters": {
-    "dateShiftKey": “U2FsdGVkX1+3rvbK5uAUEDUAFiqv778FN9s1CZwCjiU=”,
-    "maskingCharacter": “*”,
-    "restrictedZCTA": {
+"parameters": {
+    "dateShiftKey": "",
+    "enablePartialAgesForRedact": true,
+    "enablePartialDatesForRedact": true,
+    "enablePartialZipCodesForRedact": true,
+    "restrictedZipCodeTabulationAreas": [
         "036",
         "059",
         "102",
@@ -65,5 +39,5 @@ Another example configuration based on 2010 Census Data
         "879",
         "884",
         "893"
-    }
+    ]
 }
