@@ -13,27 +13,9 @@ Additionally, the following non-standard APIs are supported:
 
 - [Delete](##Delete)
 
-## Retrieve (WADO-RS)
-Web Access to DICOM Objects (WADO) enables you to retrieve specific studies, series and instances by reference. The specification for WADO-RS can be found in [PS3.18 6.5](http://dicom.nema.org/medical/dicom/2019a/output/chtml/part18/sect_6.5.html). WADO-RS can return binary DICOM instances, as well as rendered instances.
-
-The **Azure for Health API** supports the following **HTTP GET** endpoints:
-
-Method|Path|Description|Accept Header
-----------|----------|----------|----------
-DICOM|
-GET|../studies/{study}|Retrieve full study|application/dicom
-GET|../studies/{study}/series/{series}|Retrieve full series|application/dicom
-GET|../studies/{study}/series/{series}/instances/{instance}|Retrieve instance|application/dicom
-Metadata|
-GET|../studies/{study}/metadata|Retrieve full study metadata|application/dicom+json
-GET|../studies/{study}/series/{series}/metadata|Retrieve full series metadata|application/dicom+json
-GET|../studies/{study}/series/{series}/instances/{instance}/metadata|Retrieve instance metadata|application/dicom+json
-
-- Accept Header Supported: `application/dicom`
-
 ## Store (STOW-RS)
 
-Store Over the Web (STOW) enables you to store specific instances to the server.
+Store Over the Web (STOW) enables you to store specific instances to the server. The specification for WADO-RS can be found in [PS3.18 10.5](http://dicom.nema.org/medical/dicom/current/output/chtml/part18/sect_10.5.html).
 **Important** STOW-RS will only support storing entire series. If the same series is posted multiple times the behaviour is to override.
 
 Method|Path|Description
@@ -44,13 +26,30 @@ POST|../studies/{studyInstanceUID}|Store instances for a specific study. If any 
 - Accept Header Supported: `application/dicom+json`
 - Content-Type: `multipart/related; type=application/dicom`
 
+### Dicom store semantics
+
+- Stored DICOM files should at least have the following tags:
+  - SOPInstanceUID
+  - SeriesInstanceUID
+  - StudyInstanceUID
+  - SopClassUID
+  - PatientID
+- If the same SOP instance is stored multiple times we will override with the latest
+- No coercing or replacing of attributes is done by the server
+
 ### Response
 
 Code|Name|Description
 ----------|----------|----------
 200 | OK | When all the SOP instances in the request have been stored
 202 | Accepted | When some instances in the request have been stored
+204 | No Content | 
+400 | Bad Request| 
+406 | Not Acceptable |
 409 | Conflict | When none of the instances in the request have been stored
+415 | Unsupported Media Type |
+429 | Too many requests | reached the limit of a request. Need to implement
+
 
 - Content-Type: `application/dicom+json`
 - DicomDataset:
@@ -64,15 +63,53 @@ Code|Name|Description
     - Referenced SOP Instance UID (0008,1155)
     - Retrieve URL (0008,1190)
 
-### Dicom store semantics
+JSON/XML Metadata and Bulk data requests are not supported.
 
-- Stored DICOM files should at least have the following tags:
-  - SOPInstanceUID
-  - SeriesInstanceUID
-  - StudyInstanceUID
-  - SopClassUID
-  - PatientID
-- If the same SOP instance is stored multiple times we will override with the latest
+## Retrieve (WADO-RS)
+Web Access to DICOM Objects (WADO) enables you to retrieve specific studies, series and instances by reference. The specification for WADO-RS can be found in [PS3.18 6.5](http://dicom.nema.org/medical/dicom/2019a/output/chtml/part18/sect_6.5.html). WADO-RS can return binary DICOM instances, metadata as well as rendered instances.
+
+The **Azure for Health API** supports the following **HTTP GET** endpoints:
+
+Method|Path|Description|Accept Header
+----------|----------|----------|----------
+DICOM|
+GET|../studies/{study}|Retrieve full study|application/dicom, application/octet-stream
+GET|../studies/{study}/series/{series}|Retrieve full series|application/dicom, application/octet-stream
+GET|../studies/{study}/series/{series}/instances/{instance}|Retrieve instance|application/dicom, application/octet-stream
+GET|../studies/{study}/series/{series}/instances/{instance}/frames/{frames}|Retrieve frames|application/octet-stream
+Metadata|
+GET|../studies/{study}/metadata|Retrieve full study metadata|application/dicom+json
+GET|../studies/{study}/series/{series}/metadata|Retrieve full series metadata|application/dicom+json
+GET|../studies/{study}/series/{series}/instances/{instance}/metadata|Retrieve instance metadata|application/dicom+json
+Rendered|
+GET|../studies/{study}/series/{series}/instances/{instance}|Render instance|image/jpeg, image/jpeg
+GET|../studies/{study}/series/{series}/instances/{instance}/frames/{frames}|Render frames|image/jpeg, image/jpeg
+
+### Supported transfer syntax for Retrieve DICOM  (*check with fo-dicom)
+
+- 1.2.840.10008.1.2 (Little Endian Implicit)
+- 1.2.840.10008.1.2.1 (Little Endian Explicit)
+- 1.2.840.10008.1.2.1.99 (Deflated Explicit VR Little Endian)
+- 1.2.840.10008.1.2.2 (Explicit VR Big Endian)
+- 1.2.840.10008.1.2.4.50 (JPEG Baseline Process 1)
+- 1.2.840.10008.1.2.4.51 (JPEG Baseline Process 2 & 4)
+- 1.2.840.10008.1.2.4.90 (JPEG 2000 Lossless Only)
+- 1.2.840.10008.1.2.4.91 (JPEG 2000)
+- 1.2.840.10008.1.2.5 (RLE Lossless)
+
+Retrieve Metadata does not return any attribute which has a DICOM Value Representation of OB, OD, OF, OL, OW, or UN.
+
+### Response
+
+Code|Name|Description
+----------|----------|----------
+200 | OK | Response contains all of the requested resources 
+400 | Bad Request| Invalid request
+404 | Not Found| Requested resource does not exist
+406 | Not Acceptable | Server does not support the acceptable media type
+415 | Unsupported Media Type | Server does not support the transfer syntax
+
+BulkData, Thumbnails and Rendered query parameters is not supported.
 
 ## Search (QIDO-RS)
 
@@ -105,12 +142,30 @@ Key|Support Value(s)|Allowed Count|Description
 `offset=`|{value}|0..1|Skip {value} results.<br/>If an offset is provided larger than the number of search query results, a 204 (no content) response will be returned.
 
 #### Search Parameters
-We support searching on any attribute defined in the DICOM instances. We also support different behaviours based on the value representation of the tag.
+We support searching on below attributes and searh type.
 
-Search Type|Supported Value Representation(s)|Example|Description
+- Studies:
+    - StudyInstanceUID
+    - PatientName
+    - PatientID
+    - AccessionNumber
+    - ReferringPhysicianName
+    - StudyDate
+    - StudyDescription
+    - AcessionNumber
+- Series: all study level search terms and
+    - SeriesInstanceUID
+    - Modality
+    - PerformedProcedureStepStartDate
+- Instances: all study/series level search terms and
+    - SOPInstanceUID
+
+    
+Search Type|Supported Attribute|Example|
 ----------|----------|----------|----------|----------
-Range Query|DA (Date)<br/>DT (Date Time)<br/>TM (Time)|{attributeID}={value1}-{value2}|For date/ time values, we supported an inclusive range on the tag. This will be mapped to `attributeID >= {value1} AND attributeID <= {value2}`.
-Exact Match|AE (Application Entity)<br/>AS (Age String)<br/>AT (Attribute Tag)<br/>CS (Code String)<br/>DA (Date)<br/>Decimal String (DS)<br/>DT (Date Time)<br/>FL (Floating Point Single)<br/>FD (Floating Point Double)<br/>IS (Integer String)<br/>LO (Long String)<br/>LT (Long Text)<br/>PN (Person Name)<br/>SH (Short String)<br/>SL (Signed Long)<br/>SS (Signed Short)<br/>ST (Short Text)<br/> TM (Time)<br/>UI (Unqiue Identifer - UID)|{attributeID}={value1}|This is a straight-forward exact match of the element value. As some DICOM tags have a value multiplicity greater than 1, where applicable, the search will check all values using an `ARRAY_CONTAINS`.
+Range Query|StudyDate|{attributeID}={value1}-{value2}|For date/ time values, we supported an inclusive range on the tag. This will be mapped to `attributeID >= {value1} AND attributeID <= {value2}`.
+Exact Match|All supported Atrributes |{attributeID}={value1}
+Fuzzy Match|PatientName|Matches any component of the patientname which starts or ends with the value
 
 #### Attribute ID
 
@@ -123,12 +178,7 @@ Value|Example
 
 Example query searching for instances: **../instances?modality=CT&00280011=512&includefield=00280010&limit=5&offset=0**
 
-### Unsupported Query Paramters
-The following parameters noted in the DICOM web standard are not currently supported:
-
-Key|Value|Description
-----------|----------|----------
-`fuzzymatching=`|true or false|Whether query should use fuzzy matching on the provided {attributeID}/{value} pairs.
+We will support expanding the search attributes by customization.
 
 Querying using the `TimezoneOffsetFromUTC` (`00080201`) is also not supported.
 
@@ -264,34 +314,6 @@ Code|Description
 299 {+Service}: There are additional results that can be requested.|The provided query resulted in more results, but has been limited based on the query limits or internal default limits.
 299 {+Service}: The fuzzy matching parameter is not supported. Only literal matching has been performed.|Making a request, passing the parameter ?fuzzymatching={value}, will cause this header to be returned.
 299 {+Service}: The results of this query have been coalesced because the underlying data has inconsistencies across the queried instances.|The executed query return results that had inconsistent tags at the instance level. A decision has been taken by the server how to merge the inconsistent tags, but this might not be expected by the caller.
-
-### Inconsistent DICOM Tags
-
-It is possible when searching for a study or series, the DICOM tags are inconsistent between the individual instances. The Azure for Health API will allow searching on all inconsistent tags, and aim to provide a consistent behaviour for each search response.
-
-As an example, different instances in the same study could have been created with inconsistent study dates. When this happens, the API will allow searching on inconsistent tags, and return the tag that best matches your query. For an example:
-
-Instance 1
-  - Study Instance UID (0020, 000D) = 5
-  - Study Date (0008, 0020) = 20190505
-
-Instance 2
-  - Study Instance UID (0020, 000D) = 5
-  - Study Date (0008, 0020) = 20190510
-
-QIDO Search 1: **../studies?0020000D=5&0020000D=20190510**
-
-Returns:
-  - Study Instance UID (0020, 000D) = 5
-  - Study Date (0008, 0020) = 20190510
-
-QIDO Search 2: **../studies?0020000D=5&0020000D=20190504-20190507**
-
-Returns:
-  - Study Instance UID (0020, 000D) = 5
-  - Study Date (0008, 0020) = 20190505
-
-When the query matches both inconsistent tags, one of the matched tags will be consistently chosen; repeated searches will return the same result.
 
 ## Delete
 

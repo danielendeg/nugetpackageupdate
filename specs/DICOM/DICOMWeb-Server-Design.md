@@ -7,8 +7,12 @@
 
 ## Design 
 
+Optimized for
+- Large storage compared to compute
+- Flexibility to evolve
+
 ### Raw storage
-*Azure Blob storage* will be used to store the unstructured data. Since there are so many codecs supported for both ingress and egress, we will store the incoming dcm file *as is* and transcode on the way out, if needed and supported. This will also serve as the master store for original data. We will store 2 blobs for each dicom instance
+*Azure Blob storage* will be used to store the Part 10 DICOM binary files. Since there are so many codecs supported for both ingress and egress, we will store the incoming dcm file *as is* and transcode on the way out, if needed and supported. This will also serve as the master store for original data. We will store 2 blobs for each dicom instance
 1. Original DICOM file in  the virtual path /container/{StudyUID}/{SeriesUID}/{SOPInstanceUID}/file.dcm
 2. Metadata portion of the DICOM file for faster metadata GET in azure Blob storage using the virtual path /container/{StudyUID}/{SeriesUID}/{SOPInstanceUID}/file_metadata.dcm
 
@@ -26,8 +30,6 @@ Azure Cognitive Search| -Easy|-Diff
 
 All could support the QIDO functionality. Most flexible.
 
-Inconsistent Study/Series/Patient data
-New data wins?
 
 ## Architecture overview
 We have considered a number of architectural proposals. The leading contenter has the following properties:
@@ -38,7 +40,11 @@ We have considered a number of architectural proposals. The leading contenter ha
 ![Dicom Arch](images/DICOM-server-arch.png)
 
 ### Data consistency
-SQL files
+[SQL](DICOM-index-sql.md)
+
+Inconsistent Study/Series/Patient data?
+New data wins?
+
 
 ### FHIR integration
 
@@ -52,7 +58,9 @@ Mapping and demo
 - EnE tests
 - Bug bash
 
+## Roadmap
 
-
+- [Epics backlog](https://microsofthealth.visualstudio.com/Health/_backlogs/backlog/Medical%20Imaging/Epics/)
+- [Feature Timeline](https://microsofthealth.visualstudio.com/Health/_backlogs/ms-devlabs.workitem-feature-timeline-extension.workitem-feature-timeline/Medical%20Imaging/Epics/)
 
 
