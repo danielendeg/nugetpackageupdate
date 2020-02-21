@@ -97,6 +97,7 @@ CREATE TABLE dicom.tbl_PrivateTag (
 )
 ```
 
+#### Data Ingestion Sequence 
 
 ![Ingestion Sequence](images/DICOMWeb-Ingestion-Sequence.png)
 
