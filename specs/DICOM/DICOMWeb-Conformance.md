@@ -325,4 +325,13 @@ DELETE|../studies/{study}|Delete entire study
 DELETE|../studies/{study}/series/{series}|Delete entire series
 DELETE|../studies/{study}/series/{series}/instances/{instance}|Delete entire instance
 
-Depending on how your server instance has been configured, the API supports the ability to 'soft-delete' (delete index, but not the underlying DICOM file) or 'hard-delete' (delete the index and the underlying DICOM file) DICOM instances depending on your requirements.
+
+### Response Codes
+
+The Delete API will return one of the following status codes in the response:
+
+Code|Name|Description
+----------|----------|----------
+*Success*|
+200|OK|Requested resource was successfully deleted.
+400|Bad Request|The request was invalid.
