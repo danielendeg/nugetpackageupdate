@@ -7,7 +7,7 @@
 
 ## Design 
 
-Optimized for
+### Optimized for
 - Large storage
 - Flexibility to evolve
 
