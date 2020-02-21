@@ -121,7 +121,8 @@ DEMO
 - Unit tests
 - EnE tests
 - Bug bash
-- OHIf viewer validation and Customer validation
+- Scale testing
+- OHIF viewer validation and Customer validation
 
 ## Roadmap
 
