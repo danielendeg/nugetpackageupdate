@@ -16,14 +16,14 @@ CREATE TABLE dicom.tbl_UIDMapping (
 --Table containing normalized standard StudySeries tags
 CREATE TABLE dicom.tbl_DicomMetadataCore (
 	--Key
-	ID UNIQUEIDENTIFIER NOT NULL, --PK
+	ID BIGINT NOT NULL, --PK
 	--instance keys
 	StudyInstanceUID NVARCHAR(64) NOT NULL,
 	SeriesInstanceUID NVARCHAR(64) NOT NULL,
 	--patient and study core
 	PatientID NVARCHAR(64) NOT NULL,
-	PatientName NVARCHAR(64), --FT index
-	ReferringPhysicianName NVARCHAR(64),
+	PatientName NVARCHAR(64),
+	PatientNameIndex AS REPLACE(PatientName, '^', ' '), ReferringPhysicianName NVARCHAR(64),
 	StudyDate DATE,
 	StudyDescription NVARCHAR(64),
 	AccessionNumer NVARCHAR(16),
@@ -34,7 +34,7 @@ CREATE TABLE dicom.tbl_DicomMetadataCore (
 
 CREATE TABLE dicom.tbl_DicomMetadataInt (
 	--Key
-	ID UNIQUEIDENTIFIER NOT NULL, -- FK
+	ID BIGINT NOT NULL, -- FK
 	--instance key
 	SOPInstanceUID NVARCHAR(64) NOT NULL,
 	--Tag 4*4+4 10/20/30/40, 4 level deep supported
@@ -55,4 +55,15 @@ CREATE TABLE dicom.tbl_PrivateTag (
 	TagType VARCHAR(2) NOT NULL,
 	SqlDataType SMALLINT NOT NULL
 )
+
+CREATE FULLTEXT CATALOG DICOM_Catalog AS DEFAULT; 
+CREATE FULLTEXT INDEX ON tbl_DicomMetadataCore(PatientNameIndex)   
+KEY INDEX PK_tbl_DicomMetadataCore  
+WITH STOPLIST = SYSTEM; 
+
+--Fuzzy true for PN
+SELECT *
+FROM tbl_DicomMetadataCore
+WHERE contains(PatientNameIndex, '"smit*"')
+
 ```

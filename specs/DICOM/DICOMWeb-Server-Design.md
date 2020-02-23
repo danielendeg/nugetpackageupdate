@@ -38,6 +38,12 @@ With the above evaluation, we are considering the below design
 ![Dicom Arch](images/DICOM-server-arch.png)
 
 ### Data consistency across stores
+
+Possible initial SQL schema, with characteristics of
+1. Table to store UID mapping 
+2. Wide table for known core study/series tags that will be indexed
+3. Custom tags in log table. Separate table for each SQL value type
+
 ``` sql
 --Mapping table for dicom retrieval
 CREATE TABLE dicom.tbl_UIDMapping (
@@ -56,13 +62,14 @@ CREATE TABLE dicom.tbl_UIDMapping (
 --Table containing normalized standard StudySeries tags
 CREATE TABLE dicom.tbl_DicomMetadataCore (
 	--Key
-	ID UNIQUEIDENTIFIER NOT NULL, --PK
+	ID BIGINT NOT NULL, --PK
 	--instance keys
 	StudyInstanceUID NVARCHAR(64) NOT NULL,
 	SeriesInstanceUID NVARCHAR(64) NOT NULL,
 	--patient and study core
 	PatientID NVARCHAR(64) NOT NULL,
-	PatientName NVARCHAR(64), --FT index
+	PatientName NVARCHAR(64), 
+    PatientNameIndex AS REPLACE(PatientName, '^', ' '),--FT index
 	ReferringPhysicianName NVARCHAR(64),
 	StudyDate DATE,
 	StudyDescription NVARCHAR(64),
@@ -74,7 +81,7 @@ CREATE TABLE dicom.tbl_DicomMetadataCore (
 
 CREATE TABLE dicom.tbl_DicomMetadataInt (
 	--Key
-	ID UNIQUEIDENTIFIER NOT NULL, -- FK
+	ID BIGINT NOT NULL, -- FK
 	--instance key
 	SOPInstanceUID NVARCHAR(64) NOT NULL,
 	--Tag 4*4+4 10/20/30/40, 4 level deep supported
@@ -110,9 +117,9 @@ Within DICOM SOP Instances claiming to be from the same Patient/Study/Series we 
 
 ### FHIR integration
 
-- Sync to FHIR will be optional and configurable.
+- Sync to FHIR will be configurable.
 - Async events to to create FHIR resource. 
-- DICOM service will be the master for ImagingStudy resourceType. We will have s service Indentity with write access to edit ImagingStidy
+- DICOM service will be the master for ImagingStudy resourceType. We will have s service Indentity with write access to edit ImagingStudy
 - Patient, Practitioner and Encounter ResourceType: Default FHIR service is the master. Configurable.
 - Delete?
 
