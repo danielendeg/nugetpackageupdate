@@ -1,4 +1,6 @@
 ``` sql
+CREATE SCHEMA dicom
+
 --Mapping table for dicom retrieval
 CREATE TABLE dicom.tbl_UIDMapping (
 	--instance keys
@@ -13,26 +15,35 @@ CREATE TABLE dicom.tbl_UIDMapping (
 	Status TINYINT NOT NULL
 )
 
---Table containing normalized standard StudySeries tags
-CREATE TABLE dicom.tbl_DicomMetadataCore (
+--Table containing normalized standard Study tags
+CREATE TABLE dicom.tbl_DicomMetadataStudyCore (
 	--Key
 	ID BIGINT NOT NULL, --PK
 	--instance keys
 	StudyInstanceUID NVARCHAR(64) NOT NULL,
-	SeriesInstanceUID NVARCHAR(64) NOT NULL,
 	--patient and study core
 	PatientID NVARCHAR(64) NOT NULL,
 	PatientName NVARCHAR(64),
-	PatientNameIndex AS REPLACE(PatientName, '^', ' '), ReferringPhysicianName NVARCHAR(64),
+	PatientNameIndex AS REPLACE(PatientName, '^', ' '), --FT index
+	ReferringPhysicianName NVARCHAR(64),
 	StudyDate DATE,
 	StudyDescription NVARCHAR(64),
 	AccessionNumer NVARCHAR(16),
+)
+
+--Table containing normalized standard Series tags
+CREATE TABLE dicom.tbl_DicomMetadataSeriesCore (
+	--Key
+	ID BIGINT NOT NULL, --FK
+	--instance keys
+	SeriesInstanceUID NVARCHAR(64) NOT NULL,
 	--series core
 	Modality NVARCHAR(16),
 	PerformedProcedureStepStartDate DATE
 )
 
-CREATE TABLE dicom.tbl_DicomMetadataInt (
+--Table contains Custom indexed tags of type Int
+CREATE TABLE dicom.tbl_DicomMetadataIntTags (
 	--Key
 	ID BIGINT NOT NULL, -- FK
 	--instance key

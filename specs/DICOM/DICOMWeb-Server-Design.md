@@ -24,9 +24,9 @@ QIDO supports searching on the dicom tags. We need a efficient storage to search
 Option|Pros|Cons
 ----------|----------|----------
 FHIR| -Single index store, easy to maintain<br/>-*ExactMatch, Wildcard, ListMatch, SequenceMatch, RangeMatch and FuzzMatch supported|-Limited DICOM search support<br/>-Custom attributes for custom tag query support<br/>-DICOM is tightly coupled to FHIR which reduces business, operational and feature flexibility<br/>-Query and Ingestion performance concerns, including query paging needs to be handled by client for instance/series search<br/>-Corner cases around which service is the master of Patient resource type<br/>[Details](DicomWev-FHIR-SingleStoreTradeOff.md)|
-[SQL + Async FHIR resouce creation](https://microsoft.sharepoint.com/:w:/t/msh/EY8pKt29ueRCijCrHhqBftcB1k1dTH3fiLR0s39xpyVyew)| -All QIDO requirements can be satisfied<br/>-On premise available<br/>-Inplace scaleUp<br/>-Geo-Redudancy and Backup support<br/>-Can resuse the same SQL DB across FHIR and DICOM services|-Dynamic SQL does not perform as good as known cached SQL<br/>-Joins on long table can also be relatively slow<br/>-Need to build crawler to index old data if custom tags will be supported 
+[SQL + Async FHIR resouce creation](https://microsoft.sharepoint.com/:w:/t/msh/EY8pKt29ueRCijCrHhqBftcB1k1dTH3fiLR0s39xpyVyew)| -All QIDO requirements can be satisfied<br/>-On premise available<br/>-Inplace scaleUp<br/>-Geo-Redudancy and Backup support<br/>-Can resuse the same SQL DB across FHIR and DICOM services<br/> -Normalized data to reduce storage size |-Dynamic SQL does not perform as good as known cached SQL<br/>-Joins on long table can also be relatively slow<br/>-Need to build crawler to index old data if custom tags will be supported 
 COSMOS + Async FHIR resource creation| -Easy|-Diff
-[Az Search + Async FHIR resource creation](https://microsoft.sharepoint.com/:w:/t/msh/EY8pKt29ueRCijCrHhqBftcB1k1dTH3fiLR0s39xpyVyew)| -All QIDO requirements can be satisfied<br/>-JSON indexer available for crawling the entier blob storage dataset<br/>-Possibility to extend support NLP and unstructured data searches|-Limited inplace index mapping changes supported<br/>-COGS higher than SQL, considering we need to manage 3 replicas for 99.9 availabilty<br/>-No in-place upgrade to a different tier<br/>-Managed geo-redudancy is not supported<br/>On-prem or dev box solution not available
+[Az Search + Async FHIR resource creation](https://microsoft.sharepoint.com/:w:/t/msh/EY8pKt29ueRCijCrHhqBftcB1k1dTH3fiLR0s39xpyVyew)| -All QIDO requirements can be satisfied<br/>-JSON indexer available for crawling the entier blob storage dataset<br/>-Possibility to extend support NLP and unstructured data searches|-Limited inplace index mapping changes supported<br/>-COGS higher than SQL, considering we need to manage 3 replicas for 99.9 availabilty<br/>-No in-place upgrade to a different tier<br/>-Managed geo-redudancy is not supported<br/>On-prem or dev box solution not available<br/>-De-normalized data indexed.
 
 
 ## Architecture overview
@@ -40,8 +40,8 @@ With the above evaluation, we are considering the below design
 ### Data consistency across stores
 
 Possible initial SQL schema, with characteristics of
-1. Table to store UID mapping 
-2. Wide table for known core study/series tags that will be indexed
+1. Table to store UID mapping, audit information and data consistency columns 
+2. Normalized wide table for known core study/series tags that will be indexed
 3. Custom tags in log table. Separate table for each SQL value type
 
 ``` sql
@@ -59,27 +59,35 @@ CREATE TABLE dicom.tbl_UIDMapping (
 	Status TINYINT NOT NULL
 )
 
---Table containing normalized standard StudySeries tags
-CREATE TABLE dicom.tbl_DicomMetadataCore (
+--Table containing normalized standard Study tags
+CREATE TABLE dicom.tbl_DicomMetadataStudyCore (
 	--Key
 	ID BIGINT NOT NULL, --PK
 	--instance keys
 	StudyInstanceUID NVARCHAR(64) NOT NULL,
-	SeriesInstanceUID NVARCHAR(64) NOT NULL,
 	--patient and study core
 	PatientID NVARCHAR(64) NOT NULL,
-	PatientName NVARCHAR(64), 
-    PatientNameIndex AS REPLACE(PatientName, '^', ' '),--FT index
+	PatientName NVARCHAR(64),
+	PatientNameIndex AS REPLACE(PatientName, '^', ' '), --FT index
 	ReferringPhysicianName NVARCHAR(64),
 	StudyDate DATE,
 	StudyDescription NVARCHAR(64),
 	AccessionNumer NVARCHAR(16),
+)
+
+--Table containing normalized standard Series tags
+CREATE TABLE dicom.tbl_DicomMetadataSeriesCore (
+	--Key
+	ID BIGINT NOT NULL, --FK
+	--instance keys
+	SeriesInstanceUID NVARCHAR(64) NOT NULL,
 	--series core
 	Modality NVARCHAR(16),
 	PerformedProcedureStepStartDate DATE
 )
 
-CREATE TABLE dicom.tbl_DicomMetadataInt (
+--Table contains Custom indexed tags of type Int
+CREATE TABLE dicom.tbl_DicomMetadataIntTags (
 	--Key
 	ID BIGINT NOT NULL, -- FK
 	--instance key
@@ -89,13 +97,6 @@ CREATE TABLE dicom.tbl_DicomMetadataInt (
 	--value columns
 	IntValue INT,		--[IS, SL, SS, UL]
 )
--- tables for each type
-	--FloatValue FLOAT,	--[FL, FD]
-	--TextValue NVARCHAR(64),  --[AE, AS, PN, SH, LO)
-	--StringValue NVARCHAR(64), --[CS]
-	--UniqueIdValue VARCHAR(62), --[UI]
-	--DatetimeValue DATETIME2, --[DA, DT, TM]
-	--Text NVARCHAR(MAX) --[LT, ST]
 
 CREATE TABLE dicom.tbl_PrivateTag (
 	TagPath VARCHAR(20) NOT NULL,
@@ -103,6 +104,7 @@ CREATE TABLE dicom.tbl_PrivateTag (
 	SqlDataType SMALLINT NOT NULL
 )
 ```
+[Full SQL](DICOM-index-sql.md)
 
 #### Data Ingestion Sequence 
 
@@ -118,8 +120,8 @@ Within DICOM SOP Instances claiming to be from the same Patient/Study/Series we 
 ### FHIR integration
 
 - Sync to FHIR will be configurable.
-- Async events to to create FHIR resource. 
-- DICOM service will be the master for ImagingStudy resourceType. We will have s service Indentity with write access to edit ImagingStudy
+- Async evens to create FHIR resource. 
+- DICOM service will be the master for ImagingStudy resourceType. We will have s service identity with write access to edit ImagingStudy
 - Patient, Practitioner and Encounter ResourceType: Default FHIR service is the master. Configurable.
 - Delete?
 
