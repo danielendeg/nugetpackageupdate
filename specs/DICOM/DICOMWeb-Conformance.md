@@ -320,7 +320,7 @@ Code|Description
 
 ## Delete
 
-The **Azure for Health API** supports the following **HTTP DELETE** endpoints:
+The following **HTTP DELETE** endpoints will be  supported:
 
 Method|Path|Description
 ----------|----------|----------
