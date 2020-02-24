@@ -34,7 +34,7 @@ POST|../studies/{studyInstanceUID}|Store instances for a specific study. If any 
   - StudyInstanceUID
   - SopClassUID
   - PatientID
-- If the same SOP instance is stored multiple times we will override with the latest
+- *If the same SOP instance is stored multiple times we will override with the latest
 - No coercing or replacing of attributes is done by the server
 
 ### Response
@@ -63,12 +63,12 @@ Code|Name|Description
     - Referenced SOP Instance UID (0008,1155)
     - Retrieve URL (0008,1190)
 
-JSON/XML Metadata and Bulk data requests are not supported.
+application/dicom+xml Metadata and Bulk data requests are not supported.
 
 ## Retrieve (WADO-RS)
 Web Access to DICOM Objects (WADO) enables you to retrieve specific studies, series and instances by reference. The specification for WADO-RS can be found in [PS3.18 6.5](http://dicom.nema.org/medical/dicom/2019a/output/chtml/part18/sect_6.5.html). WADO-RS can return binary DICOM instances, metadata as well as rendered instances.
 
-The **Azure for Health API** supports the following **HTTP GET** endpoints:
+Following **HTTP GET** endpoints are supported:
 
 Method|Path|Description|Accept Header
 ----------|----------|----------|----------
@@ -96,7 +96,9 @@ GET|../studies/{study}/series/{series}/instances/{instance}/frames/{frames}|Rend
 - 1.2.840.10008.1.2.4.90 (JPEG 2000 Lossless Only)
 - 1.2.840.10008.1.2.4.91 (JPEG 2000)
 - 1.2.840.10008.1.2.5 (RLE Lossless)
+- \* 
 
+A transfer syntax of * means no transcoding will be done, so the transfer syntax of the uploaded file will be used. This is the fastest way to retrieve.
 Retrieve Metadata does not return any attribute which has a DICOM Value Representation of OB, OD, OF, OL, OW, or UN.
 
 ### Response
@@ -115,7 +117,7 @@ BulkData, Thumbnails and Rendered query parameters is not supported.
 
 Query based on ID for DICOM Objects (QIDO) enables you to search for studies, series and instances by attributes. More detail can be found in [PS3.18 6.7](http://dicom.nema.org/medical/dicom/2019a/output/chtml/part18/sect_6.7.html).
 
-The **Azure for Health API** supports the following **HTTP GET** endpoints:
+Following **HTTP GET** endpoints are supported:
 
 Method|Path|Description
 ----------|----------|----------
@@ -140,6 +142,7 @@ Key|Support Value(s)|Allowed Count|Description
 `includefield=`|`{attributeID}`<br/>'`all`'|0...N|The additional attributes to return in the response.<br/>When '`all`' is provided, please see [Search Response](###Search-Response) for more information about which attributes will be returned for each query type.<br/>If a mixture of {attributeID} and 'all' is provided, the server will default to using 'all'.
 `limit=`|{value}|0..1|Integer value to limit the number of values returned in the response.<br/>Value can be between the range 1 >= x <= 100.
 `offset=`|{value}|0..1|Skip {value} results.<br/>If an offset is provided larger than the number of search query results, a 204 (no content) response will be returned.
+`fuzzymatching=`|true\|false|0..1|If true fuzzy matching is applied to PatientName attribute. It will do a prefix word match of any name part inside PatientName value.
 
 #### Search Parameters
 We support searching on below attributes and searh type.
@@ -178,9 +181,9 @@ Value|Example
 
 Example query searching for instances: **../instances?modality=CT&00280011=512&includefield=00280010&limit=5&offset=0**
 
-We will support expanding the search attributes by customization.
+*We will support expanding the search attributes by customization in the future.
 
-Querying using the `TimezoneOffsetFromUTC` (`00080201`) is also not supported.
+Querying using the `TimezoneOffsetFromUTC` (`00080201`) is not supported.
 
 ### Search Response
 
