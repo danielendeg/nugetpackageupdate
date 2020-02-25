@@ -63,7 +63,8 @@ Code|Name|Description
     - Referenced SOP Instance UID (0008,1155)
     - Retrieve URL (0008,1190)
 
-application/dicom+xml Metadata and Bulk data requests are not supported.
+- Accept header application/dicom+xml is not supported.
+- Separate Metadata and Bulk data part requests are not supported.
 
 ## Retrieve (WADO-RS)
 Web Access to DICOM Objects (WADO) enables you to retrieve specific studies, series and instances by reference. The specification for WADO-RS can be found in [PS3.18 6.5](http://dicom.nema.org/medical/dicom/2019a/output/chtml/part18/sect_6.5.html). WADO-RS can return binary DICOM instances, metadata as well as rendered instances.

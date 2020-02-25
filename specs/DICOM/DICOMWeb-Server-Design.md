@@ -111,10 +111,12 @@ CREATE TABLE dicom.tbl_PrivateTag (
 
 #### Normalized indexed data for search
 
-Within DICOM SOP Instances claiming to be from the same Patient/Study/Series we can expect inconsistencies. Below rules will be used to handle it
+Within DICOM SOP Instances claiming to be from the same Patient/Study/Series we can expect inconsistencies. Possible options to solve it
 
-1. OVERWRITE: prefer the latest tag data if conflicting
-2. UNION_EMPTY: prefer non-empty tags overs empty
+- Merge with below rules
+    - OVERWRITE_NEW: prefer the latest tag data if conflicting
+    - UNION_EMPTY: prefer non-empty tags overs empty
+- Create new study/series version on conflict
 
 ### FHIR integration
 
