@@ -30,7 +30,7 @@ COSMOS + Async FHIR resource creation| -Easy|-Diff
 
 
 ## Architecture overview
-With the above evaluation, we are considering the below design
+With the above evaluation, we are considering the second option of SQL+Async FHIR integration for indexing. Which results in below design
 
 1. A DICOMWeb end-point for STOW-RS, WADO-RS, QIDO-RS and delete
 2. A async pipeline to publish **ImagingStudy** and its references to FHIR 
@@ -117,7 +117,7 @@ Within DICOM SOP Instances claiming to be from the same Patient/Study/Series we 
 
 - Sync to FHIR will be configurable.
 - Async evens to create FHIR resource. 
-- DICOM service will be the master for ImagingStudy resourceType. We will have s service identity with write access to edit ImagingStudy
+- DICOM service will be the master for ImagingStudy resourceType. We will have a service identity with write access to edit ImagingStudy
 - Patient, Practitioner and Encounter ResourceType: Default FHIR service is the master. Configurable.
 - Delete?
 
