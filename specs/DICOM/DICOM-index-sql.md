@@ -9,7 +9,7 @@ CREATE TABLE dicom.tbl_UIDMapping (
 	SOPInstanceUID NVARCHAR(64) NOT NULL,
 	--audit columns
 	CreatedDate DATETIME2 NOT NULL,
-	CreatedBy UNIQUEIDENTIFIER NOT NULL,
+	LastUpdatedDate DATETIME2 NOT NULL,
 	--data consitency columns
 	Watermark BIGINT NOT NULL,
 	Status TINYINT NOT NULL
