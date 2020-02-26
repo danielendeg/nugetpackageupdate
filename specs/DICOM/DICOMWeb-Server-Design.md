@@ -121,7 +121,6 @@ Within DICOM SOP Instances claiming to be from the same Patient/Study/Series we 
 - Async evens to create FHIR resource. 
 - DICOM service will be the master for ImagingStudy resourceType. We will have a service identity with write access to edit ImagingStudy
 - Patient, Practitioner and Encounter ResourceType: Default FHIR service is the master. Configurable.
-- Delete?
 
 DEMO
 
