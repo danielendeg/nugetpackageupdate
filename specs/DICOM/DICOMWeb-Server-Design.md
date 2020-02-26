@@ -89,15 +89,16 @@ CREATE TABLE dicom.tbl_DicomMetadataSeriesCore (
 CREATE TABLE dicom.tbl_DicomMetadataIntTags (
 	--Key
 	ID BIGINT NOT NULL, -- FK
+	TagId SMALLINT NOT NULL,
 	--instance key
 	SOPInstanceUID NVARCHAR(64) NOT NULL,
-	--Tag 4*4+4 10/20/30/40, 4 level deep supported
-	TagPath VARCHAR(20) NOT NULL,
 	--value columns
 	IntValue INT,		--[IS, SL, SS, UL]
 )
 
-CREATE TABLE dicom.tbl_PrivateTag (
+CREATE TABLE dicom.tbl_CustomTag (
+	TagId SMALLINT NOT NULL,
+	--Tag 4*4+4 10/20/30/40, 4 level deep supported
 	TagPath VARCHAR(20) NOT NULL,
 	TagType VARCHAR(2) NOT NULL,
 	SqlDataType SMALLINT NOT NULL
