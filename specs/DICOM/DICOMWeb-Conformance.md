@@ -34,7 +34,6 @@ POST|../studies/{studyInstanceUID}|Store instances for a specific study. If any 
   - StudyInstanceUID
   - SopClassUID
   - PatientID
-- *If the same SOP instance is stored multiple times we will override with the latest
 - No coercing or replacing of attributes is done by the server
 
 ### Response
@@ -62,7 +61,8 @@ Code|Name|Description
     - Referenced SOP Class UID (0008,1150)
     - Referenced SOP Instance UID (0008,1155)
     - Retrieve URL (0008,1190)
-
+<br/>
+<br/>
 - Accept header application/dicom+xml is not supported.
 - Separate Metadata and Bulk data part requests are not supported.
 
@@ -214,33 +214,6 @@ Timezone Offset From UTC|(0008, 0201)
 Retrieve URL|(0008, 1190)
 Instance Availability|(0008, 0056)
 
-*Optional Attributes:*
-Attribute Name|Tag
-----------|----------
-Person Identification Code Sequence|(0040, 1101)
-Person Address|(0040, 1102)
-Person Telephone Numbers|(0040, 1103)
-Person Telecom Information|(0040, 1104)
-Institution Name|(0008, 0080)
-Institution Address|(0008, 0081)
-Institution Code Sequence|(0008, 0082)
-Referring Physician Identification Sequence|(0008, 0096)
-Consulting Physician Name|(0008, 009C)
-Consulting Physician Identification Sequence|(0008, 009D)
-Issuer Of Accession Number Sequence|(0008, 0051)
-Local Namespace Entity ID|(0040, 0031)
-Universal Entity ID|(0040, 0032)
-Universal Entity ID Type|(0040, 0033)
-Study Description|(0008, 1030)
-Physicians Of Record|(0008, 1048)
-Physicians Of Record Identification Sequence|(0008, 1049)
-Name Of Physicians Reading Study|(0008, 1060)
-Physicians Reading StudyIdentification Sequence|(0008, 1062)
-Requesting Service Code Sequence|(0032, 1034)
-Referenced Study Sequence|(0008, 1110)
-Procedure Code Sequence|(0008, 1032)
-Reason For Performed Procedure Code Sequence|(0040, 1012)
-
 #### Series Search:
 *Required Attributes:*
 Attribute Name|Tag
@@ -260,16 +233,6 @@ Specific Character Set|(0008, 0005)
 Timezone Offset From UTC|(0008, 0201)
 Retrieve URL|(0008, 1190)
 
-*Optional Attributes:*
-Attribute Name|Tag
-----------|----------
-Laterality|(0020, 0060)
-SeriesDate|(0008, 0021)
-SeriesTime|(0008, 0031)
-Performed Procedure Step ID|(0040, 0253)
-Referenced SOP Class UID|(0008, 1155)
-Referenced SOP Instance UID|(0008, 1155)
-
 #### Instance Search
 
 *Required Attributes:*
@@ -287,10 +250,6 @@ Number Of Frames|(0028, 0008)
 Specific Character Set|(0008, 0005)
 Timezone Offset From UTC|(0008, 0201)
 Retrieve URL|(0008, 1190)
-
-*Optional Attributes:*
-
-All attributes available in the DICOM instance except those values not indexed.
 
 ### Response Codes
 
