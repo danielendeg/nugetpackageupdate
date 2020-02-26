@@ -156,7 +156,7 @@ We support searching on below attributes and searh type.
     - ReferringPhysicianName
     - StudyDate
     - StudyDescription
-    - AcessionNumber
+   
 - Series: all study level search terms and
     - SeriesInstanceUID
     - Modality
@@ -187,6 +187,7 @@ Example query searching for instances: **../instances?modality=CT&00280011=512&i
 Querying using the `TimezoneOffsetFromUTC` (`00080201`) is not supported.
 
 ### Search Response
+*Needs review
 
 The response will be an array of DICOM datasets. Depending on the search type, the below attributes will be returned, based on the [IHE standard](https://www.ihe.net/uploadedFiles/Documents/Radiology/IHE_RAD_TF_Vol2.pdf).
 
