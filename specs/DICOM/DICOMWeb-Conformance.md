@@ -83,8 +83,8 @@ GET|../studies/{study}/metadata|Retrieve full study metadata|application/dicom+j
 GET|../studies/{study}/series/{series}/metadata|Retrieve full series metadata|application/dicom+json
 GET|../studies/{study}/series/{series}/instances/{instance}/metadata|Retrieve instance metadata|application/dicom+json
 Rendered|
-GET|../studies/{study}/series/{series}/instances/{instance}|Render instance|image/jpeg, image/jpeg
-GET|../studies/{study}/series/{series}/instances/{instance}/frames/{frames}|Render frames|image/jpeg, image/jpeg
+GET|../studies/{study}/series/{series}/instances/{instance}|Render instance|image/png, image/jpeg
+GET|../studies/{study}/series/{series}/instances/{instance}/frames/{frames}|Render frames|image/png, image/jpeg
 
 ### Supported transfer syntax for Retrieve DICOM  (*check with fo-dicom)
 
@@ -169,7 +169,7 @@ Search Type|Supported Attribute|Example|
 ----------|----------|----------|----------|----------
 Range Query|StudyDate|{attributeID}={value1}-{value2}|For date/ time values, we supported an inclusive range on the tag. This will be mapped to `attributeID >= {value1} AND attributeID <= {value2}`.
 Exact Match|All supported Atrributes |{attributeID}={value1}
-Fuzzy Match|PatientName|Matches any component of the patientname which starts or ends with the value
+Fuzzy Match|PatientName|Matches any component of the patientname which starts with the value
 
 #### Attribute ID
 
