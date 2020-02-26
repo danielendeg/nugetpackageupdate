@@ -2,7 +2,7 @@
 [Product Opportunity Assessment - DICOM Server.docx](https://microsoft-my.sharepoint.com/:w:/p/stborg/EWt_x-xnfb9MozLTjl_-FdoBkUqT5n0w04m2pK7im6I-2A?e=2pEbaO&xsdata=MDR8MDF8U21pdGhhLlNhbGlncmFtYUBtaWNyb3NvZnQuY29tfGE5YWQ0ZTE1Mjg4ZjQyMzA3Yzg0MDhkN2E4MTUyMDIzfDcyZjk4OGJmODZmMTQxYWY5MWFiMmQ3Y2QwMTFkYjQ3fDF8MHw2MzcxNjI2ODA5OTk3NDk2MzB8VW5rbm93bnxUV0ZwYkdac2IzZDhleUpXSWpvaU1DNHdMakF3TURBaUxDSlFJam9pVjJsdU16SWlMQ0pCVGlJNklrMWhhV3dpTENKWFZDSTZNbjA9fC0x&sdata=ZzBJWGY3STlXaE9lL2UyYis4b3lrbWZwb2VZdmRRN2QwMnBrV1UyWVRlcz0%3D)
 
 ## Scenarios
-- A DICOMWeb implemetation specified in [DICOM conformance](DICOMWeb-Conformance.md) for medical image archiving and Radiology workflow.
+- A DICOMWeb implementation specified in [DICOM conformance](DICOMWeb-Conformance.md) for medical image archiving and Radiology workflow.
 - DICOM metadata in [FHIR](https://www.hl7.org/fhir/imagingstudy.html) to integrate HIS and RIS systems for better Physician workflow.
 
 ## Design 
@@ -12,7 +12,7 @@
 - Flexibility to evolve
 
 ### Raw storage
-*Azure Blob storage* will be used to store the Part 10 DICOM binary files. Since there are so many transfer syntaxes supported for both ingress and egress, we will store the incoming dcm file *as is* and transcode on the way out, if needed and supported. This will also serve as the master store for original data. We will store 2 blobs for each dicom instance
+*Azure Blob storage* will be used to store the Part 10 DICOM binary files. Since there are so many transfer syntaxes supported for both ingress and egress, we will store the incoming dcm file *as is* and transcode on the way out, if needed and supported. This will also serve as the master store for original data. We will store 2 blobs for each DICOM instance
 1. Original DICOM file in  the virtual path /container/{StudyUID}/{SeriesUID}/{SOPInstanceUID}/file.dcm. This file is used to serve the WADO DCIOM get.
 2. Metadata portion of the DICOM file for faster metadata GET in azure Blob storage using the virtual path /container/{StudyUID}/{SeriesUID}/{SOPInstanceUID}/file_metadata.dcm. This file is used to serve the WADO metadata get.
 
@@ -24,9 +24,9 @@ QIDO supports searching on the dicom tags. We need a efficient storage to search
 Option|Pros|Cons
 ----------|----------|----------
 FHIR| -Single index store, easy to maintain<br/>-*ExactMatch, Wildcard, ListMatch, SequenceMatch, RangeMatch and FuzzMatch supported<br/>-Future where Imaging is also stored and retrieved using FHIR APIs|-Custom attributes for custom tag query support<br/>-DICOM is tightly coupled to FHIR which reduces business, operational and feature flexibility<br/>-Limited DICOM search support<br/>-Query and Ingestion performance concerns<br/>-Corner cases around which service is the master of Patient resource type<br/>[Details](DicomWeb-FHIR-SingleStoreTradeOff.md)|
-[SQL + Async FHIR resouce creation](https://microsoft.sharepoint.com/:w:/t/msh/EY8pKt29ueRCijCrHhqBftcB1k1dTH3fiLR0s39xpyVyew)| -All QIDO requirements can be satisfied<br/>-On premise available<br/>-Inplace scaleUp<br/>-Geo-Redudancy and Backup support<br/>-Can resuse the same SQL DB across FHIR and DICOM services<br/> -Normalized data to reduce storage size |-Dynamic SQL does not perform as good as known cached SQL<br/>-Joins on long table can also be relatively slow<br/
-COSMOS + Async FHIR resource creation| -Easy|-Diff
-[Az Search + Async FHIR resource creation](https://microsoft.sharepoint.com/:w:/t/msh/EY8pKt29ueRCijCrHhqBftcB1k1dTH3fiLR0s39xpyVyew)| -All QIDO requirements can be satisfied<br/>-JSON indexer available for crawling the entier blob storage dataset<br/>-Possibility to extend support NLP and unstructured data searches|-Limited inplace index mapping changes supported<br/>-COGS higher than SQL, considering we need to manage 3 replicas for 99.9 availabilty<br/>-No in-place upgrade to a different tier<br/>-Managed geo-redudancy is not supported<br/>-On-prem or dev box solution not available<br/>-De-normalized data indexed.
+[SQL + Async FHIR resource creation](https://microsoft.sharepoint.com/:w:/t/msh/EY8pKt29ueRCijCrHhqBftcB1k1dTH3fiLR0s39xpyVyew)| -All QIDO requirements can be satisfied<br/>-On premise available<br/>-Inplace scaleUp<br/>-Geo-redundancy and Backup support<br/>-Can resuse the same SQL DB across FHIR and DICOM services<br/> -Normalized data to reduce storage size |-Dynamic SQL does not perform as good as known cached SQL<br/>-Joins on long table can also be relatively slow<br/>
+Cosmos DB + Async FHIR resource creation| -Easy to deploy<br/>-Scale compute and storage independently<br/>-We can support all search conditions except wildcard with ?<br/>-Build-in geo-replications|-There is 2MB limit per document which might limit the number of tags we can extract<br/>-It does not support DISTINCT properly and depending on the schema we want to use, we might need it<br/>-Supporting OFFSET/LIMIT could be expensive since it doesn't create bookmark like continuation token does<br/>-Since there is no way to pass the continuation token to the client, we will not be able to support all consistencies
+[Az Search + Async FHIR resource creation](https://microsoft.sharepoint.com/:w:/t/msh/EY8pKt29ueRCijCrHhqBftcB1k1dTH3fiLR0s39xpyVyew)| -All QIDO requirements can be satisfied<br/>-JSON indexer available for crawling the entire blob storage dataset<br/>-Possibility to extend support NLP and unstructured data searches|-Limited inplace index mapping changes supported<br/>-COGS higher than SQL, considering we need to manage 3 replicas for 99.9 availability<br/>-No in-place upgrade to a different tier<br/>-Managed geo-redundancy is not supported<br/>-On-prem or dev box solution not available<br/>-De-normalized data indexed.
 
 
 ## Architecture overview
@@ -53,7 +53,8 @@ CREATE TABLE dicom.tbl_UIDMapping (
 	SOPInstanceUID NVARCHAR(64) NOT NULL,
 	--audit columns
 	CreatedDate DATETIME2 NOT NULL,
-	--data consitency columns
+	LastUpdatedDate DATETIME2 NOT NULL,
+	--data consistency columns
 	Watermark BIGINT NOT NULL,
 	Status TINYINT NOT NULL
 )
@@ -123,7 +124,7 @@ Within DICOM SOP Instances claiming to be from the same Patient/Study/Series we 
 
 DEMO
 
-## Test Stratergy
+## Test Strategy
 - Unit tests
 - EnE tests
 - Bug bash
