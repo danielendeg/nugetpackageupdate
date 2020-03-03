@@ -13,8 +13,8 @@
 
 ### Raw storage
 *Azure Blob storage* will be used to store the Part 10 DICOM binary files. Since there are so many transfer syntaxes supported for both ingress and egress, we will store the incoming dcm file *as is* and transcode on the way out, if needed and supported. This will also serve as the master store for original data. We will store 2 blobs for each DICOM instance
-1. Original DICOM file in  the virtual path /container/{StudyUID}/{SeriesUID}/{SOPInstanceUID}/file.dcm. This file is used to serve the WADO DCIOM get.
-2. Metadata portion of the DICOM file for faster metadata GET in azure Blob storage using the virtual path /container/{StudyUID}/{SeriesUID}/{SOPInstanceUID}/file_metadata.dcm. This file is used to serve the WADO metadata get.
+1. Original DICOM file in  the virtual path /container/{StudyUID}/{SeriesUID}/{SOPInstanceUID}/file_watermark.dcm. This file is used to serve the WADO DCIOM get.
+2. Metadata portion of the DICOM file for faster metadata GET in azure Blob storage using the virtual path /container/{StudyUID}/{SeriesUID}/{SOPInstanceUID}/file__watermark_metadata.dcm. This file is used to serve the WADO metadata get.
 
 We will also need the Study, Series and Instance UID mapping to support WADO GET on Study/Series. Where we will store this mapping will be informed by the index storage we choose below.
 
@@ -63,6 +63,7 @@ CREATE TABLE dicom.tbl_UIDMapping (
 CREATE TABLE dicom.tbl_DicomMetadataStudyCore (
 	--Key
 	ID BIGINT NOT NULL, --PK
+	Version INT NOT NULL, --PK
 	--instance keys
 	StudyInstanceUID NVARCHAR(64) NOT NULL,
 	--patient and study core
@@ -79,6 +80,7 @@ CREATE TABLE dicom.tbl_DicomMetadataStudyCore (
 CREATE TABLE dicom.tbl_DicomMetadataSeriesCore (
 	--Key
 	ID BIGINT NOT NULL, --FK
+	Version INT NOT NULL, --PK
 	--instance keys
 	SeriesInstanceUID NVARCHAR(64) NOT NULL,
 	--series core
@@ -108,12 +110,18 @@ CREATE TABLE dicom.tbl_CustomTag (
 [Full SQL](DICOM-index-sql.md)
 
 #### Data Ingestion Sequence 
+- When creating a blobs, the blob names will have watemark.
+- If during store, if anypart of the distributed transaction fails it leaves the record in creating state.
+- If the user retries the request, we will respond with a conflict, asking them to delete the instance before recreating.
+- If the request is not retries, a background task will clean it up.
+- During delete the mapping record is moved to delete table with "deleting" state and async cleans up the blobs with matching name and watermark.
 
 ![Ingestion Sequence](images/DICOMWeb-Ingestion-Sequence.png)
 
 #### Normalized indexed data for search
 
 Within DICOM SOP Instances claiming to be from the same Patient/Study/Series we can expect inconsistencies. We will create new study/series version on conflict.
+Version will be incremented for each conflicting row with same Id and StudyUID.
 
 ### FHIR integration
 
@@ -128,7 +136,7 @@ DEMO
 - Unit tests
 - EnE tests
 - Bug bash
-- Scale testing
+- Perf and Scale testing
 - OHIF viewer validation and Customer validation
 
 ## Roadmap
