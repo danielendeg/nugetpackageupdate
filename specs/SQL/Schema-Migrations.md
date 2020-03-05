@@ -10,7 +10,8 @@ A migration is a T-SQL script that alters the database in some way and has a ver
 * The information needed to update a FHIR server will be hosted by the FHIR server itself.
 * The code will specify a min and max version of the schema that it can run against.
 * Schema versions cannot break code that is running against the immediately preceding schema version.
-* The admin tool will not perform an upgrade if the FHIR servers connected to the database will be broken by it. We can use a combination of `sys.dm_tran_locks` and `sys.sysprocesses` and `applicationname` in the connection string to identity which server instances are using an old version.
+* The admin tool will not perform an upgrade if the FHIR server(s) connected to the database will be broken by it. 
+* The FHIR server instance will register its use of a specific version with the database.
 * The FHIR server will not run against a database with an unknown version.
 * The upgrade tool will not upgrade to the next version until all instances of the code are using the preceding version.
 
@@ -37,27 +38,38 @@ This could be achieved by one code package update and 3 schema versions.
 5. The admin runs the `SchemaManager` tool with `getavailableversions` command
 6. The server responds with `55`, `56`, `57`
 7. The admin runs the `SchemaManager` tool with `applyversion` command with `--next` option
-8. The `SchemaManager` checks that all servers are using version `54`
+8. The `SchemaManager` checks that all servers are using version `54` and can support version `55`
 9. Version 55 is added to the `SchemaVersion` table with the status of `started`
 10. T-sql upgrade script is run
 11. Version `55` is updated to `completed`
-12. FHIR server polls and sees that `55` is available. It sets its current version to `55` and updates the locks accordingly.
+12. FHIR server polls and sees that `55` is now complete. It sets its current version to `55` and updates the instance schema table accordingly.
 13. Steps 7-11 are repeated for versions `56` and `57`.
 
 ### Schema version table
 The current version(s) are maintained in a `SchemaVersion` table. Each row will have a status that will indicate the current state of the given version. The states currently are:
 
-| State | Description |
-| --- | --- |
-| started | The schema upgrade has started. This is the initial state when the version is inserted |
+| State     | Description                                                                                   |
+| --------- | --------------------------------------------------------------------------------------------- |
+| started   | The schema upgrade has started. This is the initial state when the version is inserted        |
 | completed | The schema upgrade has been successfully completed. The code may now start using this version |
+
+### Instance schema table
+The currently running instance(s) of a FHIR server along with the schema information for that instance are recorded in an `InstanceSchema` table. On start-up a FHIR server will record its usage of a particular schema in this table along with a timeout. Periodically (before the timeout period) the server will update it's version information and the timeout will be extended. At the same time any old information (e.g. timeout < now) will be cleaned up. This information can be used from the `_schemas/current` route to correctly report which servers are using which version. It will also be able to determine if an upgrade is possible via the information in this table (by examining the current version and max versions). The table will likely need to record at least the following information.
+
+| Column         | Description                                                   |
+| -------------- | ------------------------------------------------------------- |
+| Name           | A unique identifier for a particular instance.                |
+| CurrentVersion | The current version of the schema that the instance is using. |
+| MaxVersion     | The highest supported schema version for the instance.        |
+| MinVersion     | The minimum supported schema version for the instance.        |
+| Timeout        | The time at which the entry will age out of the table.        |
 
 ### Code considerations
 The code will have to work for a number of schema versions and will specify a min and max version along with the current version that it's executing against. The current version will be mutable based on the values in the `SchemaVersion` table. 
 
-Periodically the server should poll the database to find if there is a newer supported version in the `SchemaVersion` table that is completed and compatible. If found, it should assume that version and update its locks accordingly. 
+Periodically the server should poll the database to find if there is a newer supported version in the `SchemaVersion` table that is completed and compatible. If found, it should assume that version and update its entries in the `InstanceSchema` table accordingly. 
 
-On startup, the code should attempt to place a lock on the greatest version with a "completed" status that is compatible.
+On startup, the code should insert (or update) an entry in the `InstanceSchema` table with the schema version that it is using.
 
 When a request is made to the FHIR server, it should record what version it is running against so that a consistent behavior can be accomplished throughout the request. 
 
@@ -65,9 +77,9 @@ When a request is made to the FHIR server, it should record what version it is r
 The plan is for a database to be previously provisioned/created before the tool is run. The current version endpoint must capture the case when the `SchemaVersion` table doesn't exist and return an empty array. The upgrade tool can then be run with the command `--latest` which will apply all applicable updates in order. 
 
 ### FHIR Schema APIs
-```
-GET //fhir-server/_schemas/current
 
+GET //fhir-server/_schemas/current
+```json
 [
     {
         "id": 55,
@@ -84,9 +96,8 @@ GET //fhir-server/_schemas/current
 
 Returns the current version(s) of the schema
 
-```
 GET //fhir-server/_schemas/versions
-
+```json
 [
     {
         "id": 55,
@@ -105,9 +116,8 @@ GET //fhir-server/_schemas/versions
 
 Returns the available schemas greater than or equal to the `current` version
 
-```
 GET //fhir-server/_schemas/compatibility
-
+```json
 {
     "min": 53,
     "max": 57
@@ -120,11 +130,11 @@ Returns the compatibility information from the server
 
 The following commands will be available via the tool
 
-| Command | Description | Options |
-| --- | --- | --- |
-| currentversion | Returns the current versions from the `SchemaVersion` table along with information on the open connections to the given version | --fhir-server |
-| availableversions | Returns the versions greater than or equal to the current version along with links to the T-SQL scripts for upgrades | --fhir-server |
-| applyversion | Applies the specified version(s) to the connection string supplied. Optionally can poll the FHIR server current version to apply multiple versions in sequence | --fhir-server<br /> --connection-string<br />--next <br />--version<br />--latest<br />|
+| Command           | Description                                                                                                                                                    | Options                                                                                |
+| ----------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------- |
+| currentversion    | Returns the current versions from the `SchemaVersion` table along with information on the instances using the given version                                    | --fhir-server                                                                          |
+| availableversions | Returns the versions greater than or equal to the current version along with links to the T-SQL scripts for upgrades                                           | --fhir-server                                                                          |
+| applyversion      | Applies the specified version(s) to the connection string supplied. Optionally can poll the FHIR server current version to apply multiple versions in sequence | --fhir-server<br /> --connection-string<br />--next <br />--version<br />--latest<br />|
 
 #### Deployment mechanism
 The tool should be available as a [.NET Core Global Tool](https://docs.microsoft.com/en-us/dotnet/core/tools/global-tools).
