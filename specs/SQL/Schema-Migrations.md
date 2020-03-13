@@ -126,6 +126,37 @@ GET //fhir-server/_schemas/compatibility
 
 Returns the compatibility information from the server
 
+For Example:
+
+1. Lets say, InstanceSchema table looks like
+
+|Name| CurrentVersion | MinVersion | MaxVersion | timeout |
+|--|--|--|--|--|
+|instance1  | 53 | 53 | 55 |  |
+| instance2 |54  | 53 | 55 |  |
+|  instance3| 53 | 53 | 56 |  |
+
+2. SchemaVersion table looks like
+
+|version| status |
+|--|--|
+| 53 |  complete|
+| 54 | complete  |
+3. Ideally the compability api(for instance1) returns
+```json
+{
+    "min": 53,
+    "max": 54
+}
+```
+Technically, SQL Query be like-
+
+select min(MaxVersion), current from InstanceSchema where timeout>now and Name="instance1"
+
+for server1 -  returns 55, 53
+
+select max(version) from SchemaVersion where Version between Current and min(MaxVersion) and Status="complete"
+
 ### SQL Schema Manager tool
 
 The following commands will be available via the tool
