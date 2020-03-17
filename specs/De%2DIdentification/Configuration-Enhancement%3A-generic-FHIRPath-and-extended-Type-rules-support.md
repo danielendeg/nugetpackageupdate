@@ -82,8 +82,8 @@ Here is a sample of generic FHIRPath rules. Users can keep telecom information t
 }
 ``` 
 ## Rule Conflicts and Overwriting Strategy
-The most straightforward conflict is that users have given different anonymization actiosn to a same rule path by mistake, like *"HumanName:keep"* and *"HumanName:redact"*,
-this conflict can be detected in the json file parsing logic.
+The most straightforward conflict is that users have given different anonymization actions to a same rule path by mistake, like *"HumanName:keep"* and *"HumanName:redact"*,
+this conflict can be detected in the JSON file parsing logic.
 
 However, there are still three kinds of conflicts that may happen in the new configuration file.
 1. **Conflicts among FHIRPath rules**, like *"name:keep"* or *"name.(use = "official"):keep"* where different paths can denote to a same node in FHIR structure.
