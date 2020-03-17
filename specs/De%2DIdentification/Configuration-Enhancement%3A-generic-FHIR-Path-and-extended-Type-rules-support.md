@@ -7,6 +7,7 @@ When composing a sample configuration file on ourselves, we found there are some
 * Data type rules are aggressively applied to the entire type. For example, a rule *"HumanName":"redact"* redacts all field in HumanName type. People may want to keep non-sensitive fields like *"HumanName.user"*
 * Users have to write redundant path rules to redact complex types like *Reference* where we want to keep all fields except *Reference.display*.
 * Users cannot custom anonymization with [nested patterns](https://microsofthealth.visualstudio.com/Health/_workitems/edit/72536/) in FHIR resource. Currently we just remove all nested items aggresively with path rule *QuestionnaireResponse.item.item:redact*.
+* Users cannot custom anonymization with [choice elements](https://microsofthealth.visualstudio.com/Health/_workitems/edit/72447/) in FHIR resource. 
 * Only basic FHIR paths in the format of *Patient.name.family* are supported. Users may have advanced demand like writing wildcards rules *name.family* where name.family in every resource can be processed, or writing conditional path rules based on field value.
 
 Here we propose to enhance the anonymization configuration file to address these limitations.
@@ -66,12 +67,13 @@ Also, we fix the [nested item problem](https://microsofthealth.visualstudio.com/
 ## Generic FHIR Path Rule
 Users can compose all FHIR paths supported by [fhir-net-api](https://github.com/FirelyTeam/fhir-net-api). 
 
-Here is a sample of generic FHIR path rules. Users can keep telecom information that is not a phone number and locations that are not no longer active.
+Here is a sample of generic FHIR path rules. Users can keep telecom information that is not a phone number and locations that are not no longer active. Users can also redact Condition.onset[x] field if it is a string type. Anonymization actions for other types of Condition.onset[x] can be specified in type rules like Age, dateTime.
 ```json
 {
     "pathRules": {
         "name.where(use = 'official')": "keep",
         "telecom.where(system != 'phone')": "keep",
+        "Condition.onset as string": "redact",
         "Location.where(status = 'active').name": "redact", 
         "Location.alias": "redact",
         "Location.description": "redact",
