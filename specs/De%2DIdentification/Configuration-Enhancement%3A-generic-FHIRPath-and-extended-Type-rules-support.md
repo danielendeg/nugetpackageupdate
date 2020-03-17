@@ -19,10 +19,10 @@ There are several considerations in designing the enhanced configuration file:
 * The new configuration should be compatiable with the previous one. The previous rules can be correctly interpreted in the new configuration file. 
 * The anonymization efficiency with new configuration file should be comparable to the previous one.
 
-The new configuration file has two core features: extended type rule and generic FHIRPath rule .
+The new configuration file has two core features: extended Type rule and generic FHIRPath rule .
 
 ## Extended Type Rule
-There are two kinds of type rules in extended type rule set, the "type rule" and "extended type rule". 
+There are two kinds of Type rules in new configuration file, the "original Type rule" and "extended Type rule". 
 
 Each rule should begin with a data type identifier (Pascal case) and you can find all data types in this [link](http://hl7.org/fhir/R4/datatypes.html).
 Extended type rules have a path suffix denoting a field of the data type. 
@@ -86,7 +86,7 @@ The most straightforward conflict is that users have given different anonymizati
 this conflict can be detected in the json file parsing logic.
 
 However, there are still three kinds of conflicts that may happen in the new configuration file.
-1. **Conflicts among FHIRPath rules**, like *"Patient.name:redact"*, *"name:keep"* or *"name.(use = "official"):keep"* where different paths can denote to a same node in FHIR structure.
+1. **Conflicts among FHIRPath rules**, like *" Patient.name :redact"*, *"name:keep"* or *"name.(use = "official"):keep"* where different paths can denote to a same node in FHIR structure.
 2. **Conflicts among type rules**. like *"HumanName.period.start:keep"* and *"dateTime:redact"* where different type paths can denote to a same node in FHIR structure.
 3. **Conflicts between type rule and FHIRPath rule**. like *"Patient.name.period.start:keep"* and *"dateTime:redact"* where different kinds of rule paths can denote to a same node in FHIR structure.
 
