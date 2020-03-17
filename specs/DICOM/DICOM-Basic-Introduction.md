@@ -23,4 +23,5 @@ In the DICOM model, a patient can have 1..n studies (sometimes referred to as ex
 
 #### Additional Resources
 - [DICOM Introduction presentation](https://microsoft.sharepoint.com/teams/msh/Shared%20Documents/Project%20Resolute/Medical%20Imaging%20and%20Media/Introduction%20to%20DICOM.pptx?d=wa2f95d3a33164cce8cdcf1ac3d2644c8)
+- [DICOM Introduction recording](https://msit.microsoftstream.com/video/977cc741-5e4f-4cdd-bc26-2bc4dd99521a)
 - [Latest Spec](https://www.dicomstandard.org/current/)
