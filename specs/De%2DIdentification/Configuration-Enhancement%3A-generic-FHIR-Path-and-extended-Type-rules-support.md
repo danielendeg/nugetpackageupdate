@@ -102,7 +102,7 @@ Like we described in FHIR path rule conflicts, same level conflicts are also pos
 If a user do need to customize anonymization like removing some dateTime nodes in *"HumanName"* type, he will be able to specify another rule *"HumanName.period.start"*. 
 Since we have fine-grained extended type rules, users can have more capabilities in configuring Type rules.
 
-3. To solve **conflicts between FHIR path rules and Type rule**, we follow the same philosophy as the previous configuration that path rules overwrite type rules. As we said before, type rules will anonymize the majority of identifiers and FHIR path rules are more suitable for corner case handling, path rules should be of high prioprity. For example, with path rule (*"Organization.address:keep"*) and type rules (*"Address:redact"*, "dateTime:redact"), all fileds including *"Organization.adress.period.start"* in *"Organization.adress"* should be kept.
+3. To solve **conflicts between FHIR path rules and Type rules**, we follow the same philosophy as the previous configuration that path rules overwrite type rules. As we said before, type rules will anonymize the majority of identifiers and FHIR path rules are more suitable for corner case handling, path rules should be of high prioprity. For example, with path rule (*"Organization.address:keep"*) and type rules (*"Address:redact"*, "dateTime:redact"), all fileds including *"Organization.adress.period.start"* in *"Organization.adress"* should be kept.
 
 # Testing
 FHIR Anonymization Tool with new configuration file is a significant change to our repo. We need careful testing work including:
