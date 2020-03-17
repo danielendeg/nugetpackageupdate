@@ -67,7 +67,7 @@ Also, we fix the [nested item problem](https://microsofthealth.visualstudio.com/
 ## Generic FHIRPath Rule
 Users can compose all FHIRPaths supported by [fhir-net-api](https://github.com/FirelyTeam/fhir-net-api). 
 
-Here is a sample of generic FHIRPath rules. Users can keep telecom information that is not a phone number and locations that are not no longer active. Users can also redact Condition.onset[x] field if it is a string type. Anonymization actions for other types of Condition.onset[x] can be specified in type rules like Age, dateTime.
+Here is a sample of generic FHIRPath rules. Users can keep telecom information that is not a phone number and locations that are not no longer active. Users can also redact *"Condition.onset[x]"* field if it is a string type. Anonymization actions for other types of *"Condition.onset[x]"* can be specified in type rules like Age, dateTime.
 ```json
 {
     "pathRules": {
