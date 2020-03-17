@@ -86,7 +86,7 @@ The most straightforward conflict is that users have given different anonymizati
 this conflict can be detected in the json file parsing logic.
 
 However, there are still three kinds of conflicts that may happen in the new configuration file.
-1. **Conflicts among FHIRPath rules**, like *" Patient.name :redact"*, *"name:keep"* or *"name.(use = "official"):keep"* where different paths can denote to a same node in FHIR structure.
+1. **Conflicts among FHIRPath rules**, like *"Patient.name"*, *"name:keep"* or *"name.(use = "official"):keep"* where different paths can denote to a same node in FHIR structure.
 2. **Conflicts among type rules**. like *"HumanName.period.start:keep"* and *"dateTime:redact"* where different type paths can denote to a same node in FHIR structure.
 3. **Conflicts between type rule and FHIRPath rule**. like *"Patient.name.period.start:keep"* and *"dateTime:redact"* where different kinds of rule paths can denote to a same node in FHIR structure.
 
