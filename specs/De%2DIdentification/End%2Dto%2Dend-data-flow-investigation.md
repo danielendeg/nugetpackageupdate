@@ -49,12 +49,12 @@ Required fields refer to those marked _min cardinality > 0_ in FHIR resource def
 These fields may contain identifiers defined by HIPAA Safe Harbor method.
 Among all FHIR resources, there are 26 required fields that may be anonymized by default configuration.
 
-|Data type|Count|Fields|
-|:-:|:-:|:-:|
-|Attachment|1|Media.content|
-|string (url/markdown)|2|Endpoint.address, SearchParameter.description|
-|date/dateTime/instant|22|CapabilityStatement.date, MessageDefinition.date, NamingSystem.date, TerminologyCapabilities.date, Provenance.recorded, AuditEvent.recorded, Composition.date, Slot.start, Slot.end, CoverageEligibilityRequest.created, CoverageEligibilityResponse.created, Claim.created, ClaimResponse.created, PaymentNotice.created, PaymentReconciliation.created, PaymentReconciliation.paymentDate, ExplanationOfBenefit.created, MedicationAdministration.effective, ImmunizationRecommendation.date, NutritionOrder.dateTime, VisionPrescription.created, VisionPrescription.dateWritten|
-|polymorphism|1|Immunization.occurence (dateTime/string)|
+|Data|Type|Count|Fields|
+|:-:|:-:|:-:|:-:|
+|Attachment|complex|1|Media.content|
+|string (url/markdown)|primitive|2|Endpoint.address, SearchParameter.description|
+|date/dateTime/instant|primitive|22|CapabilityStatement.date, MessageDefinition.date, NamingSystem.date, TerminologyCapabilities.date, Provenance.recorded, AuditEvent.recorded, Composition.date, Slot.start, Slot.end, CoverageEligibilityRequest.created, CoverageEligibilityResponse.created, Claim.created, ClaimResponse.created, PaymentNotice.created, PaymentReconciliation.created, PaymentReconciliation.paymentDate, ExplanationOfBenefit.created, MedicationAdministration.effective, ImmunizationRecommendation.date, NutritionOrder.dateTime, VisionPrescription.created, VisionPrescription.dateWritten|
+|choice of types|both|1|Immunization.occurence (dateTime/string)|
 
 Following are several validation result examples:
 
@@ -96,7 +96,7 @@ This solution needs further discussion with FHIR Server team.
 Besides, we recommend users to set partial redaction _enabled_ to minimize the number of complete redactions.
 - **For string data**, we can support and recommend users to use _characterMask_.
 With _characterMask_, values will be strings made up of masking characters instead of empty or null.
-- **For Attachment data**,
+- **For Attachment data**, different from above two primitive types, it is a complex type that made up of several children fields.
   - We can anonymize "_Attachment.data/url_" instead of the whole Attachment.
 Besides, we need to keep empty fields in output resources, shown in first Media.content example.
 So there will always be some value in this field.
