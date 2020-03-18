@@ -141,7 +141,7 @@ Key|Support Value(s)|Allowed Count|Description
 ----------|----------|----------|----------
 `{attributeID}=`|{value}|0...N|Search for attribute/ value matching in query.
 `includefield=`|`{attributeID}`<br/>'`all`'|0...N|The additional attributes to return in the response.<br/>When '`all`' is provided, please see [Search Response](###Search-Response) for more information about which attributes will be returned for each query type.<br/>If a mixture of {attributeID} and 'all' is provided, the server will default to using 'all'.
-`limit=`|{value}|0..1|Integer value to limit the number of values returned in the response.<br/>Value can be between the range 1 >= x <= 100.
+`limit=`|{value}|0..1|Integer value to limit the number of values returned in the response.<br/>Value can be between the range 1 >= x <= 200. Defaulted to 100.
 `offset=`|{value}|0..1|Skip {value} results.<br/>If an offset is provided larger than the number of search query results, a 204 (no content) response will be returned.
 `fuzzymatching=`|true\|false|0..1|If true fuzzy matching is applied to PatientName attribute. It will do a prefix word match of any name part inside PatientName value.
 
@@ -187,70 +187,83 @@ Example query searching for instances: **../instances?modality=CT&00280011=512&i
 Querying using the `TimezoneOffsetFromUTC` (`00080201`) is not supported.
 
 ### Search Response
-*Needs review
 
-The response will be an array of DICOM datasets. Depending on the search type, the below attributes will be returned, based on the [IHE standard](https://www.ihe.net/uploadedFiles/Documents/Radiology/IHE_RAD_TF_Vol2.pdf).
+The response will be an array of DICOM datasets. Depending on the resource , by *default* the following attributes are returned:
 
-When an include field is requested in the query (for study and series searches), it must be one of the below attributes, or it will be ignored in the query. If `includefield=all` is provided all of the mentioned attributes will be returned.
-
-#### Study Search
-*Required Attributes:* 
+#### Study:
 Attribute Name|Tag
 ----------|----------
 Specific Character Set|(0008, 0005)
 Study Date|(0008, 0020)
 Study Time|(0008, 0030)
 Accession Number|(0008, 0050)
+Instance Availability|(0008, 0056)
+Referring Physician Name|(0009, 0090)
+Timezone Offset From UTC|(0008, 0201)
 Patient Name|(0010, 0010)
 Patient ID|(0010, 0020)
-Study ID|(0020, 0010)
-Study Instance UID|(0020, 000D)
-Modalities In Study|(0008, 0061)
-Referring Physician Name|(0009, 0090)
 Patient Birth Date|(0010, 0030)
 Patient Sex|(0010, 0040)
-Number Of Study Related Series|(0020, 1206)
-Number Of Study Related Instances|(0020, 1208)
-Timezone Offset From UTC|(0008, 0201)
-Retrieve URL|(0008, 1190)
-Instance Availability|(0008, 0056)
+Study ID|(0020, 0010)
+Study Instance UID|(0020, 000D)
 
-#### Series Search:
-*Required Attributes:*
+#### Series:
 Attribute Name|Tag
 ----------|----------
-Study Instance UID|(0020, 000D)
+Specific Character Set|(0008, 0005)
 Modality|(0008, 0060)
-Series Number|(0020, 0011)
-Series Instance UID|(0020, 000E)
-Number Of Series Related Instances|(0020, 1209)
+Timezone Offset From UTC|(0008, 0201)
 Series Description|(0008, 103E) 
-Requested Procedure ID|(0040, 1001)
-Scheduled Procedure Step ID|(0040, 0009)
+Series Instance UID|(0020, 000E)
 Performed Procedure Step Start Date|(0040, 0244)
 Performed Procedure Step Start Time|(0040, 0245)
-Body Part Examined|(0018, 0015)
-Specific Character Set|(0008, 0005)
-Timezone Offset From UTC|(0008, 0201)
-Retrieve URL|(0008, 1190)
+Request Attributes Sequence|(0040, 0275)
 
-#### Instance Search
-
-*Required Attributes:*
+#### Instance:
 Attribute Name|Tag
 ----------|----------
-Study Instance UID|(0020, 000D)
-Series Instance UID|(0020, 000E)
-Instance Number|(0020, 0013)
-SOP Instance UID|(0008, 0018)
+Specific Character Set|(0008, 0005)
 SOP Class UID|(0008, 0016)
+SOP Instance UID|(0008, 0018)
+Instance Availability|(0008, 0056)
+Timezone Offset From UTC|(0008, 0201)
+Instance Number|(0020, 0013)
 Rows|(0028, 0010)
 Columns|(0028, 0011)
 Bits Allocated|(0028, 0100)
 Number Of Frames|(0028, 0008)
-Specific Character Set|(0008, 0005)
-Timezone Offset From UTC|(0008, 0201)
-Retrieve URL|(0008, 1190)
+
+If includefield=all, blew attributes are included along with default attributes. Along with default attributes, this is the full list of attributes supported at each resource level.
+
+#### Study:
+Attribute Name|
+----------|
+Study Description|
+Anatomic Regions In Study Code Sequence|
+Procedure Code Sequence|
+Name Of Physicians Reading Study|
+Admitting Diagnoses Description|
+Referenced Study Sequence|
+Patient Age|
+Patient Size|
+Patient Weight|
+Occupation|
+Additional Patient History|
+
+#### Series:
+Attribute Name|
+----------|
+Series Number|
+Laterality|
+Series Date|
+Series Time|
+
+Along with those below attributes are returned
+- All the match query parameters and UIDs in the resource url.
+- IncludeField attributes supported at that resource level. Not supported attributes will not be returned.
+- If the target resource is All Series, then Study level attributes are also returned.
+- If the target resource is All Instances, then Study and Series level attributes are also returned.
+- If the target resource is Study's Instances, then Series level attributes are also returned.
 
 ### Response Codes
 
