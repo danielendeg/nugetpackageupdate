@@ -15,6 +15,10 @@ A migration is a T-SQL script that alters the database in some way and has a ver
 * The FHIR server will not run against a database with an unknown version.
 * The upgrade tool will not upgrade to the next version until all instances of the code are using the preceding version.
 
+### High Level Diagram
+
+/SchemaMigrationDiagram.jpg
+
 ### Example
 Suppose we have a database currently on version 54 and a code version of 1.0.1. The next version of the FHIR server (1.0.2) decides to consolidate a "FirstName" and "LastName" column into a "Name" column, and drop the original columns.
 
@@ -142,7 +146,8 @@ For Example:
 |--|--|
 | 53 |  complete|
 | 54 | complete  |
-3. Ideally the compability api(for instance1) returns
+
+3. Ideally the compability api returns
 ```json
 {
     "min": 53,
@@ -151,9 +156,9 @@ For Example:
 ```
 Technically, SQL Query be like-
 
-select min(MaxVersion), current from InstanceSchema where timeout>now and Name="instance1"
+select min(MaxVersion), current from InstanceSchema where timeout>now
 
-for server1 -  returns 55, 53
+Returns 55, 53
 
 select max(version) from SchemaVersion where Version between Current and min(MaxVersion) and Status="complete"
 
