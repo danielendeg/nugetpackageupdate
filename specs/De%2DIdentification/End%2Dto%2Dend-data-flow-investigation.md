@@ -91,7 +91,7 @@ We can set another validation preprocess for anonymized data in FHIR Server, whi
 We also need to add a tag in the request or create another endpoint in FHIR Server to see whether input resources are anonymized data or other regular data.
 This solution needs further discussion with FHIR Server team.
 
-**2. Figure out some way to make fields not completely empty or null.**
+**2. Figure out some way to make fields not completely empty or null.** This solution requires no change in FHIR Server.
 - **For date/dateTime/instant data**, we can change the value of complete redaction from empty or null to _0001-01-01_ (the default value of dateTime in C#).
 Besides, we recommend users to set partial redaction _enabled_ to minimize the number of complete redactions.
 - **For string data**, we can support and recommend users to use _characterMask_.
