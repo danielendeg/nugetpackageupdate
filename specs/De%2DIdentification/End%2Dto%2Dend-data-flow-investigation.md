@@ -62,6 +62,7 @@ Following are several validation result examples:
 |:-:|:-:|
 |**"content": \{"contentType": "image/gif", "data": ""\}**|**OK**|
 |**"content": \{"url": "\*\*\*\*\*\*"\}**|**OK**|
+|"content": \{"data": ""\}|OK|
 |"content": \{\}|Invalid|
 |"content": "" (March release)|Invalid|
 |null (PR#16)|Invalid|
