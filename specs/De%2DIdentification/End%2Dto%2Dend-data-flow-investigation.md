@@ -60,7 +60,8 @@ Following are several validation result examples:
 
 |Media.content (Attachement)|Result|
 |:-:|:-:|
-|**"content": \{"data": ""\}**|**OK**|
+|**"content": \{"contentType": "image/gif", "data": ""\}**|**OK**|
+|**"content": \{"url": "\*\*\*\*\*\*"\}**|**OK**|
 |"content": \{\}|Invalid|
 |"content": "" (March release)|Invalid|
 |null (PR#16)|Invalid|
@@ -96,10 +97,9 @@ This solution needs further discussion with FHIR Server team.
 Besides, we recommend users to set partial redaction _enabled_ to minimize the number of complete redactions.
 - **For string data**, we can support and recommend users to use _characterMask_.
 With _characterMask_, values will be strings made up of masking characters instead of empty or null.
-- **For Attachment data**, different from above two primitive types, it is a complex type that made up of several children fields.
-  - We can anonymize "_Attachment.data/url_" instead of the whole Attachment.
-Besides, we need to keep empty fields in output resources, shown in first Media.content example.
-So there will always be some value in this field.
-  - There is only one Attachment in required fields.
-We can tell users about this special case and let users choose whether to anonymize it or not.
+- **For [Attachment](https://www.hl7.org/fhir/datatypes.html#Attachment) data**, different from above two primitive types, Attachment is a complex type that made up of several children fields.
+They are implemented in 2 ways: a) setting _Attachment.data_ with _Attachment.contentType_; b) setting _Attachment.url_.
+In both ways, we need to make sure not all fields are empty or null.
+We can set up 3 detailed anonymization rules instead of anonymizing the whole Attachment in original configuration: "_Attachment.data: redact_", "_Attachment.contentType: keep_" "_Attachment.url: characterMask_".
+So there will always be some value in Attachment's children fields.
 
