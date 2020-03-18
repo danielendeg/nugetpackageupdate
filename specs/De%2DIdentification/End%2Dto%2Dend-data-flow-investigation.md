@@ -14,13 +14,13 @@ They are discussed in following sections.
 When creating data in FHIR Server, there is a validation preprocess that checks whether the input resource meets some requirements.
 If not, exceptions will be thrown and creation will be rejected.
 
-1. **The resource _id_ follows a certain format.**
+**1. The resource _id_ follows a certain format.**
 Anonymizing will not bring in extra violation to this rule, as _id_ is not modified by default anonymization configuration.
 
-2. **The xhtml in _Narrative.div_ is valid if it's not null or empty.**
+**2. The xhtml in _Narrative.div_ is valid if it's not null or empty.**
 Anonymizing will not bring in extra violation to this rule, as anonymized _Narrative.div_ is null.
 
-3. **The required fields of the resource are correctly provided.**
+**3. The required fields of the resource are correctly provided.**
 Anonymizing may violate this rule.
 For example, _Endpoint.address_ is a required field of _Endpoint_, but may contain personal email addresses.
 After anonymization, if required fields are completely redacted to empty or null, the input resources will be rejected with  _ResourceNotValidException_.
@@ -38,7 +38,7 @@ If these fields are anonymized, it does not meet the requirement of FHIR resourc
 
 There are several solutions to solve this issue:
 - **Solve from validation side.**
-Open another validation preprocess for anonymized data.
+Set another validation preprocess for anonymized data.
 The validation of other data keep unchanged. 
 - **Solve from anonymization side.**
 Instead of redacting the fields to completely empty or null, figure out some way to keep some valid values in required fields.
@@ -84,16 +84,15 @@ Following are several validation result examples:
 |"start": "" (March release)|Invalid|
 |null (PR#16)|Invalid|
 
-
 ## Possible solutions
-1. **Open another validation preprocess for anonymized data.**
+**1. Set another validation preprocess for anonymized data.**
 Based on our current understanding, Google does not validate the input resources.
 In [Google’s document](https://cloud.google.com/healthcare/docs/how-tos/fhir-resources), a resource with required field missing (_Observation.code_) is successfully created.
-We can open another validation preprocess in FHIR Server, which loosens the constraint of fields that may contain identifiers.
+We can set another validation preprocess for anonymized data in FHIR Server, which loosens the constraint of fields that may contain identifiers.
+We also need to add a tag or create another endpoint in FHIR Server to see whether input resources are anonymized data or other regular data.
 This solution needs further discussion with FHIR Server team.
 
-
-1. **Figure out some way to make fields not completely empty or null.**
+**2. Figure out some way to make fields not completely empty or null.**
 - **For date/dateTime/instant data**, we can change the value of complete redaction from empty or null to _0001-01-01_ (the default value of dateTime in C#).
 Besides, we recommend users to set partial redaction _enabled_ to minimize the number of complete redactions.
 - **For string data**, we can support and recommend users to use _characterMask_.
