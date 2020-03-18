@@ -53,7 +53,7 @@ Among all FHIR resources, there are 26 required fields that may be anonymized by
 |:-:|:-:|:-:|
 |Attachment|1|Media.content|
 |string (url/markdown)|2|Endpoint.address, SearchParameter.description|
-|date/dateTime/instant|15|CapabilityStatement.date, MessageDefinition.date, NamingSystem.date, TerminologyCapabilities.date, Provenance.recorded, AuditEvent.recorded, Composition.date, Slot.start, Slot.end, CoverageEligibilityRequest.created, CoverageEligibilityResponse.created, Claim.created, ClaimResponse.created, PaymentNotice.created, PaymentReconciliation.created, PaymentReconciliation.paymentDate, ExplanationOfBenefit.created, MedicationAdministration.effective, ImmunizationRecommendation.date, NutritionOrder.dateTime, VisionPrescription.created, VisionPrescription.dateWritten|
+|date/dateTime/instant|22|CapabilityStatement.date, MessageDefinition.date, NamingSystem.date, TerminologyCapabilities.date, Provenance.recorded, AuditEvent.recorded, Composition.date, Slot.start, Slot.end, CoverageEligibilityRequest.created, CoverageEligibilityResponse.created, Claim.created, ClaimResponse.created, PaymentNotice.created, PaymentReconciliation.created, PaymentReconciliation.paymentDate, ExplanationOfBenefit.created, MedicationAdministration.effective, ImmunizationRecommendation.date, NutritionOrder.dateTime, VisionPrescription.created, VisionPrescription.dateWritten|
 |polymorphism|1|Immunization.occurence (dateTime/string)|
 
 Following are several validation result examples:
