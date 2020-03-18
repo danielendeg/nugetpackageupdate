@@ -98,7 +98,7 @@ This solution needs further discussion with FHIR Server team.
 Besides, we recommend users to set partial redaction _enabled_ to minimize the number of complete redactions.
 - **For string data**, we can support and recommend users to use _characterMask_.
 With _characterMask_, values will be strings made up of masking characters instead of empty or null.
-- **For Attachement data**,
+- **For Attachment data**,
   - We can anonymize "_Attachment.data/url_" instead of the whole Attachment.
 Besides, we need to keep empty fields in output resources, shown in first Media.content example.
 So there will always be some value in this field.
