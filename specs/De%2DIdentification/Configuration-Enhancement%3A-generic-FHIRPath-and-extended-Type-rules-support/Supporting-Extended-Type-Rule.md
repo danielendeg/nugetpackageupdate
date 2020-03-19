@@ -74,6 +74,9 @@ If a user do need to customize anonymization like removing some dateTime nodes i
 
 2. To solve **conflicts between FHIRPath rules and Type rules**, we follow the same philosophy as the previous configuration that path rules overwrite type rules. As we said before, type rules will anonymize the majority of identifiers and FHIRPath rules are more suitable for corner case handling, path rules should be of high prioprity. For example, with path rule (*"Organization.address:keep"*) and type rules (*"Address:redact"*, "dateTime:dateshift"), all fileds including *"Organization.adress.period.start"* in *"Organization.adress"* should be kept.
 
+## Rule Validation Strategty
+ToDo
+
 # Testing
 FHIR Anonymization Tool with new configuration file is a significant change to our repo. We need careful testing work including:
 1. Unit tests and functional tests.
