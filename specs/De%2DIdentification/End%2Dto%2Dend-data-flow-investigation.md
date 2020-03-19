@@ -89,12 +89,12 @@ Following are several validation result examples:
 **1. Set another validation preprocess for anonymized data.**
 Based on our current understanding, Google does not validate the input resources.
 In [Google’s document](https://cloud.google.com/healthcare/docs/how-tos/fhir-resources), a resource with required field missing (_Observation.code_) is successfully created.
-We can set another validation preprocess for anonymized data in FHIR Server, which loosens the constraint of fields that may contain identifiers.
-We also need to add a tag in the request or create another endpoint in FHIR Server to see whether input resources are anonymized data or other regular data.
+We can **set another validation preprocess** for anonymized data in FHIR Server, which loosens the constraint of fields that may contain identifiers.
+We also need to **add a security label in the anonymized data** to distinguish between other regular data.
 This solution needs further discussion with FHIR Server team.
 
 **2. Figure out some way to make fields not completely empty or null.** This solution requires no change in FHIR Server.
-- **For date/dateTime/instant data**, we can change the value of complete redaction from empty or null to _0001-01-01_ (the default value of dateTime in C#).
+- **For date/dateTime/instant data**, we can change the value of complete redaction from empty or null to _0001-01-01_ (the default value of dateTime in C#). We may need to **double check** whether this behavior follows [HIPAA Safe Harbor method](https://www.hhs.gov/hipaa/for-professionals/privacy/special-topics/de-identification/index.html#safeharborguidance).
 Besides, we recommend users to set partial redaction _enabled_ to minimize the number of complete redactions.
 - **For string data**, we can support and recommend users to use _characterMask_.
 With _characterMask_, values will be strings made up of masking characters instead of empty or null.
