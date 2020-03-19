@@ -1,4 +1,3 @@
-# Configuration Enhancement
 [[_TOC_]]
 
 # Business Justification
