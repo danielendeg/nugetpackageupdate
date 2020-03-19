@@ -90,7 +90,7 @@ Following are several validation result examples:
 Based on our current understanding, Google does not validate the input resources.
 In [Google’s document](https://cloud.google.com/healthcare/docs/how-tos/fhir-resources), a resource with required field missing (_Observation.code_) is successfully created.
 We can **set another validation preprocess** for anonymized data in FHIR Server, which loosens the constraint of fields that may contain identifiers.
-We also need to **add a security label in the anonymized data** to distinguish between other regular data.
+We also need to **add a security label in the anonymized data** to distinguish from other regular data.
 This solution needs further discussion with FHIR Server team.
 
 **2. Figure out some way to make fields not completely empty or null.** This solution requires no change in FHIR Server.
