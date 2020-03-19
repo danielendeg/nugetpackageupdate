@@ -1,8 +1,8 @@
 [[_TOC_]]
 
 # Business Justification
-Currently users can use type rules to cofigure anonymization actions (redact/dateshift) to a FHIR resource.
-When composing a sample configuration file, we found there are some limitations with the currently supported data types:
+Currently users can use type rules to cofigure anonymization actions (redact/dateshift) to data types in a FHIR resource.
+When composing a sample configuration file, we found there are some limitations with the current type rules:
 * Data type rules are aggressively applied to the entire type. For example, a rule *"HumanName":"redact"* redacts all field in HumanName type. People may want to keep non-sensitive fields like *"HumanName.use"*
 * Users have to write redundant path rules to redact complex types like *Reference* where we want to keep all fields except *Reference.display*.
 * Users cannot custom anonymization with [nested patterns](https://microsofthealth.visualstudio.com/Health/_workitems/edit/72536/) in FHIR resource. Currently we just remove all nested items aggresively with path rule *QuestionnaireResponse.item.item:redact*.
