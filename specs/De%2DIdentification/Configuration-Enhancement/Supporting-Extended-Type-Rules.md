@@ -81,7 +81,7 @@ If a user do need to customize anonymization like removing some dateTime nodes i
 ## Rule Validation Strategty
 We will do complete check on type rules in configuration file, including
 1. Check anonymization method is supported.
-2. Check a correct Type name is given.
+2. Check the given Type name is valid.
 3. Check the field paths are valid.
 
 Here is a sample validation testing script
