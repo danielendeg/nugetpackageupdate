@@ -81,7 +81,7 @@ We will do complete check on type rules in configuration file, including
 3. Check the field paths are valid.
 
 Here is a sample validation testing script
-```code
+```csharp
             Assert.IsTrue(validator.ValidateTypeRule("Patient_contact.telecom.use"));
             Assert.IsTrue(validator.ValidateTypeRule("QuestionnaireResponse_item.text"));
             Assert.IsTrue(validator.ValidateTypeRule("QuestionnaireResponse_item.answer"));
@@ -96,10 +96,7 @@ Here is a sample validation testing script
             Assert.IsTrue(validator.ValidateTypeRule("HumanName"));
             Assert.IsTrue(validator.ValidateTypeRule("HumanName.family"));
             Assert.IsFalse(validator.ValidateTypeRule("HumanName.famil"));
-            Assert.IsTrue(validator.ValidateTypeRule("Patient.name"));
             Assert.IsTrue(validator.ValidateTypeRule("HumanName.period.start"));
-            Assert.IsFalse(validator.ValidateTypeRule("Patient.contact.answer"));
-            Assert.IsTrue(validator.ValidateTypeRule("Patient.contact.telecom.use"));
 ```
 
 # Testing
