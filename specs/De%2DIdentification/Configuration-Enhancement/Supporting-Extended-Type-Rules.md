@@ -26,7 +26,7 @@ Here is a sample of extended type rule. In this sample, we redact fields in *Add
 Also, we fix the [nested item problem](https://microsofthealth.visualstudio.com/Health/_workitems/edit/72536/) by redacting *answer.value*, *text*, *title*, *description*, *textEquivalient* fields in BackBoneElement type without composing infinite nested path rules. 
 
 Specially, we don't accept **BackboneElement** or **Resource** as a base type.
-1. For BackboneElement, the fields/paths can be various in different resources. Write a rule of *"BackboneElement.field"* arbitrarily can cause side impact on other resources. And the validation with *"BackboneElement.field"* can be a mess. Our solution is to compose a BackboneElement with "ResourceType_FieldName", like *"QuestionnaireResponse_item"* and *"RequestGroup_action"*.
+1. For BackboneElement, the fields/paths can be various in different resources. Write a rule of *"BackboneElement.field"* arbitrarily can cause side impact on other resources. And the validation process with *"BackboneElement.field"* can be a mess. Our solution is to compose a BackboneElement with "ResourceType_FieldName", like *"QuestionnaireResponse_item"* and *"RequestGroup_action"*.
 2. For Resource types that exists in *Bundle* and *contained resource*, we will anonymize all the nested resources seperately as well as the parent resource. 
 ```json
 {
