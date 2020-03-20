@@ -38,11 +38,11 @@ Also, we fix the [nested item problem](https://microsofthealth.visualstudio.com/
         "Annotation": "redact",
         "Attachment.title": "redact",
         "Attachment.url": "redact",
-        "BackboneElement.answer.value": "redact",
-        "BackboneElement.text": "redact",
-        "BackboneElement.title": "redact",
-        "BackboneElement.description": "redact",
-        "BackboneElement.textEquivalent": "redact",
+        "QuestionnaireResponse_item.answer.value": "redact",
+        "QuestionnaireResponse_item.text": "redact",
+        "RequestGroup_action.title": "redact",
+        "RequestGroup_action.description": "redact",
+        "RequestGroup_action.textEquivalent": "redact",
         "CodeableConcept.text": "redact",
         "Coding.display": "redact",
         "Coding.code": "redact",
@@ -75,7 +75,32 @@ If a user do need to customize anonymization like removing some dateTime nodes i
 2. To solve **conflicts between FHIRPath rules and Type rules**, we follow the same philosophy as the previous configuration that path rules overwrite type rules. As we said before, type rules will anonymize the majority of identifiers and FHIRPath rules are more suitable for corner case handling, path rules should be of high prioprity. For example, with path rule (*"Organization.address:keep"*) and type rules (*"Address:redact"*, "dateTime:dateshift"), all fileds including *"Organization.adress.period.start"* in *"Organization.adress"* should be kept.
 
 ## Rule Validation Strategty
-ToDo
+We will do complete check on type rules in configuration file, including
+1. Check anonymization method is supported.
+2. Check a correct Type name is given.
+3. Check the field paths are valid.
+
+Here is a sample validation testing script
+```code
+            Assert.IsTrue(validator.ValidateTypeRule("Patient_contact.telecom.use"));
+            Assert.IsTrue(validator.ValidateTypeRule("QuestionnaireResponse_item.text"));
+            Assert.IsTrue(validator.ValidateTypeRule("QuestionnaireResponse_item.answer"));
+            Assert.IsTrue(validator.ValidateTypeRule("QuestionnaireResponse_item.answer.value"));
+            Assert.IsFalse(validator.ValidateTypeRule("QuestionnaireResponse_item.prefix"));
+            Assert.IsTrue(validator.ValidateTypeRule("Questionnaire_item.prefix"));
+            Assert.IsFalse(validator.ValidateTypeRule("Questionnaire_item.answer"));
+            Assert.IsFalse(validator.ValidateTypeRule("Questionnaire_item.answer2"));
+
+            Assert.IsFalse(validator.ValidateTypeRule("a"));
+            Assert.IsTrue(validator.ValidateTypeRule("string"));
+            Assert.IsTrue(validator.ValidateTypeRule("HumanName"));
+            Assert.IsTrue(validator.ValidateTypeRule("HumanName.family"));
+            Assert.IsFalse(validator.ValidateTypeRule("HumanName.famil"));
+            Assert.IsTrue(validator.ValidateTypeRule("Patient.name"));
+            Assert.IsTrue(validator.ValidateTypeRule("HumanName.period.start"));
+            Assert.IsFalse(validator.ValidateTypeRule("Patient.contact.answer"));
+            Assert.IsTrue(validator.ValidateTypeRule("Patient.contact.telecom.use"));
+```
 
 # Testing
 FHIR Anonymization Tool with new configuration file is a significant change to our repo. We need careful testing work including:
