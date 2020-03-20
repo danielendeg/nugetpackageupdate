@@ -82,6 +82,14 @@ We will do complete check on type rules in configuration file, including
 
 Here is a sample validation testing script
 ```csharp
+            Assert.IsFalse(validator.ValidateTypeRule("a"));
+            Assert.IsTrue(validator.ValidateTypeRule("string"));
+            Assert.IsTrue(validator.ValidateTypeRule("HumanName"));
+            Assert.IsTrue(validator.ValidateTypeRule("HumanName.family"));
+            Assert.IsFalse(validator.ValidateTypeRule("HumanName.famil"));
+            Assert.IsTrue(validator.ValidateTypeRule("HumanName.period.start"));
+
+            //BackboneElement Types
             Assert.IsTrue(validator.ValidateTypeRule("Patient_contact.telecom.use"));
             Assert.IsTrue(validator.ValidateTypeRule("QuestionnaireResponse_item.text"));
             Assert.IsTrue(validator.ValidateTypeRule("QuestionnaireResponse_item.answer"));
@@ -90,13 +98,6 @@ Here is a sample validation testing script
             Assert.IsTrue(validator.ValidateTypeRule("Questionnaire_item.prefix"));
             Assert.IsFalse(validator.ValidateTypeRule("Questionnaire_item.answer"));
             Assert.IsFalse(validator.ValidateTypeRule("Questionnaire_item.answer2"));
-
-            Assert.IsFalse(validator.ValidateTypeRule("a"));
-            Assert.IsTrue(validator.ValidateTypeRule("string"));
-            Assert.IsTrue(validator.ValidateTypeRule("HumanName"));
-            Assert.IsTrue(validator.ValidateTypeRule("HumanName.family"));
-            Assert.IsFalse(validator.ValidateTypeRule("HumanName.famil"));
-            Assert.IsTrue(validator.ValidateTypeRule("HumanName.period.start"));
 ```
 
 # Testing
