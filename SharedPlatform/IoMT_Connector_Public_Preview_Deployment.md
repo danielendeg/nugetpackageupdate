@@ -40,3 +40,20 @@ Documentation:
 •	heath-paas-docs repo
 o	SharedPlatform folder
 	Markdown file format
+
+Notes:
+-	Move the document to Azure DevOps
+o	Better collaboration - Can’t see comments until the individual closes the document
+o	May be needed for generalized document but may not necessary for IoMT Connector
+-	Encapsulate consolidation – good for purpose of communication. 
+-	Work needed:
+o	Initial roll-out (script)
+	Standing up service clusters etc.
+	Encapsulated in deploy environment group
+	Script – Idempotent
+	Support Powershell and ???
+	Every time a new region is opened
+	Templatize or hardcode region wise?
+o	Incremental Deploy environment script
+	Periodic changes coming in from the team
+o	Feature on/off capability
