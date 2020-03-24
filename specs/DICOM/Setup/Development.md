@@ -14,6 +14,7 @@
 - Run all tests from the Test explorer
 
 # Testing
+- Make sure the storage emulator is running
 - Set Microsoft.Health.Dicom.Web as your startup project
 - Run the project
 - Webserver is now running at https://localhost:63838/
