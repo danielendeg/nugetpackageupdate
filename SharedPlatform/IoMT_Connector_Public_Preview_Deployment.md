@@ -48,7 +48,11 @@
 ## 7. Azure FHIR Server Manifest PROD updates:
 1. Add section that is IoMT Connector specific to help facilitate deploying to specific regions?
 
-## 8. Documentation:
+## 8. Service Tree Metadata Updates:
+1. How to we want to handle the collapsing of the Azure API for IoMT Service Tree service into a component of the FHIR Server Service?
+   - Subscriptions and metadata updates.
+
+## 9. Documentation:
 1. heath-paas-docs repo -> SharedPlatform folder -> IoMT_Connector_Public_Preview_Deployment (markdown file format)
 
 ## Notes:
