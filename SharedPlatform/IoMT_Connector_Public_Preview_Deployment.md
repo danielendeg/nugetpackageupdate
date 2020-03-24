@@ -1,11 +1,21 @@
 # IoMT Connector – Public Preview
 
-## 1. Resource Provider worker updates:
-https://microsofthealth.visualstudio.com/Health/_git/health-paas-docs/pullrequest/12961
+## 1. Project Tracking
+
+###Resource Provider worker updates:
+ 1. https://microsofthealth.visualstudio.com/Health/_git/health-paas-docs/pullrequest/12961
+
+###IoMT Connector User Stories and Tasks:
+ 1. Initial Public Preview Installation
+    - https://microsofthealth.visualstudio.com/Health/_workitems/edit/71682
+ 2. Add App Service Plan to deployment scripts
+    - https://microsofthealth.visualstudio.com/Health/_workitems/edit/73043
 
  ##2. How many regions to deploy in?
-1. 3 (Same regions as FHIR Server Public Preview)
+1. 3 
 3. West US 2, North Central US, and UK West 
+
+##NOTE: These are the same regions as FHIR Server Public Preview 
 
 ## 3. Are we writing the specification for changes to the deployment(s) or making changes to the actual deployment scripts, ARM, tasks, etc.?
 
