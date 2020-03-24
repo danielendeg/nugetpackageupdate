@@ -91,6 +91,8 @@ We can **set another validation preprocess** for anonymized resources in FHIR Se
 We also need to **add a security label for the anonymized resources** in FHIR-Tool-for-Anonymization to distinguish them from other regular resources.
 This solution needs further discussion with FHIR Server team.
 
+- More information about security labels could be found in [spec](https://www.hl7.org/fhir/security-labels.html) and user story #72972.
+
 (Based on our current understanding, Google does not validate the input resources.
 In [Google’s document](https://cloud.google.com/healthcare/docs/how-tos/fhir-resources), a resource with required field missing (_Observation.code_) is successfully created.)
 
