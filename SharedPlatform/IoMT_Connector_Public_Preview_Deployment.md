@@ -4,8 +4,7 @@
 https://microsofthealth.visualstudio.com/Health/_git/health-paas-docs/pullrequest/12961
 
  ##2. How many regions to deploy in?
-1. 3 
-2. Same regions as FHIR Server Public Preview
+1. 3 (Same regions as FHIR Server Public Preview)
 3. West US 2, North Central US, and UK West 
 
 ## 3. Are we writing the specification for changes to the deployment(s) or making changes to the actual deployment scripts, ARM, tasks, etc.?
@@ -16,8 +15,8 @@ https://microsofthealth.visualstudio.com/Health/_git/health-paas-docs/pullreques
 
 ## NOTE: Just a few MB ZIP file for the Function Apps code
 
-## 5. When we deploy the IoMT Connector initial regional infrastructure, this is what is deployed within our subscription(s):
-1.	Azure Blob  
+## 5. When we deploy the IoMT Connector initial regional infrastructure, this is what is deployed within our subscription(s) or changes to existing infrastructure:
+1.	Azure Blob Storage 
 2.	App Service Plan  
 3.	Cluster metadata updates in the Global DB
 4.	Service Fabric application settings
@@ -31,13 +30,13 @@ https://microsofthealth.visualstudio.com/Health/_git/health-paas-docs/pullreques
 4. Stream Analytics Job
 5. App Service (Function - Hosted on shared IoMT Connector regional App Service Plan)
 
-## NOTE: FHIR Server if one does not already exist in the designated Public Preview region(s) or a separate testing FHIR Server is desired.
+## NOTE: FHIR Server is required if one does not already exist in the designated Public Preview region(s).
 
 ## 7. Azure FHIR Server Manifest PROD updates:
 1. Add section that is IoMT Connector specific to help facilitate deploying to specific regions?
 
 ## 8. Documentation:
-1. heath-paas-docs repo -> SharedPlatform folder -> Markdown file format
+1. heath-paas-docs repo -> SharedPlatform folder -> IoMT_Connector_Public_Preview_Deployment (markdown file format)
 
 ## Notes:
 ### Move the document to Azure DevOps:
