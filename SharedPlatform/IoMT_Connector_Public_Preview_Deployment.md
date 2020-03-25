@@ -10,7 +10,7 @@ Let's determine (on a high-level) the division responsibilities.
 ###Resource Provider worker updates:
  1. https://microsofthealth.visualstudio.com/Health/_git/health-paas-docs/pullrequest/12961
 
- ##Geneva Add Geneva monitoring arm templates
+ ###Add Geneva monitoring arm templates
  1. https://microsofthealth.visualstudio.com/Health/_git/health-iomt-poc/pullrequest/13007
 
 ###IoMT Connector User Stories and Tasks:
