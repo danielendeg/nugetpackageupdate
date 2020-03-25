@@ -137,6 +137,11 @@ If _(a)_ is applicable to input resources, we need to add another _validateInput
 |validateInput|validateInput|Optional|false|Validate input resources|
 |validateOutput|validateOutput|Optional|false|Validate output anonymized resources|
 
+Or we can combine them together into _validateResource_.
+|Option|Name|Optionality|Default|Description|
+|:-:|:-:|:-:|:-:|:-:|
+|validateResource|validateResource|Optional|false|Validate input and output anonymized resources|
+
 Note that for input resources, FHIR-Tool-for-Anonymization already checks: **(b) whether input resource is parsed successfully from JSON.**
 If not, _System.FormatException_ will be thrown.
 This is done by _FhirJsonParser_.
