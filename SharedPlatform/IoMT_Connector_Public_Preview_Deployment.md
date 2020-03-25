@@ -1,5 +1,10 @@
 # IoMT Connector – Public Preview - Deployment Project
 
+# The BIG question(s) we should address during this next meeting:
+Is IoMT Connector Team writing the specification(s) for changes to the deployment(s) OR are they responsible for making changes to the actual deployment scripts, ARM templates, tasks, etc.?
+
+Let's determine (on a high-level) the division responsibilities.
+
 ## 1. Project Tracking
 
 ###Resource Provider worker updates:
@@ -20,7 +25,7 @@
 
 ##NOTE: These are the same regions as FHIR Server Public Preview 
 
-## 3. Are we writing the specification for changes to the deployment(s) or making changes to the actual deployment scripts, ARM, tasks, etc.?
+## 3. Placeholder
 
 ## 4. How do we want to handle the storage account for Function Apps code deployment?
 1. Per region
