@@ -86,7 +86,7 @@ Following are several validation result examples:
 |null (PR#16)|Invalid|
 
 # Possible solutions
-**1. Set another validation preprocess for anonymized resources.**
+##Set another validation preprocess for anonymized resources.
 We can **set another validation preprocess** for anonymized resources in FHIR Server, which loosens the constraint of fields that may contain identifiers.
 We also need to **add a security label for the anonymized resources** in FHIR-Tool-for-Anonymization to distinguish them from other regular resources.
 This solution needs further discussion with FHIR Server team.
