@@ -92,7 +92,7 @@ We can **set another validation preprocess** for anonymized resources in FHIR Se
 We also need to **add a security label for the anonymized resources** in FHIR-Tool-for-Anonymization to distinguish them from other regular resources.
 This solution needs further discussion with FHIR Server team.
 
-Example of security label in anonymized resources:
+Example of security labels in anonymized resources:
 ```json
 {
   "resourceType": "Endpoint",
@@ -107,7 +107,7 @@ Example of security label in anonymized resources:
 }
 ```
 
-It can be accessed from FHIR Server by:
+The security labels can be accessed from FHIR Server with:
 ```
 List<Coding> securityLabels = resource?.Meta?.Security;
 ```
