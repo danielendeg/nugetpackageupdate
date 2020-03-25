@@ -41,6 +41,7 @@ Add security label to _Resource.meta.security_ in anonymized resources.
 Set another validation preprocess for anonymized resources.
 - **Solve from anonymization.**
 Instead of redacting the fields to completely empty or null, figure out some way to keep some valid values in required fields.
+- **Solve by giving users validation report.** Add an command-line option _validateOutput_ to validate anonymized resources. If the resource is non-conformant, users will get a detailed report in verbose log. 
 
 Solutions will be discussed in following sections.
 
@@ -86,14 +87,15 @@ Following are several validation result examples:
 |null (PR#16)|Invalid|
 
 # Possible solutions
-##Set another validation preprocess for anonymized resources.
+## 1. Set another validation preprocess for anonymized resources in FHIR Server.
 We can **set another validation preprocess** for anonymized resources in FHIR Server, which loosens the constraint of fields that may contain identifiers.
 We also need to **add a security label for the anonymized resources** in FHIR-Tool-for-Anonymization to distinguish them from other regular resources.
 This solution needs further discussion with FHIR Server team.
 
 - More information about security labels could be found in [spec](https://www.hl7.org/fhir/security-labels.html) and user story #72972.
 
-**2. Figure out some way to make fields not completely empty or null.** This solution requires no change in FHIR Server.
+## 2. Figure out some way to make fields not completely empty or null in FHIR-Tool-for-Anonymization.
+This solution requires no change in FHIR Server.
 - **For date/dateTime/instant data**, we can change the value of complete redaction from empty or null to _0001-01-01_ (the default value of dateTime in C#). We may need to **double check** whether this behavior follows [HIPAA Safe Harbor method](https://www.hhs.gov/hipaa/for-professionals/privacy/special-topics/de-identification/index.html#safeharborguidance).
 Besides, we recommend users to set partial redaction _enabled_ to minimize the number of complete redactions.
 - **For string data**, we can support and recommend users to use _characterMask_.
@@ -104,3 +106,26 @@ In both ways, we need to make sure not all fields are empty or null.
 We can support and set up 3 _extended typeRules_ instead of anonymizing the whole Attachment in original configuration: "_Attachment.data: redact_", "_Attachment.contentType: keep_" "_Attachment.url: characterMask_".
 So there will always be some value in Attachment's children fields.
 
+## 3. Add an command-line option _validateOutput_ to validate anonymized resources.
+If the resource is non-conformant, users will get a detailed report in verbose log. This requires adding a module to see: **(a) if resource meets the requirements used in FHIR Server**.
+
+If _(a)_ is applicable to input resources, we need to add another _validateInput_ option in command-line tool as well.
+
+|Option|Name|Optionality|Default|Description|
+|:-:|:-:|:-:|:-:|:-:|
+|validateInput|validateInput|Optional|false|Validate input resources|
+|validateOutput|validateOutput|Optional|false|Validate output anonymized resources|
+
+For input resources, FHIR-Tool-for-Anonymization already checks: **(b) whether input resource is parsed successfully from JSON.**
+If not, _System.FormatException_ is thrown.
+This is done by _FhirJsonParser_.
+Examples:
+- Invalid Json encountered. Details: After parsing a value an unexpected character was encountered: ". Path 'status', line 51, position 2.
+- Type checking the data: Encountered unknown element 'startsss' at location 'Slot.startsss[0]' while parsing
+
+For module _(a)_, there are 2 ways of implementation:
+- Making calls against FHIR Server instance as described in #72489.
+This requires users to provide a FHIR Server endpoint. The problem is that a _ndjson_ file can contain more than 1 million resources with size 1G. Sending these data to FHIR Server results in a large number of HTTP calls, bring extra network latency and serialization & deserialization cost.
+- Validate the same way as FHIR Server but do it locally. There might be some code redundancy but it requires on dependency on network or available FHIR Server endpoint.
+
+For this solution, we recommend implementing it in the second way.
