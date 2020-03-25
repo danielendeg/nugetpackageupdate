@@ -24,8 +24,7 @@ Let's determine (on a high-level) the division responsibilities.
     - https://microsofthealth.visualstudio.com/Health/_workitems/edit/73043
 
  ##2. How many regions to deploy in?
-1. 3 
-3. West US 2, North Central US, and UK West 
+1. West US 2, North Central US, and UK West 
 
 ##NOTE: These are the same regions as FHIR Server Public Preview 
 
