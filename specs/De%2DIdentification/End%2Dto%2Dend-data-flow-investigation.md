@@ -125,7 +125,7 @@ Examples:
 
 For module _(a)_, there are 2 ways of implementation:
 - Making calls against FHIR Server instance as described in #72489.
-This requires users to provide a FHIR Server endpoint. The problem is that a _ndjson_ file can contain more than 1 million resources with size 1G. Sending these data to FHIR Server results in a large number of HTTP calls, bring extra network latency and serialization & deserialization cost.
+This requires users to provide a FHIR Server endpoint. The problem is that a _ndjson_ file can contain more than 1 million resources with size 1G. Sending these data to FHIR Server results in a large number of HTTP calls, bringing in extra network latency and serialization & deserialization cost.
 - Validate the same way as FHIR Server but do it locally. There might be some code redundancy but it requires on dependency on network or available FHIR Server endpoint.
 
 For this solution, we recommend implementing it in the second way.
