@@ -5,6 +5,10 @@ Is IoMT Connector Team writing the specification(s) for changes to the deploymen
 
 Let's determine (on a high-level) the division responsibilities.
 
+ - deployment environment group - used to open a new region
+
+ - regular deployment group - incremental deployments / updates
+
 ## 1. Project Tracking
 
 ###Resource Provider worker updates:
