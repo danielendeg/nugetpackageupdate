@@ -93,9 +93,6 @@ This solution needs further discussion with FHIR Server team.
 
 - More information about security labels could be found in [spec](https://www.hl7.org/fhir/security-labels.html) and user story #72972.
 
-(Based on our current understanding, Google does not validate the input resources.
-In [Google’s document](https://cloud.google.com/healthcare/docs/how-tos/fhir-resources), a resource with required field missing (_Observation.code_) is successfully created.)
-
 **2. Figure out some way to make fields not completely empty or null.** This solution requires no change in FHIR Server.
 - **For date/dateTime/instant data**, we can change the value of complete redaction from empty or null to _0001-01-01_ (the default value of dateTime in C#). We may need to **double check** whether this behavior follows [HIPAA Safe Harbor method](https://www.hhs.gov/hipaa/for-professionals/privacy/special-topics/de-identification/index.html#safeharborguidance).
 Besides, we recommend users to set partial redaction _enabled_ to minimize the number of complete redactions.
