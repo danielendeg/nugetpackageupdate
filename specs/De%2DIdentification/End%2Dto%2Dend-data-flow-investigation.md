@@ -92,6 +92,26 @@ We can **set another validation preprocess** for anonymized resources in FHIR Se
 We also need to **add a security label for the anonymized resources** in FHIR-Tool-for-Anonymization to distinguish them from other regular resources.
 This solution needs further discussion with FHIR Server team.
 
+Example of security label in anonymized resources:
+```json
+{
+  "resourceType": "Endpoint",
+  "id": "direct-endpoint",
+  "meta" : {
+    "security": [{
+      "system": "https://www.hl7.org/fhir/v3/ObservationValue/cs.html#v3-ObservationValue",
+      "code": "REDACTED",
+      "display": "Fields contain identifiers defined by HIPAA Safe Harbor method are redacted."
+  }]},
+  ...
+}
+```
+
+It can be accessed from FHIR Server by:
+```
+List<Coding> securityLabels = resource?.Meta?.Security;
+```
+
 - More information about security labels could be found in [spec](https://www.hl7.org/fhir/security-labels.html) and user story #72972.
 
 ## 2. Figure out some way to make fields not completely empty or null in FHIR-Tool-for-Anonymization.
@@ -127,6 +147,4 @@ This is done by _FhirJsonParser_.
 For module _(a)_, there are 2 ways of implementation:
 - Making calls against FHIR Server instance as described in #72489.
 This requires users to provide a FHIR Server endpoint. The problem is that a _ndjson_ file can contain more than 1 million resources with size 1G. Sending these data to FHIR Server results in a large number of HTTP calls, bringing in extra network latency and serialization & deserialization cost.
-- Validate the same way as FHIR Server but do it locally. This requires no dependency on network or FHIR Server endpoint. We can re-implement the logic of validation in FHIR-Tool-for-Validation or if possible, reuse a wrapped class or library from FHIR Server.
-
-For this solution, we recommend implementing it in the second way.
+- **Validate the same way as FHIR Server but do it locally.** We recommend this implementation because it requires no dependency on network or FHIR Server endpoint. We can implement the logic of validation again in FHIR-Tool-for-Validation, or if possible, it would be better to use a NuGet package built from FHIR Server that contains the validation feature.
