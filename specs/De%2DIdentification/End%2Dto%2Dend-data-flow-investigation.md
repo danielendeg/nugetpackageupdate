@@ -119,8 +119,8 @@ If _(a)_ is applicable to input resources, we need to add another _validateInput
 
 Note that for input resources, FHIR-Tool-for-Anonymization already checks: **(b) whether input resource is parsed successfully from JSON.**
 If not, _System.FormatException_ will be thrown.
-This is done by _FhirJsonParser_ before validation.
-Examples:
+This is done by _FhirJsonParser_.
+2 types of errors:
 - Invalid Json encountered. Details: After parsing a value an unexpected character was encountered: ". Path 'status', line 51, position 2.
 - Type checking the data: Encountered unknown element 'startsss' at location 'Slot.startsss[0]' while parsing
 
