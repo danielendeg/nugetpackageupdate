@@ -107,7 +107,8 @@ We can support and set up 3 _extended typeRules_ instead of anonymizing the whol
 So there will always be some value in Attachment's children fields.
 
 ## 3. Add an command-line option _validateOutput_ to validate anonymized resources.
-If the resource is non-conformant, users will get a detailed report in verbose log. This requires adding a module to see: **(a) if resource meets the requirements used in FHIR Server**.
+If the resource is non-conformant, users will get a detailed report in verbose log.
+This requires adding a module to see: **(a) if resource meets the requirements in FHIR Server**.
 
 If _(a)_ is applicable to input resources, we need to add another _validateInput_ option in command-line tool as well.
 
@@ -116,9 +117,9 @@ If _(a)_ is applicable to input resources, we need to add another _validateInput
 |validateInput|validateInput|Optional|false|Validate input resources|
 |validateOutput|validateOutput|Optional|false|Validate output anonymized resources|
 
-For input resources, FHIR-Tool-for-Anonymization already checks: **(b) whether input resource is parsed successfully from JSON.**
-If not, _System.FormatException_ is thrown.
-This is done by _FhirJsonParser_.
+Note that for input resources, FHIR-Tool-for-Anonymization already checks: **(b) whether input resource is parsed successfully from JSON.**
+If not, _System.FormatException_ will be thrown.
+This is done by _FhirJsonParser_ before validation.
 Examples:
 - Invalid Json encountered. Details: After parsing a value an unexpected character was encountered: ". Path 'status', line 51, position 2.
 - Type checking the data: Encountered unknown element 'startsss' at location 'Slot.startsss[0]' while parsing
@@ -126,6 +127,6 @@ Examples:
 For module _(a)_, there are 2 ways of implementation:
 - Making calls against FHIR Server instance as described in #72489.
 This requires users to provide a FHIR Server endpoint. The problem is that a _ndjson_ file can contain more than 1 million resources with size 1G. Sending these data to FHIR Server results in a large number of HTTP calls, bringing in extra network latency and serialization & deserialization cost.
-- Validate the same way as FHIR Server but do it locally. There might be some code redundancy but it requires on dependency on network or available FHIR Server endpoint.
+- Validate the same way as FHIR Server but do it locally. This requires no dependency on network or FHIR Server endpoint. We can re-implement the logic of validation in FHIR-Tool-for-Validation or if possible, reuse a wrapped class or library from FHIR Server.
 
 For this solution, we recommend implementing it in the second way.
