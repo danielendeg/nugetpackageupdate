@@ -37,10 +37,10 @@ Let's determine (on a high-level) the division responsibilities.
 ## NOTE: Just a few MB ZIP file for the Function Apps code
 
 ## 5. When we deploy the IoMT Connector initial regional infrastructure, this is what is deployed within our subscription(s) or changes to existing infrastructure:
-1.	Azure Blob Storage 
-2.	App Service Plan  
-3.	Cluster metadata updates in the Global DB
-4.	Service Fabric application settings
+1.	Azure Blob Storage (This is for the function code) - ARM template 
+2.	App Service Plan - ARM template  
+3.	Cluster metadata updates in the Global DB - Will be done in PowerShell
+4.	Service Fabric application settings - Will be done in PowerShell
 
 ## NOTE: Application Insights could be done as part of the initial infrastructure, but our thought was that we would use the existing Azure API for FHIR account.
 
@@ -51,7 +51,7 @@ Let's determine (on a high-level) the division responsibilities.
 4. Stream Analytics Job
 5. App Service (Function - Hosted on shared IoMT Connector regional App Service Plan)
 
-## NOTE: FHIR Server is required if one does not already exist in the designated Public Preview region(s).
+## NOTE: The above will be handled as part of the Resource Provider worker updates.
 
 ## 7. Azure FHIR Server Manifest PROD updates:
 1. Add section that is IoMT Connector specific to help facilitate deploying to specific regions?
