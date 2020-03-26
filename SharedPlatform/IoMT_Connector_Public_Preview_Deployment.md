@@ -25,6 +25,7 @@
 1. Deployed via PowerShell + ARM template(s)
     - Azure Storage Account
     - App Service Plan
+    - App Service (Web) - Geneva Agent
 2.	Deployed via PowerShell
      - Cluster metadata updates in the Global DB
      - Service Fabric application settings
@@ -34,7 +35,7 @@
 2. Key Vault
 3. Storage Account
 4. Stream Analytics Job
-5. App Service (Function Apps are hosted on shared IoMT Connector Regional Infrastructure App Service Plan)
+5. App Service (Function) - Apps are hosted on shared IoMT Connector Regional Infrastructure App Service Plan.
 
 ## NOTE: The above will be handled as part of the Resource Provider worker updates.
 
