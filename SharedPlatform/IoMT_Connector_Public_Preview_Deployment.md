@@ -15,7 +15,7 @@
     - https://microsofthealth.visualstudio.com/Health/_workitems/edit/73043
 
 ## 2. Regions to deploy in:
- - West US 2, North Central US, and UK West 
+ - West US 2, North Central US, and UK South 
 
 ## 3. IoMT Connector Regional Infrastructure - Deployed into a Resource Group within AME subscription(s):
 1. Deployed via PowerShell + ARM template(s)
