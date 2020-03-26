@@ -36,20 +36,22 @@ Let's determine (on a high-level) the division responsibilities.
 
 ## NOTE: Just a few MB ZIP file for the Function Apps code
 
-## 5. When we deploy the IoMT Connector initial regional infrastructure, this is what is deployed within our subscription(s) or changes to existing infrastructure:
-1.	Azure Blob Storage (This is for the function code) - ARM template 
-2.	App Service Plan - ARM template  
-3.	Cluster metadata updates in the Global DB - Will be done in PowerShell
-4.	Service Fabric application settings - Will be done in PowerShell
+## 5. IoMT Connector Regional Infrastructure - Deployed into a Resource Group within AME subscription(s):
+1. Deployed via PowerShell + ARM template(s)
+    - Azure Blob Storage (This is for the function code)
+    - App Service Plan
+2.	Deployed via PowerShell
+     - Cluster metadata updates in the Global DB
+     - Service Fabric application settings
 
 ## NOTE: Application Insights could be done as part of the initial infrastructure, but our thought was that we would use the existing Azure API for FHIR account.
 
-## 6. When a customer deploys an IoMT Connector, this is the infrastructure that is deployed within our subscription(s):
+## 6. IoMT Connector Customer Infrastructure - Deployed into a Resource Group within AME subscription(s):
 1. Event Hubs Namespaces
 2. Key Vault
 3. Storage Account
 4. Stream Analytics Job
-5. App Service (Function - Hosted on shared IoMT Connector regional App Service Plan)
+5. App Service (Function Apps are hosted on shared IoMT Connector Regional Infrastructure App Service Plan)
 
 ## NOTE: The above will be handled as part of the Resource Provider worker updates.
 
