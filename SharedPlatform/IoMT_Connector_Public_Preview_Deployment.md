@@ -1,9 +1,5 @@
 # IoMT Connector – Public Preview - Deployment Project
 
- - deployment environment group - used to open a new region
-
- - regular deployment group - incremental deployments / updates
-
 ## 1. Project Tracking
 
 ###Resource Provider worker updates:
@@ -30,24 +26,18 @@
      - Cluster metadata updates in the Global DB
      - Service Fabric application settings
 
-## 4. IoMT Connector Customer Infrastructure - Deployed into a Resource Group within AME subscription(s):
+## 4. IoMT Connector Customer Infrastructure - Deployed into a Resource Group within AME subscription(s) - Will be handled as part of the Resource Provider worker updates:
 1. Event Hubs Namespaces
 2. Key Vault
 3. Storage Account
 4. Stream Analytics Job
 5. App Service (Function) - Apps are hosted on shared IoMT Connector Regional Infrastructure App Service Plan.
 
-## NOTE: The above will be handled as part of the Resource Provider worker updates.
+## NOTE: 
 
-## 5. Azure FHIR Server Manifest PROD updates:
-1. Add section that is IoMT Connector specific to help facilitate deploying to specific regions?
-
-## 6. Service Tree Metadata Updates:
+## 5. Service Tree Metadata Updates:
 1. How to we want to handle the collapsing of the Azure API for IoMT Service Tree service into a component of the FHIR Server Service?
    - Subscriptions and metadata updates.
-
-## 7. Documentation:
-1. heath-paas-docs repo -> SharedPlatform folder -> IoMT_Connector_Public_Preview_Deployment (markdown file format)
 
 ## Notes:
 ### Move the document to Azure DevOps:
