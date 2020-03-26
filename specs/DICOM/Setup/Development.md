@@ -21,7 +21,7 @@
 
 ## Fiddler to Post dcm files
 - Install fiddler
-- Go to Tools->Options->Https. Click protocols and add "tls1.2" to the list of protocols.
+- Go to Tools->Options->Https on fiddler. Click protocols and add "tls1.2" to the list of protocols.
 - Sync the sample dicom file [repo](https://microsofthealth.visualstudio.com/DefaultCollection/Health/_git/dicom-samples)
 - Use fiddler composer to post a request with
    - Content-type: multipart/related
