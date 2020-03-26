@@ -1,10 +1,5 @@
 # IoMT Connector – Public Preview - Deployment Project
 
-# The BIG question(s) we should attempt to address during this next meeting:
-Is IoMT Connector Team writing the specification(s) for changes to the deployment(s) OR are they responsible for making changes to the actual deployment scripts, ARM templates, tasks, etc.?
-
-Let's determine (on a high-level) the division responsibilities.
-
  - deployment environment group - used to open a new region
 
  - regular deployment group - incremental deployments / updates
@@ -23,30 +18,18 @@ Let's determine (on a high-level) the division responsibilities.
  2. Add App Service Plan to deployment scripts
     - https://microsofthealth.visualstudio.com/Health/_workitems/edit/73043
 
- ##2. How many regions to deploy in?
-1. West US 2, North Central US, and UK West 
+## 2. Regions to deploy in:
+ - West US 2, North Central US, and UK West 
 
-##NOTE: These are the same regions as FHIR Server Public Preview 
-
-## 3. Placeholder
-
-## 4. How do we want to handle the storage account for Function Apps code deployment?
-1. Per region
-2. Can we use an existing Resolute infrastructure local storage account and just add a container?
-
-## NOTE: Just a few MB ZIP file for the Function Apps code
-
-## 5. IoMT Connector Regional Infrastructure - Deployed into a Resource Group within AME subscription(s):
+## 3. IoMT Connector Regional Infrastructure - Deployed into a Resource Group within AME subscription(s):
 1. Deployed via PowerShell + ARM template(s)
-    - Azure Blob Storage (This is for the function code)
+    - Azure Storage Account
     - App Service Plan
 2.	Deployed via PowerShell
      - Cluster metadata updates in the Global DB
      - Service Fabric application settings
 
-## NOTE: Application Insights could be done as part of the initial infrastructure, but our thought was that we would use the existing Azure API for FHIR account.
-
-## 6. IoMT Connector Customer Infrastructure - Deployed into a Resource Group within AME subscription(s):
+## 4. IoMT Connector Customer Infrastructure - Deployed into a Resource Group within AME subscription(s):
 1. Event Hubs Namespaces
 2. Key Vault
 3. Storage Account
@@ -55,14 +38,14 @@ Let's determine (on a high-level) the division responsibilities.
 
 ## NOTE: The above will be handled as part of the Resource Provider worker updates.
 
-## 7. Azure FHIR Server Manifest PROD updates:
+## 5. Azure FHIR Server Manifest PROD updates:
 1. Add section that is IoMT Connector specific to help facilitate deploying to specific regions?
 
-## 8. Service Tree Metadata Updates:
+## 6. Service Tree Metadata Updates:
 1. How to we want to handle the collapsing of the Azure API for IoMT Service Tree service into a component of the FHIR Server Service?
    - Subscriptions and metadata updates.
 
-## 9. Documentation:
+## 7. Documentation:
 1. heath-paas-docs repo -> SharedPlatform folder -> IoMT_Connector_Public_Preview_Deployment (markdown file format)
 
 ## Notes:
