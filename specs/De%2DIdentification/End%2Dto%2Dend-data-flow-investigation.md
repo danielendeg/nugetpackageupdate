@@ -190,4 +190,4 @@ dbug: Fhir.Anonymizer.Core.Validation.ResourceValidator[0]
       The output is non-conformant with FHIR spec due to anonymization: Element with min. cardinality 1 cannot be null for Slot.EndElement.
 ```
 
-In above example, the anonymized resource is invalid due to 2 reasons. _Slot.start_ is not provided in the input. _Slot.end_ is redacted after anonymization as it's indicative of age over 89.
+In above example, the anonymized resource is invalid due to 2 reasons. _Slot.start_ is not provided in the input. _Slot.end_ is redacted after anonymization, as it's indicative of age over 89.
