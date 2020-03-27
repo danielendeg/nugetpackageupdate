@@ -131,7 +131,7 @@ This solution does not solve the incompatibility, but it tells users what makes 
 
 With this parameter set to true, users will get a detailed report in verbose log if the resource is non-conformant.
 
-When the anonymization of a certain resource is done, we first check whether the **anonymized resource** is valid. If valid, we continue processing the next resource. If invalid, we further check whether the **input resource** is valid. Then we classify the errors into 2 categories: errors caused by invalid input and errors caused by anonymization.
+When the anonymization of a certain resource is done, we first check whether the **anonymized resource** is valid. If valid, we continue processing the next resource. If invalid, we further check whether the **input resource** is valid. Then we classify the errors of anonymized resources into 2 categories: errors caused by invalid input and errors caused by anonymization.
 
 Example input resource:
 ```json
