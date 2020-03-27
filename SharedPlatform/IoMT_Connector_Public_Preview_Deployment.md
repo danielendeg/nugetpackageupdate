@@ -33,11 +33,11 @@
  - Res-Ops owned with information from IoMT Connector Team.
 
 **Service Fabric application settings:**
- - Need to extend current script to include IoMT settings
+ - Do we need to extend current script to include IoMT settings?
 
 **Options:**
  - Res-Ops owned with information from IoMT Connector Team.
- - Could be tied into RP work.
+ - Could be tied into Resource Provider Worker work.
 
 ## 4. IoMT Connector Customer Infrastructure - Deployed into a Resource Group within AME subscription(s) - Will be handled as part of the Resource Provider worker updates:
 1. Event Hubs Namespaces
@@ -58,7 +58,7 @@ Prerequisites for the RP Worker to deploy into other AME subscriptions:
  - What changes need to be made to the resource provider manifest?
 
 ## 7. Azure PowerShell and CLI
-  - Are these any changes/additions that should be considered around Azure PowerShell and CLI for these deployments? 
+  - Are there any changes/additions that should be considered around Azure PowerShell and CLI for these deployments? 
 
 ## 8.	Deployment .json Updates:
 All json here will need to be updated to reflect IoMT Connector:
