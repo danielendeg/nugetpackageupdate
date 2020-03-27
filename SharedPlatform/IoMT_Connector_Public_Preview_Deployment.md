@@ -85,4 +85,4 @@ The following deployment scripts will need to be updated to reflect IoMT Connect
    - Subscriptions and metadata updates.
 
 **NOTES**
- - Do we need to address how variables will be populated in the ARM tempates for the Geneva Agent?
+ - Do we need to address how variables will be populated in the ARM tempates (e.g. Geneva Agent?
