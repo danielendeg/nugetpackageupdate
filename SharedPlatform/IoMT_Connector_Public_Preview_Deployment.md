@@ -16,6 +16,7 @@
 
 ## 2. Regions to deploy in:
  - West US 2, North Central US, and UK South 
+ - We are considering going to a subscription per region model to allow for more customer IoMT Connectors (5 per) and Azure resource limits.
 
 ## 3. IoMT Connector Regional Infrastructure - Deployed into a Resource Group within AME subscription(s):
 1. Deployed via PowerShell + ARM template(s)
