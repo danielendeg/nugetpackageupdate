@@ -122,16 +122,16 @@ In both ways, we need to make sure not all fields are empty or null.
 We can support and set up 3 _extended typeRules_ instead of anonymizing the whole Attachment in original configuration: "_Attachment.data: redact_", "_Attachment.contentType: keep_" "_Attachment.url: characterMask_".
 So there will always be some value in Attachment's children fields.
 
-## 3. Add a command-line option _validate_ to validate anonymized resources.
-This solution does not solve the incompatibility, but it tells users what makes the anonymized resource incompatible with FHIR Server.
+## 3. Add a command-line option _validate_ to validate resources.
+This solution does not solve the incompatibility, but it tells users what makes the resource incompatible with FHIR Server.
 
 |Option|Name|Optionality|Default|Description|
 |:-:|:-:|:-:|:-:|:-:|
-|validate|validate|Optional|false|Validate anonymized resource files in verbose log|
+|validate|validate|Optional|false|Validate resource files in verbose log|
 
-With this parameter set to true, users will get a detailed report in verbose log if the resource is non-conformant.
+With above parameter set to true, users will get a detailed report in verbose log if the resource is non-conformant.
 
-When anonymization is done, we first check whether the **anonymized resource** is valid. If so, we continue processing the next resource. If not, we further check whether the **input resource** is valid. Then we classify the errors of anonymized resources into 2 categories: errors caused by invalid input and errors caused by anonymization.
+We call validation **both before and after** anonymization. The first call checks the input resource. The second call checks the anonymized output resource.
 
 Example input resource:
 ```json
@@ -161,7 +161,13 @@ Example input resource:
 }
 ```
 
-After anonymization:
+Validation result for input resource:
+```
+dbug: Fhir.Anonymizer.Core.Validation.ResourceValidator[0]
+      The input is non-conformant with FHIR specification: Element with min. cardinality 1 cannot be null for Slot.StartElement.
+```
+
+Anonymized output resource:
 ```json
 {
   "resourceType": "Slot",
@@ -182,14 +188,17 @@ After anonymization:
   "status": "busy-unavailable"
 }
 ```
-Validation result in verbose log:
+Validation result for output resource:
 ```
 dbug: Fhir.Anonymizer.Core.Validation.ResourceValidator[0]
-      The output is non-conformant with FHIR spec due to non-conformant input: Element with min. cardinality 1 cannot be null for Slot.StartElement.
+      The output is non-conformant with FHIR specification: Element with min. cardinality 1 cannot be null for Slot.StartElement.
 dbug: Fhir.Anonymizer.Core.Validation.ResourceValidator[0]
-      The output is non-conformant with FHIR spec due to anonymization: Element with min. cardinality 1 cannot be null for Slot.EndElement.
+      The output is non-conformant with FHIR specification: Element with min. cardinality 1 cannot be null for Slot.EndElement.
 ```
 
-In above example, the anonymized resource is invalid due to 2 reasons. _Slot.start_ is not provided in the input. _Slot.end_ is redacted after anonymization, as it's indicative of age over 89.
+### Implementation
 
-Currently, FHIR Server checks the attributes of the resource (_Resource.FieldA_), but does not check recursively (_Resource.FieldA.FieldB_). Anonymizer will follow exactly the same way as FHIR Server.
+Firstly, we investigated _Hl7.Fhir.Specification.Validator_ used in [Profiles and Validation](https://microsofthealth.visualstudio.com/Health/_wiki/wikis/Resolute.wiki/30/Profiles-and-Validation).
+It performs a more strict validation than FHIR Server. For example, resources are checked recursively with it, but are not checked recursively in FHIR Server.
+
+To be exactly the same with FHIR Server, we plan to integrate the 3 validator used in above 3 rules from FHIR Server to FHIR-Tool-for-Anonymization: [IdValidator](https://github.com/microsoft/fhir-server/blob/master/src/Microsoft.Health.Fhir.Core/Features/Validation/FhirPrimitiveTypes/IdValidator.cs), [AttributeValidator](https://github.com/microsoft/fhir-server/blob/master/src/Microsoft.Health.Fhir.Core/Features/Validation/AttributeValidator.cs) and [NarrativeHtmlSanitizer](https://github.com/microsoft/fhir-server/blob/master/src/Microsoft.Health.Fhir.Core/Features/Validation/Narratives/NarrativeHtmlSanitizer.cs).
