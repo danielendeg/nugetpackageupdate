@@ -123,7 +123,7 @@ We can support and set up 3 _extended typeRules_ instead of anonymizing the whol
 So there will always be some value in Attachment's children fields.
 
 ## 3. Add a command-line option _validate_ to validate anonymized resources.
-This solution does not solve the incompatibility, but it tells users what makes them incompatible.
+This solution does not solve the incompatibility, but it tells users what makes the anonymized resource incompatible with FHIR Server.
 
 |Option|Name|Optionality|Default|Description|
 |:-:|:-:|:-:|:-:|:-:|
@@ -192,4 +192,4 @@ dbug: Fhir.Anonymizer.Core.Validation.ResourceValidator[0]
 
 In above example, the anonymized resource is invalid due to 2 reasons. _Slot.start_ is not provided in the input. _Slot.end_ is redacted after anonymization, as it's indicative of age over 89.
 
-Note that our FHIR Server checks the attributes of the resource (_Resource.FieldA_), but **does not check recursively** (_Resource.FieldA.FieldB_). In current design, Anonymizer will follow exactly the same way as FHIR Server.
+Currently, FHIR Server checks the attributes of the resource (_Resource.FieldA_), but does not check recursively (_Resource.FieldA.FieldB_). Anonymizer will follow exactly the same way as FHIR Server.
