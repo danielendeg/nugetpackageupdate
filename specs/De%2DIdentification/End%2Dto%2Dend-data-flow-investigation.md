@@ -201,4 +201,47 @@ dbug: Fhir.Anonymizer.Core.Validation.ResourceValidator[0]
 Firstly, we investigated _Hl7.Fhir.Specification.Validator_ used in [Profiles and Validation](https://microsofthealth.visualstudio.com/Health/_wiki/wikis/Resolute.wiki/30/Profiles-and-Validation).
 It performs a more strict validation than FHIR Server. For example, resources are checked recursively with it, but are not checked recursively in FHIR Server.
 
-To be exactly the same with FHIR Server, we plan to reuse the 3 validators used in FHIR Server: [IdValidator](https://github.com/microsoft/fhir-server/blob/master/src/Microsoft.Health.Fhir.Core/Features/Validation/FhirPrimitiveTypes/IdValidator.cs), [AttributeValidator](https://github.com/microsoft/fhir-server/blob/master/src/Microsoft.Health.Fhir.Core/Features/Validation/AttributeValidator.cs) and [NarrativeHtmlSanitizer](https://github.com/microsoft/fhir-server/blob/master/src/Microsoft.Health.Fhir.Core/Features/Validation/Narratives/NarrativeHtmlSanitizer.cs). Codes will exist separately in FHIR Server and FHIR-Tool-for-Anonymization. The overlapping codes are around 400 lines.
+Example resource:
+```json
+{
+  "resourceType": "Patient",
+  "id": "pat1",
+  "name": [
+    {
+      "use": "official",
+      "family": "Donald",
+      "given": [
+        "Duck"
+      ]
+    }
+  ],
+  "link": [
+    {
+      "other": {
+        "reference": "Patient/pat2"
+      }
+    }
+  ]
+}
+```
+
+Validation result of _Hl7.Fhir.Specification.Validator_:
+```
+"Instance count for 'Patient.link.type' is 0, which is not within the specified cardinality of 1..1"
+```
+
+Validation result of FHIR Server:
+```json
+{
+    "resourceType": "OperationOutcome",
+    "issue": [
+        {
+            "severity": "information",
+            "code": "informational",
+            "diagnostics": "All OK"
+        }
+    ]
+}
+```
+
+To be exactly the same with FHIR Server, we are going to reuse the 3 validators used in FHIR Server: [IdValidator](https://github.com/microsoft/fhir-server/blob/master/src/Microsoft.Health.Fhir.Core/Features/Validation/FhirPrimitiveTypes/IdValidator.cs), [AttributeValidator](https://github.com/microsoft/fhir-server/blob/master/src/Microsoft.Health.Fhir.Core/Features/Validation/AttributeValidator.cs) and [NarrativeHtmlSanitizer](https://github.com/microsoft/fhir-server/blob/master/src/Microsoft.Health.Fhir.Core/Features/Validation/Narratives/NarrativeHtmlSanitizer.cs). The three classes are around 400 lines in total.
