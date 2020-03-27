@@ -131,7 +131,7 @@ This solution does not solve the incompatibility, but it tells users what makes 
 
 With this parameter set to true, users will get a detailed report in verbose log if the resource is non-conformant.
 
-When the anonymization of a certain resource is done, we first check whether the **anonymized resource** is valid. If valid, we continue processing the next resource. If invalid, we further check whether the **input resource** is valid. Then we classify the errors of anonymized resources into 2 categories: errors caused by invalid input and errors caused by anonymization.
+When the anonymization of a certain resource is done, we first check whether the **anonymized resource** is valid. If so, we continue processing the next resource. If not, we further check whether the **input resource** is valid. Then we classify the errors of anonymized resources into 2 categories: errors caused by invalid input and errors caused by anonymization.
 
 Example input resource:
 ```json
@@ -191,3 +191,5 @@ dbug: Fhir.Anonymizer.Core.Validation.ResourceValidator[0]
 ```
 
 In above example, the anonymized resource is invalid due to 2 reasons. _Slot.start_ is not provided in the input. _Slot.end_ is redacted after anonymization, as it's indicative of age over 89.
+
+Note that our FHIR Server checks the attributes of the resource (_Resource.FieldA_), but **does not check recursively** (_Resource.FieldA.FieldB_). In current design, Anonymizer will follow exactly the same way as FHIR Server.
