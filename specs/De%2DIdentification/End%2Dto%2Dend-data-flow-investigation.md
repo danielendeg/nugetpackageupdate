@@ -122,24 +122,72 @@ In both ways, we need to make sure not all fields are empty or null.
 We can support and set up 3 _extended typeRules_ instead of anonymizing the whole Attachment in original configuration: "_Attachment.data: redact_", "_Attachment.contentType: keep_" "_Attachment.url: characterMask_".
 So there will always be some value in Attachment's children fields.
 
-## 3. Add a command-line option _validateOutput_ to validate anonymized resources.
-If the resource is non-conformant, users will get a detailed report in verbose log.
-This solution **cannot** solve the incompatibility problem, but it can give users some hint in the short term.
-This requires adding a module to see: **(a) if resource meets the requirements in FHIR Server**.
-
-If _(a)_ is applicable to input resources, we need to add another _validateInput_ option in command-line tool as well.
+## 3. Add a command-line option _validate_ to validate anonymized resources.
+This solution does not solve the incompatibility, but it tells users what makes them incompatible.
 
 |Option|Name|Optionality|Default|Description|
 |:-:|:-:|:-:|:-:|:-:|
-|validateInput|validateInput|Optional|false|Validate input resources|
-|validateOutput|validateOutput|Optional|false|Validate output anonymized resources|
+|validate|validate|Optional|false|Validate anonymized resource files in verbose log|
 
-Or we can combine them together into _validateResource_.
-|Option|Name|Optionality|Default|Description|
-|:-:|:-:|:-:|:-:|:-:|
-|validateResource|validateResource|Optional|false|Validate input and output anonymized resources|
+With this parameter set to true, users will get a detailed report in verbose log if the resource is non-conformant.
 
-For feature _(a)_, there are 2 ways of implementation:
-- Making calls against FHIR Server instance as described in #72489.
-This requires users to provide a FHIR Server endpoint. The problem is that a _ndjson_ file can contain more than 1 million resources with size 1G. Sending these data to FHIR Server results in a large number of HTTP calls, bringing in extra network latency and serialization & deserialization cost.
-- **Validate the same way as FHIR Server but do it locally.** We recommend this implementation because it requires no dependency on network or FHIR Server endpoint. We can implement the logic of validation again in FHIR-Tool-for-Validation, or if possible, it would be better to **use a NuGet package** built from FHIR Server that contains the validation feature.
+When the anonymization of a certain resource is done, we first check whether the **anonymized resource** is valid. If valid, we continue processing the next resource. If invalid, we further check whether the **input resource** is valid. Then we classify the errors into 2 categories: errors caused by invalid input and errors caused by anonymization.
+
+Example input resource:
+```json
+{
+  "resourceType": "Slot",
+  "id": "3",
+  "text": {
+    "status": "generated",
+    "div": "<div xmlns=\"http://www.w3.org/1999/xhtml\">\n\t\t\t25 Dec 2013 9:30am - 9:45am: <b>Unavailable</b> Physiotherapy<br/>\n\t\t\tDr Careful is out of the office\n\t\t</div>"
+  },
+  "serviceCategory": [
+    {
+      "coding": [
+        {
+          "code": "17",
+          "display": "General Practice"
+        }
+      ]
+    }
+  ],
+  "schedule": {
+    "reference": "Schedule/example"
+  },
+  "status": "busy-unavailable",
+  "end": "1913-12-25T09:45:00Z",
+  "comment": "Dr Careful is out of the office"
+}
+```
+
+After anonymization:
+```json
+{
+  "resourceType": "Slot",
+  "id": "3",
+  "serviceCategory": [
+    {
+      "coding": [
+        {
+          "code": "17",
+          "display": "General Practice"
+        }
+      ]
+    }
+  ],
+  "schedule": {
+    "reference": "Schedule/example"
+  },
+  "status": "busy-unavailable"
+}
+```
+Validation result in verbose log:
+```
+dbug: Fhir.Anonymizer.Core.Validation.ResourceValidator[0]
+      The output is non-conformant with FHIR spec due to non-conformant input: Element with min. cardinality 1 cannot be null for Slot.StartElement.
+dbug: Fhir.Anonymizer.Core.Validation.ResourceValidator[0]
+      The output is non-conformant with FHIR spec due to anonymization: Element with min. cardinality 1 cannot be null for Slot.EndElement.
+```
+
+In above example, the anonymized resource is invalid due to 2 reasons. _Slot.start_ is not provided in the input. _Slot.end_ is redacted after anonymization as it's indicative of age over 89.
