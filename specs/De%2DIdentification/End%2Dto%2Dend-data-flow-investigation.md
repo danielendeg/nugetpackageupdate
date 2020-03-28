@@ -127,11 +127,12 @@ This solution does not solve the incompatibility, but it tells users what makes 
 
 |Option|Name|Optionality|Default|Description|
 |:-:|:-:|:-:|:-:|:-:|
-|validate|validate|Optional|false|Validate resource files in verbose log|
+|validateInput|validateInput|Optional|false|Validate input resource files in verbose log|
+|validateOutput|validateOutput|Optional|false|Validate output anonymized resource files in verbose log|
 
-With above parameter set to true, users will get a detailed report in verbose log if the resource is non-conformant. [ @<7C029C39-BC06-6716-9569-44023A0AA6DA> does that mean the user must use verbose option in addition to validate option in order to see the validation results?]
+With above parameter set to true, users will get a detailed report in verbose log if the resource is non-conformant. [ @<7C029C39-BC06-6716-9569-44023A0AA6DA> does that mean the user must use verbose option in addition to validate option in order to see the validation results?] [ @<356939D1-F4CA-6BA1-875C-7247D42D7353> Yes, the validation options will only work in verbose mode (-v).]
 
-We call validation **both before and after** anonymization. [ @<7C029C39-BC06-6716-9569-44023A0AA6DA> if we always validate both input and output, this can be expensive and annoying to the user. Imagine a scenario in which the user is trying to iteratively create a configuration file using the same input file which is valid. There is no point in validating input every time if it is not changing. validating input and output should be indepenent] The first call checks the input resource. The second call checks the anonymized output resource.
+We call validation **both before and after** anonymization. [ @<7C029C39-BC06-6716-9569-44023A0AA6DA> if we always validate both input and output, this can be expensive and annoying to the user. Imagine a scenario in which the user is trying to iteratively create a configuration file using the same input file which is valid. There is no point in validating input every time if it is not changing. validating input and output should be indepenent][ @<356939D1-F4CA-6BA1-875C-7247D42D7353> Agreed. The option is separated into _validateInput_ and _validateOutput_ in above table.] The first call checks the input resource. The second call checks the anonymized output resource.
 
 Example input resource:
 ```json
@@ -200,7 +201,7 @@ dbug: Fhir.Anonymizer.Core.Validation.ResourceValidator[0]
 
 Firstly, we investigated _Hl7.Fhir.Specification.Validator_ used in [Profiles and Validation](https://microsofthealth.visualstudio.com/Health/_wiki/wikis/Resolute.wiki/30/Profiles-and-Validation).
 
-It performs a more strict validation than FHIR Server. For example, resources are checked recursively with it, but are not checked recursively in FHIR Server. [ @<7C029C39-BC06-6716-9569-44023A0AA6DA> this may not be true. I have started a mail thread with Michael. Please follow up with him.]
+It performs a more strict validation than FHIR Server. For example, resources are checked recursively with it, but are not checked recursively in FHIR Server. [ @<7C029C39-BC06-6716-9569-44023A0AA6DA> this may not be true. I have started a mail thread with Michael. Please follow up with him.] [ @<356939D1-F4CA-6BA1-875C-7247D42D7353> Got it. Thanks!]
 
 Example resource:
 ```json
