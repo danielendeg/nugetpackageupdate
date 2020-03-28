@@ -18,7 +18,7 @@ Based on our current understanding, when creating resources in FHIR Server, ther
 If not, exceptions will be thrown and creation will be rejected.
 
 **1. The resource _id_ follows a certain format.**
-Anonymizing will not bring in extra violation to this rule, as _id_ is not modified by default anonymization configuration.
+Anonymizing will not bring in extra violation to this rule, as _id_ is not modified by default anonymization configuration. [ @<7C029C39-BC06-6716-9569-44023A0AA6DA> we plan to support resource id replacement soon. Resource Ids are PIIs and should be replaced in our default config. It will be important to understand what format limitations are imposed on the ID field]
 
 **2. The xhtml in _Narrative.div_ is valid if it's not null or empty.**
 Anonymizing will not bring in extra violation to this rule, as anonymized _Narrative.div_ is null.
@@ -129,9 +129,9 @@ This solution does not solve the incompatibility, but it tells users what makes 
 |:-:|:-:|:-:|:-:|:-:|
 |validate|validate|Optional|false|Validate resource files in verbose log|
 
-With above parameter set to true, users will get a detailed report in verbose log if the resource is non-conformant.
+With above parameter set to true, users will get a detailed report in verbose log if the resource is non-conformant. [ @<7C029C39-BC06-6716-9569-44023A0AA6DA> does that mean the user must use verbose option in addition to validate option in order to see the validation results?]
 
-We call validation **both before and after** anonymization. The first call checks the input resource. The second call checks the anonymized output resource.
+We call validation **both before and after** anonymization. [ @<7C029C39-BC06-6716-9569-44023A0AA6DA> if we always validate both input and output, this can be expensive and annoying to the user. Imagine a scenario in which the user is trying to iteratively create a configuration file using the same input file which is valid. There is no point in validating input every time if it is not changing. validating input and output should be indepenent] The first call checks the input resource. The second call checks the anonymized output resource.
 
 Example input resource:
 ```json
@@ -199,7 +199,8 @@ dbug: Fhir.Anonymizer.Core.Validation.ResourceValidator[0]
 ### Implementation
 
 Firstly, we investigated _Hl7.Fhir.Specification.Validator_ used in [Profiles and Validation](https://microsofthealth.visualstudio.com/Health/_wiki/wikis/Resolute.wiki/30/Profiles-and-Validation).
-It performs a more strict validation than FHIR Server. For example, resources are checked recursively with it, but are not checked recursively in FHIR Server.
+
+It performs a more strict validation than FHIR Server. For example, resources are checked recursively with it, but are not checked recursively in FHIR Server. [ @<7C029C39-BC06-6716-9569-44023A0AA6DA> this may not be true. I have started a mail thread with Michael. Please follow up with him.]
 
 Example resource:
 ```json
