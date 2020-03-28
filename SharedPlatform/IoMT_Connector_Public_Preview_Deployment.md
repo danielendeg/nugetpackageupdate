@@ -15,7 +15,8 @@
     - https://microsofthealth.visualstudio.com/Health/_workitems/edit/73043
 
 ## 2. Regions to deploy in:
- - West US 2, North Central US, and UK South 
+ - West US 2, East US 2, and UK South 
+ - These are all Hero regions which are preferred and not subject to the level of capacity constraints Hub and Satellite regions experience.
  - We are considering going to a subscription per region model to allow for more customer IoMT Connectors (5 per) and Azure resource limits.
 
 ## 3. IoMT Connector Regional Infrastructure - Deployed into a Resource Group within AME subscription(s):
