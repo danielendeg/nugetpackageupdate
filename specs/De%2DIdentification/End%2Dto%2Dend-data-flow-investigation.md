@@ -18,7 +18,7 @@ Based on our current understanding, when creating resources in FHIR Server, ther
 If not, exceptions will be thrown and creation will be rejected.
 
 **1. The resource _id_ follows a certain format.**
-Anonymizing will not bring in extra violation to this rule, as _id_ is not modified by default anonymization configuration. [ @<7C029C39-BC06-6716-9569-44023A0AA6DA> we plan to support resource id replacement soon. Resource Ids are PIIs and should be replaced in our default config. It will be important to understand what format limitations are imposed on the ID field]
+Anonymizing will not bring in extra violation to this rule, as _id_ is not modified by default anonymization configuration. [ @<7C029C39-BC06-6716-9569-44023A0AA6DA> we plan to support resource id replacement soon. Resource Ids are PIIs and should be replaced in our default config. It will be important to understand what format limitations are imposed on the ID field] [ @<356939D1-F4CA-6BA1-875C-7247D42D7353> Yes. Ids follow a regular expression: [A-Za-z0-9\-\.]{1,64}. In FHIR [spec](https://www.hl7.org/fhir/datatypes.html#id): Any combination of upper- or lower-case ASCII letters ('A'..'Z', and 'a'..'z', numerals ('0'..'9'), '-' and '.', with a length limit of 64 characters. (This might be an integer, an un-prefixed OID, UUID or any other identifier pattern that meets these constraints.) We'll follow this rule when replacing Ids.]
 
 **2. The xhtml in _Narrative.div_ is valid if it's not null or empty.**
 Anonymizing will not bring in extra violation to this rule, as anonymized _Narrative.div_ is null.
@@ -132,7 +132,7 @@ This solution does not solve the incompatibility, but it tells users what makes 
 
 With above parameter set to true, users will get a detailed report in verbose log if the resource is non-conformant. [ @<7C029C39-BC06-6716-9569-44023A0AA6DA> does that mean the user must use verbose option in addition to validate option in order to see the validation results?] [ @<356939D1-F4CA-6BA1-875C-7247D42D7353> Yes, the validation options will only work in verbose mode (-v).]
 
-We call validation **both before and after** anonymization. [ @<7C029C39-BC06-6716-9569-44023A0AA6DA> if we always validate both input and output, this can be expensive and annoying to the user. Imagine a scenario in which the user is trying to iteratively create a configuration file using the same input file which is valid. There is no point in validating input every time if it is not changing. validating input and output should be indepenent][ @<356939D1-F4CA-6BA1-875C-7247D42D7353> Agreed! Thanks very much for pointing this out. The option is separated into _validateInput_ and _validateOutput_ in above table.] The first call checks the input resource. The second call checks the anonymized output resource.
+We call validation **both before and after** anonymization. [ @<7C029C39-BC06-6716-9569-44023A0AA6DA> if we always validate both input and output, this can be expensive and annoying to the user. Imagine a scenario in which the user is trying to iteratively create a configuration file using the same input file which is valid. There is no point in validating input every time if it is not changing. validating input and output should be indepenent][ @<356939D1-F4CA-6BA1-875C-7247D42D7353> Agreed! Thanks for pointing this out. The option is separated into _validateInput_ and _validateOutput_ in above table.] The first call checks the input resource. The second call checks the anonymized output resource.
 
 Example input resource:
 ```json
