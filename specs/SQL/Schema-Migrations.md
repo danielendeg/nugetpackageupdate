@@ -17,7 +17,7 @@ A migration is a T-SQL script that alters the database in some way and has a ver
 
 ### High Level Diagram
 
-Schema-Migrations/SchemaMigrationDiagram.jpg
+![Schema Flow](/Schema-migrations-flow.jpg)
 
 ### Example
 Suppose we have a database currently on version 54 and a code version of 1.0.1. The next version of the FHIR server (1.0.2) decides to consolidate a "FirstName" and "LastName" column into a "Name" column, and drop the original columns.
@@ -137,7 +137,7 @@ For Example:
 |Name| CurrentVersion | MinVersion | MaxVersion | timeout |
 |--|--|--|--|--|
 |instance1  | 53 | 53 | 55 |  |
-| instance2 |54  | 53 | 55 |  |
+| instance2 |54  | 52 | 55 |  |
 |  instance3| 53 | 53 | 56 |  |
 
 2. SchemaVersion table looks like
@@ -154,15 +154,12 @@ For Example:
     "max": 54
 }
 ```
-Technically, SQL Query be like-
-
-Select @maxSchemaVersion = MIN(MaxVersion), @minSchemaVersion = MAX(MinVersion)
-    FROM InstanceSchema
-    WHERE Timeout > SYSUTCDATETIME()
-
-SELECT @minSchemaVersion, MAX(Version)
-    FROM SchemaVersion
-    WHERE Status = 'complete' AND Version <= @maxSchemaVersion
+Technically(in words), 
+The compatibility API returns two values: min and max. 
+These are the minimum and maximum versions with which all running instances are compatible.
+min is calculated by finding the MAX(InstanceSchema.MinVersion).
+max is calculated by selecting the maximum completed version from the SchemaVersion.Version column that is no greater than the MIN(InstanceSchema.MaxVersion).
+Note: we ensure that the values we pull from the InstanceSchema table are not stale by checking that the current time has not exceeded the value in the Timeout column.
 
 ### SQL Schema Manager tool
 
