@@ -23,10 +23,14 @@
 - Install fiddler
 - Go to Tools->Options->Https on fiddler. Click protocols and add "tls1.2" to the list of protocols.
 - Sync the sample dicom file [repo](https://microsofthealth.visualstudio.com/DefaultCollection/Health/_git/dicom-samples)
-- Use fiddler composer to post a request with
+- Use fiddler composer to post a request with (use upload file button at request body section as shown in picture below) 
    - Content-type: multipart/related
    - accept: application/dicom+json
    - multi-part Content-type: application/dicom
+
+![Post A Dicom Image](FiddlerPost-1.png)
+
+You should see the request body automatically populated as below.
 
 ```http
 POST https://localhost:63838/studies/
