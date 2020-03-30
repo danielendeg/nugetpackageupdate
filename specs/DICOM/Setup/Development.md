@@ -1,7 +1,7 @@
 # Developing
 ## Requirements
 - Azure storage emulator
-- Sql Server
+- Sql Server 2019
 - [optional] Visual Studio for IDE
 
 ## Getting Started
