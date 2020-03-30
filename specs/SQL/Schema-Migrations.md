@@ -17,7 +17,7 @@ A migration is a T-SQL script that alters the database in some way and has a ver
 
 ### High Level Diagram
 
-/SchemaMigrationDiagram.jpg
+Schema-Migrations/SchemaMigrationDiagram.jpg
 
 ### Example
 Suppose we have a database currently on version 54 and a code version of 1.0.1. The next version of the FHIR server (1.0.2) decides to consolidate a "FirstName" and "LastName" column into a "Name" column, and drop the original columns.
@@ -156,11 +156,13 @@ For Example:
 ```
 Technically, SQL Query be like-
 
-select min(MaxVersion), current from InstanceSchema where timeout>now
+Select @maxSchemaVersion = MIN(MaxVersion), @minSchemaVersion = MAX(MinVersion)
+    FROM InstanceSchema
+    WHERE Timeout > SYSUTCDATETIME()
 
-Returns 55, 53
-
-select max(version) from SchemaVersion where Version between Current and min(MaxVersion) and Status="complete"
+SELECT @minSchemaVersion, MAX(Version)
+    FROM SchemaVersion
+    WHERE Status = 'complete' AND Version <= @maxSchemaVersion
 
 ### SQL Schema Manager tool
 
