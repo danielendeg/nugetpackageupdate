@@ -5,7 +5,7 @@ Currently users can use type rules to cofigure anonymization actions (redact/dat
 When composing a sample configuration file, we found there are some limitations with the current type rules:
 * Data type rules are aggressively applied to the entire type. For example, a rule *"HumanName":"redact"* redacts all field in HumanName type. People may want to keep non-sensitive fields like *"HumanName.use"*
 * Users have to write redundant path rules to redact complex types like *Reference* where we want to keep all fields except *Reference.display*.
-* Users cannot custom anonymization with [nested patterns](https://microsofthealth.visualstudio.com/Health/_workitems/edit/72536/) in FHIR resource. Currently we just remove all nested items aggresively with path rule *QuestionnaireResponse.item.item:redact*. [TODO]
+* ~~Users cannot custom anonymization with [nested patterns](https://microsofthealth.visualstudio.com/Health/_workitems/edit/72536/) in FHIR resource. Currently we just remove all nested items aggresively with path rule *QuestionnaireResponse.item.item:redact*.~~ [TODO]
 
 Here we propose to support extended Type rules in the anonymization configuration file to address these limitations.
 
@@ -14,6 +14,14 @@ There are several considerations in designing the enhanced configuration file:
 * We want to extend type rules to detailed fields in a data type. Users should be able to specify *Address.country: keep* as well as *Address: redact*.
 * The new configuration should be compatiable with the previous one. The previous rules can be correctly interpreted in the new configuration file. 
 * The anonymization efficiency with new configuration file should be comparable to the previous one.
+
+**Design Goals**
+1.	Flexible to support different/all user scenarios
+2.	Easy to edit
+3.	Simple to understand
+4.	Concise
+5.	Efficient to process
+
 
 ## Extended Type Rule
 There are two kinds of Type rules in new configuration file, the "original Type rule" and "extended Type rule". 
@@ -26,7 +34,7 @@ Here is a sample of extended type rule. In this sample, we redact fields in *Add
 Also, we fix the [nested item problem](https://microsofthealth.visualstudio.com/Health/_workitems/edit/72536/) by redacting *answer.value*, *text*, *title*, *description*, *textEquivalient* fields in BackBoneElement type without composing infinite nested path rules. 
 
 Specially, we don't accept **BackboneElement** or **Resource** as a base type.
-1. For BackboneElement, the fields/paths can be various in different resources. Write a rule of *"BackboneElement.field"* arbitrarily can cause side impact on other resources. And the validation process with *"BackboneElement.field"* can be a mess. Our solution is to compose a BackboneElement with "ResourceType_FieldName", like *"QuestionnaireResponse_item"* and *"RequestGroup_action"*.
+1. For BackboneElement, the fields/paths can be various in different resources. Write a rule of *"BackboneElement.field"* arbitrarily can cause side impact on other resources. And the validation process with *"BackboneElement.field"* can be a mess. ~~Our solution is to compose a BackboneElement with "ResourceType_FieldName", like *"QuestionnaireResponse_item"* and *"RequestGroup_action"*.~~
 2. For Resource types that exists in *Bundle* and *contained resource*, we will anonymize all the nested resources seperately as well as the parent resource. 
 ```json
 {
@@ -42,11 +50,6 @@ Specially, we don't accept **BackboneElement** or **Resource** as a base type.
         "Annotation": "redact",
         "Attachment.title": "redact",
         "Attachment.url": "redact",
-        "QuestionnaireResponse_item.answer.value": "redact",
-        "QuestionnaireResponse_item.text": "redact",
-        "RequestGroup_action.title": "redact",
-        "RequestGroup_action.description": "redact",
-        "RequestGroup_action.textEquivalent": "redact",
         "CodeableConcept.text": "redact",
         "Coding.display": "redact",
         "Coding.code": "redact",
@@ -79,28 +82,34 @@ However, like we described in FHIRPath rule conflicts section, same-level confli
 
 ## Rule Validation Strategty
 We will do complete check on type rules in configuration file, including
-1. Check anonymization method is valid.
+1. Check anonymization method is valid. Currently only dateshift method has type restrictions.
 2. Check the given Type name is valid.
 3. Check the field paths are valid.
 
-Here is a sample validation testing script
+Here is a sample of valid and invalid type rules.
 ```csharp
-            Assert.IsFalse(validator.ValidateTypeRule("a"));
-            Assert.IsTrue(validator.ValidateTypeRule("string"));
-            Assert.IsTrue(validator.ValidateTypeRule("HumanName"));
-            Assert.IsTrue(validator.ValidateTypeRule("HumanName.family"));
-            Assert.IsFalse(validator.ValidateTypeRule("HumanName.famil"));
-            Assert.IsTrue(validator.ValidateTypeRule("HumanName.period.start"));
+        public static IEnumerable<object[]> GetValidTypeRules()
+        {
+            yield return new object[] { "HumanName.family", "redact", "string" };
+            yield return new object[] { "HumanName.use", "keep", "code" };
+            yield return new object[] { "date", "dateshift", "date" };
+            yield return new object[] { "dateTime", "dateshift", "dateTime" };
+            yield return new object[] { "instant", "dateshift", "instant" };
+            yield return new object[] { "CodeableConcept.text", "redact", "string" };
+            yield return new object[] { "Reference.display", "redact", "string" };
+        }
 
-            //BackboneElement Types
-            Assert.IsTrue(validator.ValidateTypeRule("Patient_contact.telecom.use"));
-            Assert.IsTrue(validator.ValidateTypeRule("QuestionnaireResponse_item.text"));
-            Assert.IsTrue(validator.ValidateTypeRule("QuestionnaireResponse_item.answer"));
-            Assert.IsTrue(validator.ValidateTypeRule("QuestionnaireResponse_item.answer.value"));
-            Assert.IsFalse(validator.ValidateTypeRule("QuestionnaireResponse_item.prefix"));
-            Assert.IsTrue(validator.ValidateTypeRule("Questionnaire_item.prefix"));
-            Assert.IsFalse(validator.ValidateTypeRule("Questionnaire_item.answer"));
-            Assert.IsFalse(validator.ValidateTypeRule("Questionnaire_item.answer2"));
+        public static IEnumerable<object[]> GetInvalidTypeRules()
+        {
+            yield return new object[] { "....", "redact", ".... is invalid." };
+            yield return new object[] { ".", "redact", ". is invalid." };
+            yield return new object[] { "Name.families", "redact", "Name is an invalid data type." };
+            yield return new object[] { "Resource.text", "redact", "Resource is an invalid data type." };
+            yield return new object[] { "HumanName.families", "redact", "families is an invalid field in HumanName." };
+            yield return new object[] { "HumanName.use", "dateshift", "Anonymization method dateshift cannot be applied to HumanName.use." };
+            yield return new object[] { "BackboneElement.answer.value", "redact", "BackboneElement is a valid but not supported data type." };
+            yield return new object[] { "Address.state", "delete", "Anonymization method delete is currently not supported." };
+        }
 ```
 
 # Testing
