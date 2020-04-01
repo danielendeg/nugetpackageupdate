@@ -272,12 +272,11 @@ The query API will return one of the following status codes in the response:
 Code|Name|Description
 ----------|----------|----------
 *Success*|
-200|OK|Whether query should use fuzzy matching on the provided {attributeID}/{value} pairs.
+200|OK|The response payload contains all the matching resource.
 204|No Content|The search completed successfully but returned no results.
 *Failure*|
-400|Bad Request|The QIDO-RS Provider was unable to perform the query because the Service Provider cannot understand the query component.
-401|Unauthorized|The QIDO-RS Provider refused to perform the query because the client is not authenticated.
-403|Forbidden|The QIDO-RS provider understood the request, but is refusing to perform the query (e.g. an authenticated user with insufficient privileges).
+400|Bad Request|The server was unable to perform the query because the query component was invalid. Response body contains details of the failure.
+401|Unauthorized|The server refused to perform the query because the client is not authenticated.
 503|Busy|Service is unavailable
 
 The query API will not return 413 (request entity too large). If the requested query response limit is outside of the acceptable range, a bad request will be returned. Anything requested within the acceptable range, will be resolved.
