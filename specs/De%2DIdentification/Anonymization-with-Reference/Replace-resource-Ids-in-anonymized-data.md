@@ -54,13 +54,13 @@ We might just replace all the resource id with a new GUID and maintain a mapping
 2. If we preserve the mappings between the original resource id and the new resource id, we will be able to support re-identification, which is a future requirement.
 
 **Cons**
-1. We have to maintain a mapping table.
+1. We have to maintain a mapping table. [ @<8ED32720-FC34-6AEA-9795-3EE47CE9512B> , Do you have any thought on how we can scale out?  As the data volume increases, there will be a need to process resources in parallel, possibly on different machines. It is also possible that the same resource id is getting processed at the same time at different machines]
 
 
 ### Encryption approach
 We might encrypt all ids with a key given by our customer. The encrypted id is the new ID we want. There are little dependencies as we only need a key and can preserve the key for re-identification purpose with symmetric encryption method.
 
-But after our investigation, cypher texts are mostly longer than input texts (AES CBC, AES ECB, 3DES) or equal to input texts length (AES CFB). If we encode the characters of cypher bytes in 6 bits to confirm to accepted characters in ```[A-Za-z0-9\-\.]{1,64}```, the cypher texts will be even longer and exceed the length limit of 64 bytes. Thus, we decide not to adopt this approach.
+But after our investigation, cypher texts are mostly longer than input texts (AES CBC, AES ECB, 3DES) or equal to input texts length (AES CFB). If we encode the characters of cypher bytes in 6 bits to confirm to accepted characters in ```[A-Za-z0-9\-\.]{1,64}```, [ @<8ED32720-FC34-6AEA-9795-3EE47CE9512B> Since the characters are in 6 bit to begin with, how about we first map those to 8 bit, cypher it, and then map it back to 6 bits?] the cypher texts will be even longer and exceed the length limit of 64 bytes. Thus, we decide not to adopt this approach.
 
 ## Conclusion
 We will extract resource Ids from *"Resource.id"* field and *"Reference.reference"*, replace resource Ids with new GUID confirmed to FHIR requirement and preserve a mapping table from old resource Ids to new resource Ids.
