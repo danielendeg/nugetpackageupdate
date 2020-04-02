@@ -22,6 +22,13 @@ In a resource, references are represented with a reference (literal reference), 
 At least one of reference, identifier and display SHALL be present (unless an extension is provided).
 
 > Reference.reference: A reference to a location at which the other resource is found. The reference may be a relative reference, in which case it is relative to the service base URL, or an absolute URL that resolves to the location where the resource is found. The reference may be version specific or not. If the reference is not to a FHIR RESTful server, then it should be assumed to be version specific. Internal fragment references (start with '#') refer to contained resources.
+\
+<span style="color:green">Update 1. @<356939D1-F4CA-6BA1-875C-7247D42D7353> reference URLs contain logical [OIDs or UUIDs](https://www.hl7.org/fhir/references.html#Reference) that resolve within the transaction
+\
+Oid Regex: ```urn:oid:(?<id>[0-2](\.(0|[1-9][0-9]*))+)```
+\
+Uuid Regex: ```urn:uuid:(?<id>[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})```
+</span>
 
 ## Compatibility with FHIR server
 FHIR server accepts resource ids of regex ```[A-Za-z0-9\-\.]{1,64}```. If our new resource Ids are conformed the this regex, the anonymization result will work in FHIR server.
@@ -42,7 +49,7 @@ Resource Ids may also exist in literal references *"Reference.reference"* in the
 2. A relative URL is relative to a base URL and mostly in the format of [```[type]/[id]```](https://www.hl7.org/fhir/bundle.html#references)
 3. An internal fragment reference describes referencing a contained resource and is in the format of ```#[id]```. For a resource that references the container, the reference is "#".
 We will resolve resource Ids from *"Reference.reference"* by matching the above patterns.
-
+4. Update 2 @<356939D1-F4CA-6BA1-875C-7247D42D7353>  <span style = "color:green"> For both Uuid and Oid, we will resolve resolve Ids from the regex above directly. But for Oid, since it's in another format of id, we will replace the format in Uuid, that is, a reference of ```urn:oid:1.2.3.4.5``` will be transformed to ```urn:uuid:069e1601-005a-4886-b5cd-864cc5bf12e1```, where 069e1601-005a-4886-b5cd-864cc5bf12e1 is a mapped UUId of 1.2.3.4.5. By this way we solved the format mismatch between Oid and Uuid and kept the reference chain between resources.</span>
 ## Replacing resource Ids
 We investigated two approaches to replace resource Ids: the Mapping Table approach and the Encryption approach.
 
@@ -52,20 +59,26 @@ We might just replace all the resource id with a new GUID and maintain a mapping
 **Pros**
 1. The transformation is very straightforward.
 2. If we preserve the mappings between the original resource id and the new resource id, we will be able to support re-identification, which is a future requirement.
+3. FHIR server preserves resource id / reference as GUID. If we transform the Ids to a GUID, there will not be a confirmance problem.
 
 **Cons**
 1. We have to maintain a mapping table. [ @<8ED32720-FC34-6AEA-9795-3EE47CE9512B> , Do you have any thought on how we can scale out?  As the data volume increases, there will be a need to process resources in parallel, possibly on different machines. It is also possible that the same resource id is getting processed at the same time at different machines]
 
-> @<356939D1-F4CA-6BA1-875C-7247D42D7353> Good point as we may process the resources in distributed mode. I will look on this scenario again and give an update on this.
+> Good point as we may process the resources in distributed mode. I will look on this scenario again and give an update on this.
+ Update 3 @<356939D1-F4CA-6BA1-875C-7247D42D7353> <span style = "color:green"> As for processing in parallel, the anonymizer tool will still be working in a single machine. For parallel in a distributed mode, a possible solution is we retain a mapping file accross different machines, and union all mapping files together, where a resource id "patient1" may have multiple mapping result GUIDs (same as machine Count), we can also complete the re-identification process with this 1-n mapping relationship.
 
 ### Encryption approach
 We might encrypt all ids with a key given by our customer. The encrypted id is the new ID we want. There are little dependencies as we only need a key and can preserve the key for re-identification purpose with symmetric encryption method.
 
 But after our investigation, cypher texts are mostly longer than input texts (AES CBC, AES ECB, 3DES) or equal to input texts length (AES CFB). If we encode the characters of cypher bytes in 6 bits to confirm to accepted characters in ```[A-Za-z0-9\-\.]{1,64}```, [ @<8ED32720-FC34-6AEA-9795-3EE47CE9512B> Since the characters are in 6 bit to begin with, how about we first map those to 8 bit, cypher it, and then map it back to 6 bits?] the cypher texts will be even longer and exceed the length limit of 64 bytes. Thus, we decide not to adopt this approach.
 
-> @<356939D1-F4CA-6BA1-875C-7247D42D7353> I have thought of this compression mode as the current charset contains 64 valid characters. But there are two limitations. Firstly, this is a somewhat hack and won't work if the charset changes (adding or missing one character would be a disaster, for adding, we can't utilize the compression encoding, for missing, we can't interpret from the cypher output as the output bits can be (0-63) in 6 bits) or use inputs are not confirmed to the charset. Secondly, for length of 64, the round trip seems promising if we encode it as 64 * 6 bits (48 bytes), get cypher of 48 bytes and get back to 64 * 6. But for length of not multiple of 16, let's say 63 * 6 bits, we cannot directly convert to same length byte array which needs padding, and encryption will also require padding as it processes on 16 bits block (the equal length method didn't do padding, it works in a streaming mode, expecting a bucket of 16 bits) , the result can be comlicated and not consistent/safe. As far as I'm concerned, encryption is not working here if we ask for the conformance of output format (mainly the length limit). 
+Update 4 @<356939D1-F4CA-6BA1-875C-7247D42D7353> < Some further investigation results:
+1. For now, same length encryption of AES implementation are not supported in dotnet Core. What's worse, the encryption works in a padding mode when input string is not meeting the desired multiple block size (usually 16bytes), we should utilize padding for id length of 63 bytes. And for multiple block size like 64, encryption will add another padding block. Even we can shrink the input to 48 bytes, the padding will break the length limit too.
+In a word, we did'nt find a proper encryption way to work this out. 
+2. As reference can be in format of UUid/ Oid,  there will be more limitations with the transformed Id (confirmed to a UUID format if it was a UUID). **The format restriction (character regex & length limit) is really a bottleneck for us**.
 
-## Conclusion
+
+# Conclusion
 We will extract resource Ids from *"Resource.id"* field and *"Reference.reference"*, replace resource Ids with new GUID confirmed to FHIR requirement and preserve a mapping table from old resource Ids to new resource Ids.
 
 
