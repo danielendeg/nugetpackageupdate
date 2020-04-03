@@ -31,6 +31,7 @@ Uuid Regex: ```urn:uuid:(?<id>[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0
 
 @<8ED32720-FC34-6AEA-9795-3EE47CE9512B> , the documentation says that reference URLs **may** actually contain logical URIs (**e.g.** OIDs or UUIDSs) . Two things to note here: 1) It may not contain logical URIs, and instead contain relative or absolute URLs too 2) OIDs and UUIDs are just examples of different type of URIs it may have. It can have other types too. 
 
+@<356939D1-F4CA-6BA1-875C-7247D42D7353> True, other types of URL can also be presented in reference field. Currently our approach can capture internal reference/ absolute URL with id / relative URL with id / oid and uuids. These are mostly cases we have seen from HL7 examples / synthea data. We can add the capability for new cases when we meet new schema.
 </span>
 
 ## Compatibility with FHIR server
