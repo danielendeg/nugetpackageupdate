@@ -82,9 +82,6 @@ Metadata|
 GET|../studies/{study}/metadata|Retrieve full study metadata|application/dicom+json
 GET|../studies/{study}/series/{series}/metadata|Retrieve full series metadata|application/dicom+json
 GET|../studies/{study}/series/{series}/instances/{instance}/metadata|Retrieve instance metadata|application/dicom+json
-Rendered|
-GET|../studies/{study}/series/{series}/instances/{instance}|Render instance|image/png, image/jpeg
-GET|../studies/{study}/series/{series}/instances/{instance}/frames/{frames}|Render frames|image/png, image/jpeg
 
 ### Supported transfer syntax for Retrieve DICOM  (*check with fo-dicom)
 
@@ -279,17 +276,9 @@ Code|Name|Description
 401|Unauthorized|The server refused to perform the query because the client is not authenticated.
 503|Busy|Service is unavailable
 
-The query API will not return 413 (request entity too large). If the requested query response limit is outside of the acceptable range, a bad request will be returned. Anything requested within the acceptable range, will be resolved.
-
-### Warning Codes
-
-When the API returns information related to the query response, the HTTP response **Warning Header** will be populated with a list of codes and a description. All known warning codes are provided below:
-
-Code|Description
-----------|----------
-299 {+Service}: There are additional results that can be requested.|The provided query resulted in more results, but has been limited based on the query limits or internal default limits.
-299 {+Service}: The fuzzy matching parameter is not supported. Only literal matching has been performed.|Making a request, passing the parameter ?fuzzymatching={value}, will cause this header to be returned.
-299 {+Service}: The results of this query have been coalesced because the underlying data has inconsistencies across the queried instances.|The executed query return results that had inconsistent tags at the instance level. A decision has been taken by the server how to merge the inconsistent tags, but this might not be expected by the caller.
+- The query API will not return 413 (request entity too large). If the requested query response limit is outside of the acceptable range, a bad request will be returned. Anything requested within the acceptable range, will be resolved.
+- When target resource is Study/Series there is a potential for inconsistent study/series level metadata across multiple instances. For example, two instances could have different patientName. In this case we will return the study of either of the patientName match.
+- Paged results are optimized to return matched *newest* instance first, this may result in duplicate records in subsequent pages if newer data matching the query was added.
 
 ## Delete
 
