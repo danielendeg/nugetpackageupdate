@@ -22,8 +22,9 @@ Following parameters are applied to date shift algorithm:
 Details for _dateShiftScope_:
 - If _dateShiftScope_ is _resource_, dates within the same resource will be assigned the same shifting amount. 
 - If _dateShiftScope_ is _file_, dates within the same json/ndjson file will be assigned the same shifting amount.
-- If _dateShiftScope_ is _folder_, dates within the whole input folder, namely, all dates in the input, will be assigned the same shifting amount.
+- If _dateShiftScope_ is _folder_, dates within the whole input folder, namely, all dates in the input, will be assigned the same shifting amount. [ @<7C029C39-BC06-6716-9569-44023A0AA6DA> , does it work recursively in the folder if -r flag is used?]
 - The default _dateShiftScope_ is set to _resource_, which is consistent with the behavior before this parameter is enabled.
+[ @<7C029C39-BC06-6716-9569-44023A0AA6DA> we intend to integrate anonymizer into the managed services as a special endpoint. that end point will always return anonymized results to the queries. what flag should be used in that case?]
 
 # Implementation
 
@@ -74,3 +75,11 @@ Based on the complicated relationship between resources, the implementation coul
 Currently, Anonymizer does not understand the concept of compartment.
 To enable this, we need to create a new module to figure out the relationship between resources.
 For this mid April release, we recommend users to save resources that they think should be shifted together to the same file or folder and use _dateShiftScope: file/folder_.
+
+[ @<7C029C39-BC06-6716-9569-44023A0AA6DA> . Great investigation. Date is a very valuable field for analytics, which is also extremely difficult to anonymize. No wonder safe harbor method asks for removal of dates.
+
+We want to anonymize at a broader scope than resource because anonymizing at the resource level makes the dataset inconsistent and unusable. However, if we anonymize at too broad scope, date-shifting amount can be relatively easily guessed. For example, date of a catastrophic event and related hospitalizations can be used as an anchor to identify the date-shift value.
+
+The motivation for date shifting at patient compartment scope is to make it more difficult to re-identify the patient. As per one estimate, 50% of the US population can be uniquely identified using zip code, gender, and DOB (https://www.hhs.gov/hipaa/for-professionals/privacy/special-topics/de-identification/index.html). So, protecting DOB is extremely important.  
+
+As you figured out, date-shifting at patient compartment level gives rise to some complexity. My current thought is to dateshift shared resources independently of the patient resource. We will have to come up with a list of such shared resources. In case of linked patients (duplicate record etc.) we will need to make sure that the linked records are shifted by the same value. Yes, the implementation is going to be little complicated. We can go with file and folder level dateshifting for now and revisit patient compartment level later.]
