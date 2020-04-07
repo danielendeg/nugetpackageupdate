@@ -282,21 +282,47 @@ Code|Name|Description
 
 ## Delete
 
-The following **HTTP DELETE** endpoints will be  supported:
+The following **HTTP DELETE** endpoints will be supported:
 
-Method|Path|Description
-----------|----------|----------
-DELETE|../studies/{study}|Delete entire study
-DELETE|../studies/{study}/series/{series}|Delete entire series
-DELETE|../studies/{study}/series/{series}/instances/{instance}|Delete entire instance
+Method    | Path                                                     | Description
+----------|----------------------------------------------------------|-------------------------
+DELETE    | ../studies/{study}                                       | Delete entire study
+DELETE    | ../studies/{study}/series/{series}                       | Delete entire series
+DELETE    | ../studies/{study}/series/{series}/instances/{instance}  | Delete entire instance
 
 
 ### Response Codes
 
 The Delete API will return one of the following status codes in the response:
 
-Code|Name|Description
-----------|----------|----------
-*Success*|
-200|OK|Requested resource was successfully deleted.
-400|Bad Request|The request was invalid.
+Code      | Name         | Description
+----------|--------------| --------------------------------------------
+204       | No content   | Requested resource was successfully deleted.
+400       | Bad request  | The request was invalid.
+404       | Not found    | The specified object wasn't found
+
+### Business rules
+
+- **Study**
+  - When deleting a study, all underlying series and instances will also be removed.
+- **Series**
+  - When deleting a series, all underlying instances will be removed.
+  - If this is the last series for a study, the study will also be removed.
+- **Instances**
+  - When deleting a instance, both the raw dicom and metadata dicom files will be marked for removal.
+  - If this is the last instance for a series, the series will also be removed.
+
+### Delete Sequence
+When an item is deleted, the rows for the rows in the study, series, and instance tables are deleted immediately and one or many row are inserted into the `FileCleanup` table. This table will store the information needed to remove the files after a configured amount of time. A background task will run periodically and select rows from this table and remove the items from the backing file storage.
+
+![Dicom Delete Sequence](images/DICOM-delete-sequence.png)
+
+#### FileCleanup Table
+
+Column          | Type         | Description 
+--------------- | ------------ | ------------------------------------------------
+StudyUid        | varchar(64)  | The Study Uid
+SeriesUid       | varchar(64)  | The Series Uid
+SOPInstanceUid  | varchar(64)  | The SOPInstanceUid
+Watermark       | bigint       | The watermark
+DeleteAfter     | datetime2(0) | The datetime that the file can be safely deleted
