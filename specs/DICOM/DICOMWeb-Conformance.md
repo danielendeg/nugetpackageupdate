@@ -6,8 +6,8 @@
 The **Azure for Health API** supports a subset of the DICOM Web standard. Support includes:
 
 - [Store (STOW-RS)](#store-(stow-rs))
-- [Retrieve (WADO-RS)](##Retrieve-(WADO-RS))
-- [Search (QIDO-RS)](##Search-(QIDO-RS))
+- [Retrieve (WADO-RS)](#retrieve-(wado-rs))
+- [Search (QIDO-RS)](#search-(qido-rs))
 
 Additionally, the following non-standard APIs are supported:
 
