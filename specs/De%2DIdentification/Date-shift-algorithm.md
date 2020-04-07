@@ -78,7 +78,7 @@ For this mid April release, we recommend users to save resources that they think
 
 [ @<7C029C39-BC06-6716-9569-44023A0AA6DA> . Great investigation. Date is a very valuable field for analytics, which is also extremely difficult to anonymize. No wonder safe harbor method asks for removal of dates.
 
-We want to anonymize at a broader scope than resource because anonymizing at the resource level makes the dataset inconsistent and unusable. However, if we anonymize at too broad scope, date-shifting amount can be relatively easily guessed. For example, date of a catastrophic event and related hospitalizations can be used as an anchor to identify the date-shift value.
+We want to date-shift at a broader scope than resource because date-shifting at the resource level makes the dataset inconsistent and unusable. However, if we date-shift at too broad scope, date-shifting delta can be relatively easily guessed. For example, date of a catastrophic event and related hospitalizations can be used as an anchor to identify the date-shift delta.
 
 The motivation for date shifting at patient compartment scope is to make it more difficult to re-identify the patient. As per one estimate, 50% of the US population can be uniquely identified using zip code, gender, and DOB (https://www.hhs.gov/hipaa/for-professionals/privacy/special-topics/de-identification/index.html). So, protecting DOB is extremely important.  
 
