@@ -49,9 +49,10 @@ Details for _dateShiftScope_:
 2. If the input date/dateTime/instant value is indicative of age over 89, it will be redacted (including year) according to HIPAA Safe Harbor Method.
 3. If the input dateTime/instant value contains time, time will be redacted. Time zone will keep unchanged.
 
-# Investigation about date shift with compartment scope
+# Investigation about date shift with compartment (patient) scope
 A compartment is a logical grouping of resources which share a common property.
 The [specification](https://www.hl7.org/fhir/compartmentdefinition.html) defines 5 kinds of compartments: Patient, Encounter, RelatedPerson, Practitioner, Device.
+We can take the patient as the scope for date shift.
 
 The major problem with this one is that resources may cross between compartments, or interlink them.
 Such cross-linking may arise for many valid reasons, including: 
@@ -59,4 +60,17 @@ Such cross-linking may arise for many valid reasons, including:
 - Workflow management where action lists link multiple patients and/or practitioners.
 
 It would be difficult for Anonymizer to decide which value to shift for dates in these inter-linked resources.
-Instead, we recommend users to save resources that they think should be shifted together to the same file or folder and use _dateShiftScope: file/folder_.
+
+Example 1, Patient _a_ with shifting amount _x_ and Patient _b_ with shifting amount _y_ are mentioned in Group _c_.
+For dates in Group _c_, does Anonymizer shift them by amount _x_ or _y_?
+More complicatedly, if a Person _d_ is related to both Patient _a_ and _b_, like a mother of twins, for dates in Person _d_, does Anonymizer shift the dates with amount _x_ or _y_?
+If we treat Person _d_ as an individual, does Anonymizer shift the dates by an independent amount _z_?
+
+Example 2, in Patient's definition, a Patient _a_ can link to another Patient _b_.
+Does Anonymizer shift the dates in all resources related to Patient _a_ and _b_ with same amount?
+
+We need to define the behavior of cases like these before implementation.
+Based on the complicated relationship between resources, the implementation could be complicated as well.
+Currently, Anonymizer does not understand the concept of compartment.
+To enable this, we need to create a new module to figure out the relationship between resources.
+For this mid April release, we recommend users to save resources that they think should be shifted together to the same file or folder and use _dateShiftScope: file/folder_.
