@@ -20,11 +20,11 @@ Following parameters are applied to date shift algorithm:
 |dateShift|dateShiftScope|date, dateTime, instant fields|resource, file, folder|resource|This parameter is used to select the scope. Data within the same scope will be assigned the same shifting amount. It only works when _dateShiftKey_ is provided.
 
 Details for _dateShiftScope_:
-- If _dateShiftScope_ is _resource_, dates within the same resource will be assigned the same shifting amount. 
+- If _dateShiftScope_ is _resource_, dates within the same resource will be assigned the same shifting amount. [@<7C029C39-BC06-6716-9569-44023A0AA6DA> , how does this scope work for Bundle resource (or any resource with contained resources)? Is date shifting same for all in the Bundle or different for each individual entry resource?  -deepak]
 - If _dateShiftScope_ is _file_, dates within the same json/ndjson file will be assigned the same shifting amount.
 - If _dateShiftScope_ is _folder_, dates within the whole input folder, namely, all dates in the input, will be assigned the same shifting amount. [ @<7C029C39-BC06-6716-9569-44023A0AA6DA> , does it work recursively in the folder if -r flag is used?]
 - The default _dateShiftScope_ is set to _resource_, which is consistent with the behavior before this parameter is enabled.
-[ @<7C029C39-BC06-6716-9569-44023A0AA6DA> we intend to integrate anonymizer into the managed services as a special endpoint. that end point will always return anonymized results to the queries. what flag should be used in that case?]
+[ @<7C029C39-BC06-6716-9569-44023A0AA6DA> we intend to integrate anonymizer into the managed services as a special endpoint. that end point will always return anonymized results to the queries. what flag should be used in that case?] [ @<7C029C39-BC06-6716-9569-44023A0AA6DA>, @<356939D1-F4CA-6BA1-875C-7247D42D7353>, Does this slightly different nomenclature (instead of file/folder) makes it more aligned with managed endpoint : individual resource (DomainResource), Bundle, all?]
 
 # Implementation
 
