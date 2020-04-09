@@ -88,6 +88,8 @@ Specifically,
 * If we take the input string in a compressed mode of 6 bits ([A-Za-z0-9\-\. which contains 64 characters can be encoded in 6 bits), then we can compress the input bit stream to origin_length * 3 / 4; as the origin_length varies in [1, 64], we have to pad the input as the bit stream can not be converted to a input byte array, padding will introduce another issue that there maybe conflicts which means we may need to add another padding for those bit lengths of multiple 8 bytes. This will exceed the length limit. Or we have to develop or find an encryption that accepts bit stream that works by bit instread of byte.
 Again, the encryption will be good if it's not important to keep the new Id format confirmed to FHIR requirements.
 
+As we have come to a consensus that traditional Encryption like AES would not work in resource id replacement. We are going to reach out to crypto board and investigate whether Microsoft has some supporting technologies like [Format-perserving Encryption](https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-38G.pdf)
+
 # Conclusion
 We will extract resource Ids from *"Resource.id"* field and *"Reference.reference"*, replace resource Ids with new GUID confirmed to FHIR requirement and preserve a mapping table from old resource Ids to new resource Ids.
 
