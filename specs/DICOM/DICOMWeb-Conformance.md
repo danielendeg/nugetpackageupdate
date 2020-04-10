@@ -177,7 +177,7 @@ Value|Example
 {group}{element}|0020000D
 {dicomKeyword}|StudyInstanceUID
 
-Example query searching for instances: **../instances?modality=CT&00280011=512&includefield=00280010&limit=5&offset=0**
+Example query searching for instances: **../instances?Modality=CT&00280011=512&includefield=00280010&limit=5&offset=0**
 
 *We will support expanding the search attributes by customization in the future.
 
