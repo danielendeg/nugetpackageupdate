@@ -279,6 +279,7 @@ Code|Name|Description
 - The query API will not return 413 (request entity too large). If the requested query response limit is outside of the acceptable range, a bad request will be returned. Anything requested within the acceptable range, will be resolved.
 - When target resource is Study/Series there is a potential for inconsistent study/series level metadata across multiple instances. For example, two instances could have different patientName. In this case we will return the study of either of the patientName match.
 - Paged results are optimized to return matched *newest* instance first, this may result in duplicate records in subsequent pages if newer data matching the query was added.
+- Matching on the strings is case in-sensitive and accent sensitive.
 
 ## Delete
 
