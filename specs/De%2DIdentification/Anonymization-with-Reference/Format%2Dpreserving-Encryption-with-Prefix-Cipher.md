@@ -28,9 +28,8 @@ F(3) = 0
 The technique is useful only for small range of plain text as a large lookup table is not effective.
 # Analysis
 ![image.png](/.attachments/image-b6e01e7d-36f2-4327-9509-7693d2f2d58b.png)Under the assumption that our underlying block cipher **E** (Here we use AES) is ideal, **I**
-is equally likely to be any of the permutations on **M** (input/output space). The proof of this fact is
-trivial and is omitted. The method remains good when E is secure in the sense
-of a PRP. The argument is standard and is omitted.
+is equally likely to be any of the permutations on **M** (input/output space). The method remains good when E is secure in the sense
+of a PRP. 
 
 Enciphering and deciphering are constant-time
 operations. The cost here is O(k) time and space used in the initialization step.
