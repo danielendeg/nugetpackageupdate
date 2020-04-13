@@ -25,7 +25,8 @@ F(1) = 1
 F(2) = 2
 F(3) = 0
 ```
-The technique is useful only for small range of plain text as a large lookup table is not effective.
+The technique is useful only for small range of plain text as a large lookup table is not effective. But it is good for our scenario as 64 is a very small number.
+
 # Analysis
 ![image.png](/.attachments/image-b6e01e7d-36f2-4327-9509-7693d2f2d58b.png)Under the assumption that our underlying block cipher **E** (Here we use AES) is ideal, **I**
 is equally likely to be any of the permutations on **M** (input/output space). The method remains good when E is secure in the sense
