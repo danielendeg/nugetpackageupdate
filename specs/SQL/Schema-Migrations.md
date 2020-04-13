@@ -17,7 +17,11 @@ A migration is a T-SQL script that alters the database in some way and has a ver
 
 ### High Level Diagram
 
-![Schema Flow](Schema-migrations-flow.jpg)
+#### Server
+![Schema Flow](Server-Flow-Diagram.jpg)
+
+#### SchemaManager tool
+![Schema Flow](SchemaManager-Flow-Diagram.jpg)
 
 ### Example
 Suppose we have a database currently on version 54 and a code version of 1.0.1. The next version of the FHIR server (1.0.2) decides to consolidate a "FirstName" and "LastName" column into a "Name" column, and drop the original columns.
@@ -159,7 +163,7 @@ For Example:
 * The compatibility API returns two values: min and max. 
 * These are the minimum and maximum versions with which all running instances are compatible.
 * min is calculated by finding the MAX(InstanceSchema.MinVersion).
-* max is calculated by selecting the maximum completed version from the SchemaVersion.Version column that is no greater than the MIN(InstanceSchema.MaxVersion).
+* max is calculated by finding the the MIN(InstanceSchema.MaxVersion).
 
 Note: we ensure that the values we pull from the InstanceSchema table are not stale by checking that the current time has not exceeded the value in the Timeout column.
 
@@ -171,7 +175,22 @@ The following commands will be available via the tool
 | ----------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------- |
 | currentversion    | Returns the current versions from the `SchemaVersion` table along with information on the instances using the given version                                    | --fhir-server                                                                          |
 | availableversions | Returns the versions greater than or equal to the current version along with links to the T-SQL scripts for upgrades                                           | --fhir-server                                                                          |
-| applyversion      | Applies the specified version(s) to the connection string supplied. Optionally can poll the FHIR server current version to apply multiple versions in sequence | --fhir-server<br /> --connection-string<br />--next <br />--version<br />--latest<br />|
+| applyversion      | Applies the specified version(s) to the connection string supplied. Optionally can poll the FHIR server current version to apply multiple versions in sequence | --fhir-server<br /> --connection-string<br />--next <br />--version<br />--latest<br />--force|
+
+#### --next
+
+It fetches the available versions and apply the next immediate available version to the current version.
+
+#### -- version
+
+It applies all the versions between current version and the specified version.
+
+#### --latest
+
+It fetches the available versions and apply all the versions between current and the latest available version.
+
+#### --force
+This option can be used with --next, --version and --latest. It skips all the checks to validate version and forces SchemaManager to perform schema migration.
 
 #### Deployment mechanism
 The tool should be available as a [.NET Core Global Tool](https://docs.microsoft.com/en-us/dotnet/core/tools/global-tools).
