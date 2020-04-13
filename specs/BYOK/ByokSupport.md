@@ -62,9 +62,17 @@ Today, PaaS customers' data is encrypted at rest by Cosmos DB using Microsoft-ma
 
 - Similar to other Azure services that support BYOK, an "Encryption" tab will be added to the account creation flow.  By default, the service-managed key option will be choosen.  But, it will also allow for the specification of an AKV key URI.
 
-Sample Portal experience from the Cosmos DB account creation flow:
+Example of the "Encryption" tab from the Cosmos DB account creation flow (note the PaaS text will differ from the Cosmos DB text)
 
 ![Portal BYOK Encryption Tab](Images/BYOK-Portal-EncryptionTab.png)
+
+However, if the user selects "Custom-managed key", the user will not enter a key URI as is the case in the Cosmos DB experience.  Instead, per BYOK guidance, the user will be presented with the KeyPicker, a shared component developed by the KeyVault team.  Example:
+
+![Portal BYOK Key Picker](Images/BYOK-Portal-KeyPicker.png)
+
+For existing FHIR accounts, the user can view key encryption choices (Microsoft- or customer-managed key) in a new "Encryption" blade.  Since the key choice can't be updated, the contents of this blade will be read-only and grey'd out.  Example from Cosmos DB:
+
+![Portal BYOK Existing Account Encryption Blade](Images/BYOK-Portal-EncryptionView-ExistingAccount.png)
 
 ### PowerShell
 
