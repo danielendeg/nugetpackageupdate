@@ -314,11 +314,11 @@ Code      | Name         | Description
   - If this is the last instance for a series, the series will also be removed.
 
 ### Delete Sequence
-When an item is deleted, the rows for the rows in the study, series, and instance tables are deleted immediately and one or many row are inserted into the `FileCleanup` table. This table will store the information needed to remove the files after a configured amount of time. A background task will run periodically and select rows from this table and remove the items from the backing file storage.
+When an item is deleted, the rows for the rows in the study, series, and instance tables are deleted immediately and one or many row are inserted into the `DeletedInstance` table. This table will store the information needed to remove the files after a configured amount of time. A background task will run periodically and select rows from this table and remove the items from the backing file storage.
 
 ![Dicom Delete Sequence](images/DICOM-delete-sequence.png)
 
-#### FileCleanup Table
+#### DeletedInstance Table
 
 Column          | Type         | Description 
 --------------- | ------------ | ------------------------------------------------
@@ -326,4 +326,6 @@ StudyUid        | varchar(64)  | The Study Uid
 SeriesUid       | varchar(64)  | The Series Uid
 SOPInstanceUid  | varchar(64)  | The SOPInstanceUid
 Watermark       | bigint       | The watermark
-DeleteAfter     | datetime2(0) | The datetime that the file can be safely deleted
+DeletedDateTime | datetime2(0) | The datetime that the file was deleted
+RetryCount      | int          | The number of times the delete was retried
+RetryAfter      | datetime2(0) | The datetime that the retry can be attempted
