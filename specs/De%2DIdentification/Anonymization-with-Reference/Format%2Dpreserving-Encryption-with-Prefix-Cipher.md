@@ -27,9 +27,7 @@ F(3) = 0
 ```
 The technique is useful only for small range of plain text as a large lookup table is not effective.
 # Analysis
-![image.png](/.attachments/image-076854c7-35d8-4b60-8b75-33e2e0d612af.png)
-
-Under the assumption that our underlying block cipher E is ideal, I
+![image.png](/.attachments/image-b6e01e7d-36f2-4327-9509-7693d2f2d58b.png)Under the assumption that our underlying block cipher E is ideal, I
 is equally likely to be any of the permutations on M. The proof of this fact is
 trivial and is omitted. The method remains good when E is secure in the sense
 of a PRP. The argument is standard and is omitted.
