@@ -11,7 +11,7 @@ The **Azure for Health API** supports a subset of the DICOM Web standard. Suppor
 
 Additionally, the following non-standard APIs are supported:
 
-- [Delete](##Delete)
+- [Delete](#Delete)
 
 ## Store (STOW-RS)
 
