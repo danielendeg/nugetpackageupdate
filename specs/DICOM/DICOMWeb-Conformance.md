@@ -143,7 +143,7 @@ Key|Support Value(s)|Allowed Count|Description
 `fuzzymatching=`|true\|false|0..1|If true fuzzy matching is applied to PatientName attribute. It will do a prefix word match of any name part inside PatientName value.
 
 #### Search Parameters
-We support searching on below attributes and searh type.
+We support searching on below attributes and search type.
 
 - Studies:
     - StudyInstanceUID
