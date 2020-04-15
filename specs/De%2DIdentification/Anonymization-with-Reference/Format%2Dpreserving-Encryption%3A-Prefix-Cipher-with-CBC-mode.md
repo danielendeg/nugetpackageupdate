@@ -59,6 +59,7 @@ In CBC mode, each block of plaintext is XORed with the previous ciphertext block
 
 In our case, the cipher is the prefix cipher, each chunk of plain text represents a character in Id, and Ciphertext is the encrypted character. The encryption process could be ("p1p2p3"=>"c1c2c3"):
 ![image.png](/.attachments/image-606dbd48-0612-4dbf-8127-de3bdb377731.png)
+
 By chaining the output of each prefix cipher, the pattern outputed from prefix cipher has been breaked.
 
 
