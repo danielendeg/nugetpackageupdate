@@ -60,7 +60,7 @@ Today, PaaS customers' data is encrypted at rest by Cosmos DB using Microsoft-ma
 
 ### Portal
 
-- Similar to other Azure services that support BYOK, an "Encryption" tab will be added to the account creation flow.  By default, the service-managed key option will be choosen.  But, it will also allow for the specification of an AKV key URI.
+- Similar to other Azure services that support BYOK, an "Encryption" tab will be added to the account creation flow.  By default, the service-managed key option will be choosen.  But, it will also allow for the specification of an AKV key.
 
 Example of the "Encryption" tab from the Cosmos DB account creation flow (note the PaaS text will differ from the Cosmos DB text)
 
