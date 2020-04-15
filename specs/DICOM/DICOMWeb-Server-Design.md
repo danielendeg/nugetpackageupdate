@@ -109,7 +109,7 @@ CREATE TABLE dicom.tbl_CustomTag (
 ```
 [Full SQL](DICOM-index-sql.md)
 
-#### Data Ingestion Sequence 
+### Data Ingestion Sequence 
 - When creating a blobs, the blob names will have watemark.
 - If during store, if anypart of the distributed transaction fails it leaves the record in creating state.
 - If the user retries the request, we will respond with a conflict, asking them to delete the instance before recreating.
@@ -118,10 +118,39 @@ CREATE TABLE dicom.tbl_CustomTag (
 
 ![Ingestion Sequence](images/DICOMWeb-Ingestion-Sequence.png)
 
-#### Normalized indexed data for search
+### Normalized indexed data for search
 
-Within DICOM SOP Instances claiming to be from the same Patient/Study/Series we can expect inconsistencies. We will create new study/series version on conflict.
-Version will be incremented for each conflicting row with same Id and StudyUID.
+Within DICOM SOP Instances claiming to be from the same Patient/Study/Series we can expect inconsistencies. We will create new study/series row version on conflict.
+Version will be incremented for each conflicting row with same StudyUID.
+
+
+### Delete Business rules
+
+- **Study**
+  - When deleting a study, all underlying series and instances will also be removed.
+- **Series**
+  - When deleting a series, all underlying instances will be removed.
+  - If this is the last series for a study, the study will also be removed.
+- **Instances**
+  - When deleting a instance, both the raw dicom and metadata dicom files will be marked for removal.
+  - If this is the last instance for a series, the series will also be removed.
+
+### Delete Sequence
+When an item is deleted, the rows for the rows in the study, series, and instance tables are deleted immediately and one or many row are inserted into the `DeletedInstance` table. This table will store the information needed to remove the files after a configured amount of time. A background task will run periodically and select rows from this table and remove the items from the backing file storage.
+
+![Dicom Delete Sequence](images/DICOM-delete-sequence.png)
+
+#### DeletedInstance Table
+
+Column          | Type         | Description 
+--------------- | ------------ | ------------------------------------------------
+StudyUid        | varchar(64)  | The Study Uid
+SeriesUid       | varchar(64)  | The Series Uid
+SOPInstanceUid  | varchar(64)  | The SOPInstanceUid
+Watermark       | bigint       | The watermark
+DeletedDateTime | datetime2(0) | The datetime that the file was deleted
+RetryCount      | int          | The number of times the delete was retried
+RetryAfter      | datetime2(0) | The datetime that the retry can be attempted
 
 ### FHIR integration
 

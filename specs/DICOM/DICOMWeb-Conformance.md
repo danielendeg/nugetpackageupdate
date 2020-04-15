@@ -301,31 +301,3 @@ Code      | Name         | Description
 204       | No content   | Requested resource was successfully deleted.
 400       | Bad request  | The request was invalid.
 404       | Not found    | The specified object wasn't found
-
-### Business rules
-
-- **Study**
-  - When deleting a study, all underlying series and instances will also be removed.
-- **Series**
-  - When deleting a series, all underlying instances will be removed.
-  - If this is the last series for a study, the study will also be removed.
-- **Instances**
-  - When deleting a instance, both the raw dicom and metadata dicom files will be marked for removal.
-  - If this is the last instance for a series, the series will also be removed.
-
-### Delete Sequence
-When an item is deleted, the rows for the rows in the study, series, and instance tables are deleted immediately and one or many row are inserted into the `DeletedInstance` table. This table will store the information needed to remove the files after a configured amount of time. A background task will run periodically and select rows from this table and remove the items from the backing file storage.
-
-![Dicom Delete Sequence](images/DICOM-delete-sequence.png)
-
-#### DeletedInstance Table
-
-Column          | Type         | Description 
---------------- | ------------ | ------------------------------------------------
-StudyUid        | varchar(64)  | The Study Uid
-SeriesUid       | varchar(64)  | The Series Uid
-SOPInstanceUid  | varchar(64)  | The SOPInstanceUid
-Watermark       | bigint       | The watermark
-DeletedDateTime | datetime2(0) | The datetime that the file was deleted
-RetryCount      | int          | The number of times the delete was retried
-RetryAfter      | datetime2(0) | The datetime that the retry can be attempted
