@@ -129,3 +129,6 @@ With above limitation, we can support V1 & V2 config side by side, and only not 
 	{"path": "nodesByType('Narrative')", "method": "redact"},
 ]
 ```
+## Open Questions:
+1. Should we support yaml format config?
+2. List not supported functions in path lib.
