@@ -21,11 +21,11 @@ In a resource, references are represented with a reference (literal reference), 
 A literal reference is a reference to a location at which the other resource is found. The reference may be a relative reference, in which case it is relative to the service base URL, or an absolute URL that resolves to the location where the resource is found. The reference may be version specific or not. If the reference is not to a FHIR RESTful server, then it should be assumed to be version specific. Internal fragment references (start with '#') refer to contained resources.
 
 Here we will resolve and replace resource Ids from the following literal [reference URLs](https://www.hl7.org/fhir/references.html#literal):
-1. An absolute URL, i.e.
+1. An absolute URL consistent with a FHIR API, i.e.
  ```json   
 { "reference" : "http://fhir.hl7.org/svc/StructureDefinition/c8973a22-2b5b-4e76-9c66-00639c99e61b" }
 ```
-2. A relative URL, i.e
+2. A relative URL consistent with a FHIR API, i.e
 ```json
 { "reference" : "Patient/034AB16" }
 ```
