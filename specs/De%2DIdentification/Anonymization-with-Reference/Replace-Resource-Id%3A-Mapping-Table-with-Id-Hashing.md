@@ -7,4 +7,5 @@ With this approach, we can achieve the following goals:
 
 # Replacing resource Ids
 
-# Anonymize
+# Replacing literal references
+
