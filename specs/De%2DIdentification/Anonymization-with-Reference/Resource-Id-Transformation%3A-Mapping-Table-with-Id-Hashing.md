@@ -1,0 +1,1 @@
+Here we propose a mapping table with Id hashing approach to transform resource Ids in FHIR resources.
