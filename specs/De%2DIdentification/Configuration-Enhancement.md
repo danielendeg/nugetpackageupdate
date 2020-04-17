@@ -1,2 +1,2 @@
 We have a few work items to enhance our configuration file.
-1. [Extended Type Rules](https://microsofthealth.visualstudio.com/Health/_wiki/wikis/Resolute.wiki/112/Supporting-Extended-Type-Rules)
+1. [Supporting standard FHIRPath with extension](https://microsofthealth.visualstudio.com/Health/_wiki/wikis/Resolute.wiki/128/Design-Spec-Support-standard-FHIR-path-with-extension)
