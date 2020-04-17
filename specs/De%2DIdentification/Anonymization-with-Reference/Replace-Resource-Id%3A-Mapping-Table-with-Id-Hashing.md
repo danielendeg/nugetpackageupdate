@@ -20,7 +20,7 @@ Here we apply a SHA256 hashing algorithm to get an anonymized 256-bits resource 
 In a resource, references are represented with a reference (literal reference), an identifier (logical reference), and a display (text description of target).
 A literal reference is a reference to a location at which the other resource is found. The reference may be a relative reference, in which case it is relative to the service base URL, or an absolute URL that resolves to the location where the resource is found. The reference may be version specific or not. If the reference is not to a FHIR RESTful server, then it should be assumed to be version specific. Internal fragment references (start with '#') refer to contained resources.
 
-Here we will resolve resource Ids from the following literal [reference URLs](https://www.hl7.org/fhir/references.html#literal):
+Here we will resolve and replace resource Ids from the following literal [reference URLs](https://www.hl7.org/fhir/references.html#literal):
 1. An absolute URL, i.e.
  ```json   
 { "reference" : "http://fhir.hl7.org/svc/StructureDefinition/c8973a22-2b5b-4e76-9c66-00639c99e61b" }
@@ -29,7 +29,7 @@ Here we will resolve resource Ids from the following literal [reference URLs](ht
 ```json
 { "reference" : "Patient/034AB16" }
 ```
-3. Other logical URIs, here we only handle uuid and oid format that are mentioned in Hl7 website as we have not seen other URI formats yet.
+3. Other logical URIs, here we only handle uuid and oid format that are mentioned in Hl7 website as we have not meet other URI formats yet.
 ```json
 { "reference": "urn:uuid:5f158de76e24b195cb1e4a3e7cb24feb4c4043623bca4e7c03ea07478b19f324" }
 ```
@@ -37,3 +37,4 @@ Here we will resolve resource Ids from the following literal [reference URLs](ht
 ```json
 { "reference" : "#p1" }
 ```
+Specially, for a resource that references the container, the reference is "#", <reference value="#"/>, we will keep the reference unchanged here.
