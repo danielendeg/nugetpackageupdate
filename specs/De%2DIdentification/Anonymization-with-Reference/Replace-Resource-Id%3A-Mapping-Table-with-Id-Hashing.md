@@ -36,5 +36,7 @@ Here we will resolve and replace resource Ids from the following literal [refere
 4. internal reference for contained resource, i.e.
 ```json
 { "reference" : "#p1" }
-```
-Specially, for a resource that references the container, the reference is "#", <reference value="#"/>, we will keep the reference unchanged here.
+``` 
+> Specially, for a resource that references the container, the reference is "#", <reference value="#"/>, we will keep the reference unchanged here.
+
+Currently, the above 4 kinds of literal reference covers most patterns in data we have processed (maybe all, need validation from testing result).
