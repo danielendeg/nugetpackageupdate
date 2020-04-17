@@ -13,6 +13,7 @@ Ids can be up to 64 characters long, and contain any combination of upper and lo
 Regex: ```[A-Za-z0-9\-\.]{1,64}```
 
 Here we apply a SHA256 hashing algorithm to get an anonymized 256-bits resource Id. Then we can fit the Id format conformance with a Hex representation.
+[ @<8ED32720-FC34-6AEA-9795-3EE47CE9512B> we need to use keyed-hashing (HMAC with SHA256?) with user provided key in the config. -deepak]
 
 **About Hash Collision** A SHA-256 algorithm outputs 64 characters which can either be a lowercase letter or a number from 0-9. The space is quite large while our Ids are of very limited size comparing to SHA-256 output space. Also, SHA-256 collision examples have not been found for years. Even if we happened to encounter a collision example, it's acceptable for a small error against a large resource collection. And the probability is quite lower comparing to errors might occur in data entry, i.e. a typo.  
 
