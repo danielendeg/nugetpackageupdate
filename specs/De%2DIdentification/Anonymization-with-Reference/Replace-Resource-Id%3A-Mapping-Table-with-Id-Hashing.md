@@ -40,3 +40,9 @@ Here we will resolve and replace resource Ids from the following literal [refere
 > Specially, for a resource that references the container, the reference is "#", <reference value="#"/>, we will keep the reference unchanged here.
 
 Currently, the above 4 kinds of literal reference covers most patterns in data we have processed (maybe all, need validation from testing result).
+
+# Configuration Setting
+Customers can enable/disable resource Id replacement in our configuration file by setting the following parameter:
+```json
+    { "enableResourceIdTransformation": true }
+```
