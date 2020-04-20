@@ -44,7 +44,7 @@ Here we will resolve and replace resource Ids from the following literal [refere
 Currently, the above 4 kinds of literal reference covers most patterns in data we have processed (maybe all, need validation from testing result).
 
 # Configuration Setting
-Customers can enable/disable resource Id replacement just as anonymizing other identifiers.
+Customers can enable/disable resource Id replacement just as anonymizing other identifiers with configuration file v2.
 ```json
 "fhirPathRules" : [
 {
