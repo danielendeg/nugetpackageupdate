@@ -44,7 +44,25 @@ Here we will resolve and replace resource Ids from the following literal [refere
 Currently, the above 4 kinds of literal reference covers most patterns in data we have processed (maybe all, need validation from testing result).
 
 # Configuration Setting
-Customers can enable/disable resource Id replacement in our configuration file by setting the following parameter:
+Customers can enable/disable resource Id replacement just as anonymizing other identifiers.
 ```json
-    { "enableResourceIdTransformation": true }
+"fhirPathRules" : [
+{
+    "path": "Resource.id",
+    "method": "cryptoHash"
+},
+{
+    "path": "nodesByType('Reference').reference",
+    "method": "cryptoHash"
+},
+"Parameters": {
+    "cryptoHashKey":"key_for_HmacSHA-256"
+}
 ```
+Here we want to define a new de-identification action **cryptoHash** as this transformation is different from existing operations like redact and dateshift.  
+1. For "resource.Id", we simple compute the *HMAC_SHA256* of the id and transform to hex format confirmed to FHIR.
+2. For "nodesByType('Reference').reference", only the resource id part will be transformed.
+3. For other elements like a *string* without format conformance requirements, we can do the same transformation as id. 
+4. For elements with format conformance requirements like date/code/uuid, "cryptoHash" is not supported. 
+
+As **cryptoHash** also changes the resource content, we also need to add a [security tag](https://www.hl7.org/fhir/v3/ObservationValue/cs.html#v3-ObservationValue-PSEUDED) to resources that id has been replaced, possible tags can be **CRYTOHASH** or **PSEUDED**.
