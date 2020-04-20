@@ -60,7 +60,7 @@ Customers can enable/disable resource Id replacement just as anonymizing other i
 }
 ```
 Here we want to define a new de-identification action **cryptoHash** as this transformation is different from existing operations like redact and dateshift.  
-1. For "resource.Id" and *string* types, we simple compute the *HMAC_SHA256* of the id and transform to hex format confirmed to FHIR.
+1. For *id* and *string* types, we compute the *HMAC_SHA256* of the id and transform to hex format confirmed to FHIR.
 2. For "nodesByType('Reference').reference", only the resource id part will be transformed.
 3. For elements with format conformance requirements like date/code/uuid/oid, "cryptoHash" is not supported. 
 
