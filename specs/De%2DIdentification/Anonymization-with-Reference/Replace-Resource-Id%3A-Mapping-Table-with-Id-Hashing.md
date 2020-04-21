@@ -60,12 +60,15 @@ Customers can enable/disable resource Id replacement just as anonymizing other i
 }
 ```
 Here we want to define a new de-identification action **cryptoHash** as this transformation is different from existing operations like redact and dateshift.  
-1. For *id* and *string* types, we compute the *HMAC_SHA256* of the id and transform to hex format confirmed to FHIR.
-2. For "nodesByType('Reference').reference", only the resource id part will be transformed.
-3. For elements with format conformance requirements like date/code/uuid/oid, "cryptoHash" is not supported. [ @<8ED32720-FC34-6AEA-9795-3EE47CE9512B> , a couple of questions. a) How do we enforce this limitation? Do we enforce this while validating the config file? b) above we mention this: "Other logical URIs, here we only handle uuid and oid format that are mentioned in Hl7 website as we have not meet other URI formats yet." That sounds conflicting. Please clarify. ]
+1. For common elements like a id/uri/url, we compute the *HMAC_SHA256* of the id and transform to hex format confirmed to FHIR. Note that some transformed outputs might are not be FHIR compliant, i.e. date, dateTime uri. But we still want to hash these field to ensure that all identifiers should be covered. Customers can find the incompliant values from the validation result and update the configuration.
+2. For "nodesByType('Reference').reference", only the resource id part will be transformed as hashing the whole value is not useful. We will mention this behavior in our document.
 
-[ @<356939D1-F4CA-6BA1-875C-7247D42D7353> Some specifications: \
+> [Discussions:
+
+>3. For elements with format conformance requirements like date/code/uuid/oid, "cryptoHash" is not supported. [ @<8ED32720-FC34-6AEA-9795-3EE47CE9512B> , a couple of questions. a) How do we enforce this limitation? Do we enforce this while validating the config file? b) above we mention this: "Other logical URIs, here we only handle uuid and oid format that are mentioned in Hl7 website as we have not meet other URI formats yet." That sounds conflicting. Please clarify. ]
+
+>[ @<356939D1-F4CA-6BA1-875C-7247D42D7353> Some specifications: \
 a. We cannot enforce the limitation during config validation as it's hard to figure out the datatype in a FHIRPath . When we perform cryptoHash operations on a element, we will check if the type of the element is a *FHIR.id* or *FHIR.string* type, if not, the element won't be changed and we can report this behavior in verbose log. \
 b. As *CryptoHash* will be applied to only *FHIR.id* and *FHIR.string* elements, other elements like [canonical](https://www.hl7.org/fhir/datatypes.html#canonical)/uri/url/[uuid](https://www.hl7.org/fhir/datatypes.html#uuid)/oid would not be processed because those types has restricted format regex. But *Reference.reference* is a special case here as it's a *FHIR.string* type but its value could be a url/uuid/oid and we only hash the id part in its value.]
 
-As **cryptoHash** changes the resource content, we also need to add a [security tag](https://www.hl7.org/fhir/v3/ObservationValue/cs.html#v3-ObservationValue-PSEUDED) to resources that id has been replaced, possible tags can be **CRYTOHASH** or **PSEUDED**.
+As **cryptoHash** changes the resource content, we also need to add a [security tag](https://www.hl7.org/fhir/v3/ObservationValue/cs.html#v3-ObservationValue-PSEUDED) to resources that id has been replaced, possible tags can be **CRYTOHASH** or **PSEUDED**. We decide to add **CRYTOHASH** for now and change to **PSEUDED** when re-id is supported.
