@@ -62,6 +62,6 @@ Customers can enable/disable resource Id replacement just as anonymizing other i
 Here we want to define a new de-identification action **cryptoHash** as this transformation is different from existing operations like redact and dateshift.  
 1. For *id* and *string* types, we compute the *HMAC_SHA256* of the id and transform to hex format confirmed to FHIR.
 2. For "nodesByType('Reference').reference", only the resource id part will be transformed.
-3. For elements with format conformance requirements like date/code/uuid/oid, "cryptoHash" is not supported. 
+3. For elements with format conformance requirements like date/code/uuid/oid, "cryptoHash" is not supported. [ @<8ED32720-FC34-6AEA-9795-3EE47CE9512B> , a couple of questions. a) How do we enforce this limitation? Do we enforce this while validating the config file? b) above we mention this: "Other logical URIs, here we only handle uuid and oid format that are mentioned in Hl7 website as we have not meet other URI formats yet." That sounds conflicting. Please clarify. ]
 
 As **cryptoHash** changes the resource content, we also need to add a [security tag](https://www.hl7.org/fhir/v3/ObservationValue/cs.html#v3-ObservationValue-PSEUDED) to resources that id has been replaced, possible tags can be **CRYTOHASH** or **PSEUDED**.
