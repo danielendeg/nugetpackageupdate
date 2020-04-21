@@ -61,7 +61,7 @@ Customers can enable/disable resource Id replacement just as anonymizing other i
 ```
 Here we want to define a new de-identification action **cryptoHash** as this transformation is different from existing operations like redact and dateshift.  
 1. For common elements like a id/uri/url, we compute the *HMAC_SHA256* of the id and transform to hex format confirmed to FHIR. Note that some transformed outputs might are not be FHIR compliant, i.e. date, dateTime uri. But we still want to hash these field to ensure that all identifiers should be covered. Customers can find the incompliant values from the validation result and update the configuration.
-2. For "nodesByType('Reference').reference", only the resource id part will be transformed as hashing the whole value is not useful. We will mention this behavior in our document.
+2. Specially, for "nodesByType('Reference').reference", only the resource id part will be transformed as hashing the whole value is not useful. We will mention this behavior in our document.
 
 > [Discussions:
 
