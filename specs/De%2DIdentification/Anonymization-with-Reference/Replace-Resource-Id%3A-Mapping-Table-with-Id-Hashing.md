@@ -66,8 +66,7 @@ Here we want to define a new de-identification action **cryptoHash** as this tra
 > [Discussions:
 
 >3. For elements with format conformance requirements like date/code/uuid/oid, "cryptoHash" is not supported. [ @<8ED32720-FC34-6AEA-9795-3EE47CE9512B> , a couple of questions. a) How do we enforce this limitation? Do we enforce this while validating the config file? b) above we mention this: "Other logical URIs, here we only handle uuid and oid format that are mentioned in Hl7 website as we have not meet other URI formats yet." That sounds conflicting. Please clarify. ]
-
->[ @<356939D1-F4CA-6BA1-875C-7247D42D7353> Some specifications: \
+[ @<356939D1-F4CA-6BA1-875C-7247D42D7353> Some specifications: \
 a. We cannot enforce the limitation during config validation as it's hard to figure out the datatype in a FHIRPath . When we perform cryptoHash operations on a element, we will check if the type of the element is a *FHIR.id* or *FHIR.string* type, if not, the element won't be changed and we can report this behavior in verbose log. \
 b. As *CryptoHash* will be applied to only *FHIR.id* and *FHIR.string* elements, other elements like [canonical](https://www.hl7.org/fhir/datatypes.html#canonical)/uri/url/[uuid](https://www.hl7.org/fhir/datatypes.html#uuid)/oid would not be processed because those types has restricted format regex. But *Reference.reference* is a special case here as it's a *FHIR.string* type but its value could be a url/uuid/oid and we only hash the id part in its value.]
 
