@@ -15,7 +15,7 @@ R4 compare to R3:
 
 # Implementation to support STU3
 
-## Library support
+## Core support
 There is a version specific package dependency in our code: Hl7.Fhir.Stu3 or Hl7.Fhir.R4.
 
 Firstly, we'll create a shared project to host shared codes of STU3 and R4.
@@ -38,31 +38,32 @@ Most of them are related with resource definitions, parsing and validation, whic
 
 ## Unit tests and functional tests support
 Same method will be applied to test projects.
-Firstly, we'll create shared projects to host shared testing codes of STU3 and R4.
-Then based on the shared projects, we'll create projects for STU3 and R4, respectively.
 
 ## Tool support
 Same method will be applied to local tool.
-After building Anonymizer, there will be two sets of tools, one for STU3 and one for R4.
+
+Different sample configurations will be attached to STU3 and R4.
+After building Anonymizer, there will be two sets of binaries, one for STU3 and one for R4.
 
 ## ADF support
 Same method will be applied to ADF.
 
 ## Sample configuration support
-We need to create sample configuration for STU3, like the one we do for R4.
+We'll create a sample configuration file for STU3, like the one we do for R4.
 
 # Effort estimation
-- Codes:
-  - 2-3 story points for implementation, including library, test projects, tool and ADF.
-  - 1 story point for code review.
+Total effort estimation: around 1 sprint (PaaS integration not included)
+- Codes: 3 story points.
+  - Implementation, including core, test projects, tool and ADF.
+  - Code review.
 - Sample configuration: 2 story points.
+- Testing:
+  - 1-2 story points for functional tests, including different options for tool (e.g., --validate) and ADF deployment tests.
+  - 3-5 story points for 1 testing vendor.
 - PaaS integration:
 It depends.
 With more understanding of integrating R4 into PaaS, we can get more clear about the effort of STU3.
-- Testing: 5 story points for 1 testing vendor.
 
 # References
-
-## Links
 - Publication history: [http://hl7.org/fhir/directory.html](http://hl7.org/fhir/directory.html)
 - Version History: [https://www.hl7.org/fhir/history.html](https://www.hl7.org/fhir/history.html)
