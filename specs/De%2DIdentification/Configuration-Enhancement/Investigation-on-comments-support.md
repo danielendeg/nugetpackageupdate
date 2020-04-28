@@ -1,9 +1,13 @@
 # Problem
-Some editor's JSON validation does not support comments, which will make the user experience worse. For example:
+Now, some editors' JSON validation still don't support comments, which will make the user experience worse. For example:
 - VS Code
 ![image.png](/.attachments/image-cf61587d-e753-4f7d-aa87-220ffbf0563b.png)
 - Notepad++
 ![image.png](/.attachments/image-450ca7ca-20ba-4cec-8078-1f4eaf60276b.png)
+
+However, adding comments to JSON files in Visual Studio is supported. 
+- Visual Studio
+![image.png](/.attachments/image-8bd3d92b-e1df-4c39-a723-a1dd02d7b0fa.png)
 
 # Comparison
 
