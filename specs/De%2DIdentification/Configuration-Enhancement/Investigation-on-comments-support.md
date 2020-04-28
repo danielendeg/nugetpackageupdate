@@ -3,7 +3,7 @@ Now, some editors' JSON validation still don't support comments, which will make
 - VS Code
 ![image.png](/.attachments/image-cf61587d-e753-4f7d-aa87-220ffbf0563b.png)
 - Notepad++
-![image.png](/.attachments/image-450ca7ca-20ba-4cec-8078-1f4eaf60276b.png)
+![image.png](/.attachments/image-15dd8fe4-814a-4b41-9303-cde7c2680ef1.png)
 
 However, adding comments to JSON files in Visual Studio is supported. 
 - Visual Studio
