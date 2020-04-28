@@ -17,7 +17,7 @@ However, adding comments to JSON files in some editors is supported like Visual 
 |  | <center>JSON</center> | <center>YAML</center> | <center>XML</center> |
 |--|--|--|--|
 | Pros | - Easy  to read and edit; <br> - Various data formats are supported (object, array, scalars). | - Support comments; <br> - Easy to read and edit; <br> - Various data formats are supported (object, array, scalars).| - Support comments. |
-| Cons | - Comments are not supported <br> - The format is strict (Missing quotes, commas and other symbols will lead to errors). | - The format is strict ( Use indents to represent hierarchy, so indent mistakes will lead to errors) | - Redundancy; <br> - Difficult to read and edit when there are many nesting or hierarchies|
+| Cons | - Comments are not supported; <br> - The format is strict (Missing quotes, commas and other symbols will lead to errors). | - The format is strict ( Use indents to represent hierarchy, so indent mistakes will lead to errors). | - Redundancy; <br> - Difficult to read and edit when there are many nesting or hierarchies.|
 # Sample
 - JSON
  ( Comments can be written in key-value format )
