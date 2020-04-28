@@ -110,11 +110,11 @@ CREATE TABLE dicom.tbl_CustomTag (
 [Full SQL](DICOM-index-sql.md)
 
 ### Data Ingestion Sequence 
-- When creating a blobs, the blob names will have watemark.
-- If during store, if anypart of the distributed transaction fails it leaves the record in creating state.
-- If the user retries the request, we will respond with a conflict, asking them to delete the instance before recreating.
-- If the request is not retries, a background task will clean it up.
-- During delete the mapping record is moved to delete table with "deleting" state and async cleans up the blobs with matching name and watermark.
+- When creating a blobs, the blob names will be {StudyInstanceUid}\{SeriesInstanceUid}\{SOPInstanceUid}_{Watermark}. Including the watermark as part of the file name allows us to easily deal with conflict situation.
+- During the store transaction, if any part of the distributed transaction fails, the server will attempt to delete the index record that's in the creating state. This will be best effort so it might or might not succeed depending on the cause of the failure.
+	- If the cleanup fails and the user retries to store the same file again, the server will respond with 409 Conflict using specific failure reason indicating that there is a pending record and will ask the user to delete the instance before recreating.
+	- If the cleanup fails and the user does not retry to store with the same file again, a background task will eventually clean it up.
+- During delete, the mapping record is moved to delete table and a background job will cleans up the blobs with matching name and watermark after certain period of time.
 
 ![Ingestion Sequence](images/DICOMWeb-Ingestion-Sequence.png)
 
