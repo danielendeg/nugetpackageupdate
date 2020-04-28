@@ -3,7 +3,7 @@ Some editor's JSON validation does not support comments, which will make the use
 - VS Code
 ![image.png](/.attachments/image-8deaee64-a5d6-474f-8803-afd2bbe3b0f0.png)
 - Notepad++
-![image.png](/.attachments/image-ee485762-6b09-4706-946f-25adfa2b56b9.png)
+![image.png](/.attachments/image-c38372b3-7bb5-40bf-b4fc-ea915d1be34f.png)
 
 # Options
 
