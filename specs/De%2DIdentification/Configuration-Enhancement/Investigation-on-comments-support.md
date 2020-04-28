@@ -1,7 +1,7 @@
 # Problem
 Some editor's JSON validation does not support comments, which will make the user experience worse. For example:
 - VS Code
-![image.png](/.attachments/image-8deaee64-a5d6-474f-8803-afd2bbe3b0f0.png)
+![image.png](/.attachments/image-6a3034de-b441-49c0-8cc5-12074f6acf29.png)
 - Notepad++
 ![image.png](/.attachments/image-c38372b3-7bb5-40bf-b4fc-ea915d1be34f.png)
 
