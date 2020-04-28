@@ -13,6 +13,7 @@ Some editor's JSON validation does not support comments, which will make the use
 | Cons | - Comments are not supported <br> - The format is strict (Missing quotes, commas and other symbols will lead to errors). | - The format is strict ( Use indents to represent hierarchy, so indent mistakes will lead to errors) | - Redundancy; <br> - Difficult to read and edit when there are many nesting or hierarchies|
 # Sample
 - JSON
+ ( Comments can be written in key-value format )
 ```Json
 {
   "fhirPathRules": [
@@ -62,7 +63,7 @@ Some editor's JSON validation does not support comments, which will make the use
   }
 }
 ```
-- YAML
+- YAML ( Comments can be written after `#` )
 ```yaml
 fhirPathRules: 
   # block comment 0
@@ -98,7 +99,7 @@ parameters:
   - "884"
   - "893"
 ```
-- XML
+- XML ( Comments can be written like `<!--  comment -->` )
 ```xml
 <?xml version="1.0" encoding="UTF-8" ?>
 <!--  
