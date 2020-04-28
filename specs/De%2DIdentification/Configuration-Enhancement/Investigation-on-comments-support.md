@@ -9,8 +9,8 @@ Some editor's JSON validation does not support comments, which will make the use
 
 |  | JSON | YAML | XML |
 |--|--|--|--|
-| Pros | - Easy  to read and edit; <br><br> - Various data formats are supported (object, array, scalars). | -Support comments; <br><br> - Easy to read and edit; <br><br> - Various data formats are supported (object, array, scalars).| - Support comments |
-| Cons | - Comments are not supported <br> <br>- The format is strict (Missing quotes, commas and other symbols will lead to errors). | -The format is strict ( Use indents to represent hierarchy, so indent mistakes will lead to errors) | - Redundancy; <br><br> - Difficult to read and edit when there are many nesting or hierarchies|
+| Pros | - Easy  to read and edit; <br> - Various data formats are supported (object, array, scalars). | - Support comments; <br> - Easy to read and edit; <br> - Various data formats are supported (object, array, scalars).| - Support comments. |
+| Cons | - Comments are not supported <br> - The format is strict (Missing quotes, commas and other symbols will lead to errors). | - The format is strict ( Use indents to represent hierarchy, so indent mistakes will lead to errors) | - Redundancy; <br> - Difficult to read and edit when there are many nesting or hierarchies|
 # Sample
 - JSON
 ```Json
