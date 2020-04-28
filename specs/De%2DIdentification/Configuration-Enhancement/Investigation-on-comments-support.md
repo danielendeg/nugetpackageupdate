@@ -37,9 +37,9 @@ However, adding comments to JSON files in some editor is supported like Visual S
     {
       "path": "nodesByType('HumanName')",
       "method": "redact",
-      "document/remark0": "block comment 0",
-      "document/remark1": "block comment 1",
-      "document/remark2": "block comment 2"
+      "document/remark": "block comment 0",
+      "document/remark": "block comment 1",
+      "document/remark": "block comment 2"
     },
     {
       "path": "Resource",
