@@ -1,7 +1,7 @@
 # Problem
 Some editor's JSON validation does not support comments, which will make the user experience worse. For example:
 - VS Code
-![image.png](/.attachments/image-6a3034de-b441-49c0-8cc5-12074f6acf29.png)
+![image.png](/.attachments/image-1f0e75d3-b162-451c-80ee-59675996c68a.png)
 - Notepad++
 ![image.png](/.attachments/image-c38372b3-7bb5-40bf-b4fc-ea915d1be34f.png)
 
@@ -15,52 +15,52 @@ Some editor's JSON validation does not support comments, which will make the use
 - JSON
 ```Json
 {
-    "fhirPathRules": [
-      {
-        "path": "Patient.nodesByType('HumanName')",
-        "method": "redact",
-        "document/remark": "Comment 0"
-      },
-      {
-        "path": "TestResource",
-        "method": "redact",
-        "_comment": "Comment 1"
-      },
-      {
-        "path": "nodesByType('HumanName')",
-        "method": "redact",
-        "document/remark0": "block comment 0",
-        "document/remark1": "block comment 1",
-        "document/remark2": "block comment 2"
-      },
-      {
-        "path": "Resource",
-        "method": "keep"
-      }
-    ],
-    "parameters": {
-      "dateShiftKey": "",
-      "enablePartialAgesForRedact": true,
-      "enablePartialDatesForRedact": true,
-      "enablePartialZipCodesForRedact": true,
-      "restrictedZipCodeTabulationAreas": [
-        "036",
-        "059",
-        "102",
-        "203",
-        "205",
-        "369",
-        "556",
-        "692",
-        "821",
-        "823",
-        "878",
-        "879",
-        "884",
-        "893"
-      ]
-    }
-  }
+  "fhirPathRules": [
+    {
+      "path": "Patient.nodesByType('HumanName')",
+      "method": "redact",
+      "document/remark": "Comment 0"
+    },
+    {
+      "path": "TestResource",
+      "method": "redact",
+      "_comment": "Comment 1"
+    },
+    {
+      "path": "nodesByType('HumanName')",
+      "method": "redact",
+      "document/remark0": "block comment 0",
+      "document/remark1": "block comment 1",
+      "document/remark2": "block comment 2"
+    },
+    {
+      "path": "Resource",
+      "method": "keep"
+    }
+  ],
+  "parameters": {
+    "dateShiftKey": "",
+    "enablePartialAgesForRedact": true,
+    "enablePartialDatesForRedact": true,
+    "enablePartialZipCodesForRedact": true,
+    "restrictedZipCodeTabulationAreas": [
+      "036",
+      "059",
+      "102",
+      "203",
+      "205",
+      "369",
+      "556",
+      "692",
+      "821",
+      "823",
+      "878",
+      "879",
+      "884",
+      "893"
+    ]
+  }
+}
 ```
 - YAML
 ```yaml
