@@ -10,7 +10,7 @@ However, adding comments to JSON files in some editor is supported like Visual S
 ![image.png](/.attachments/image-892d2d89-b9ea-425f-a498-947e92e4f473.png)
 
 - Sublime Text
-![image.png](/.attachments/image-b76771ab-ebe2-4a33-b1af-107ffba0cedf.png)
+![image.png](/.attachments/image-dae7ef0c-7aae-4a04-b0ae-b800c95bd69e.png)
 
 # Comparison
 
