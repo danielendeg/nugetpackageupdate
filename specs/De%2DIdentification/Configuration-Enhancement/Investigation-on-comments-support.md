@@ -5,7 +5,7 @@ Some editor's JSON validation does not support comments, which will make the use
 - Notepad++
 ![image.png](/.attachments/image-450ca7ca-20ba-4cec-8078-1f4eaf60276b.png)
 
-# comparison
+# Comparison
 
 |  | <center>JSON</center> | <center>YAML</center> | <center>XML</center> |
 |--|--|--|--|
