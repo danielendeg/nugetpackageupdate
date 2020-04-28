@@ -5,7 +5,7 @@ Now, some editors' JSON validation still don't support comments, which will make
 - Notepad++
 ![image.png](/.attachments/image-42ba9f98-1c2f-4a7e-974a-e873a820b9e1.png)
 
-However, adding comments to JSON files in some editor is supported like Visual Studio and Sublime Text. 
+However, adding comments to JSON files in some editors is supported like Visual Studio and Sublime Text. 
 - Visual Studio
 ![image.png](/.attachments/image-892d2d89-b9ea-425f-a498-947e92e4f473.png)
 
