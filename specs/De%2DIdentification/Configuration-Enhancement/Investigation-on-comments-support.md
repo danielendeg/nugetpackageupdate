@@ -10,7 +10,7 @@ Some editor's JSON validation does not support comments, which will make the use
 |  | JSON | YAML | XML |
 |--|--|--|--|
 | Pros | - Easy  to read and edit; <br><br> - Various data formats are supported (object, array, scalars). | -Support comments; <br><br> - Easy to read and edit; <br><br> - Various data formats are supported (object, array, scalars).| - Support comments |
-| Cons | - Comments are not supported <br> <br>- The format is strict (Missing quotes, commas and other symbols can lead to errors). | -The format is strict ( Use indents to represent hierarchy) | - Redundancy; <br><br> - Difficult to read and edit when there are many nesting or hierarchies|
+| Cons | - Comments are not supported <br> <br>- The format is strict (Missing quotes, commas and other symbols will lead to errors). | -The format is strict ( Use indents to represent hierarchy, so indent mistakes will lead to errors) | - Redundancy; <br><br> - Difficult to read and edit when there are many nesting or hierarchies|
 # Sample
 - JSON
 ```Json
@@ -101,49 +101,47 @@ parameters:
 - XML
 ```xml
 <?xml version="1.0" encoding="UTF-8" ?>
-    <!--  
-        block comment 0
-        block comment 1
-        block comment 2
-    -->
-    <fhirPathRules>
-        <!--  comment 0   -->
-	<path>Patient.nodesByType('HumanName')</path> 
-	<method>redact</method>
-    </fhirPathRules>
-    <fhirPathRules>
-	<path>TestResource</path>
-	<method>redact</method>
-    </fhirPathRules>
-    <fhirPathRules>
-	<path>nodesByType('HumanName')</path>
-	<method>redact</method>
-    </fhirPathRules>
-    <fhirPathRules>
-	<path>Resource</path>
-	<method>keep</method>
-    </fhirPathRules>
-    <parameters>
-	<dateShiftKey></dateShiftKey>
-        <enablePartialAgesForRedact>true</enablePartialAgesForRedact>
-	<enablePartialDatesForRedact>true</enablePartialDatesForRedact>
-	<enablePartialZipCodesForRedact>true</enablePartialZipCodesForRedact>
-        <restrictedZipCodeTabulationAreas>036</restrictedZipCodeTabulationAreas>
-	<restrictedZipCodeTabulationAreas>059</restrictedZipCodeTabulationAreas>
-        <restrictedZipCodeTabulationAreas>102</restrictedZipCodeTabulationAreas>
-	<restrictedZipCodeTabulationAreas>203</restrictedZipCodeTabulationAreas>
-	<restrictedZipCodeTabulationAreas>205</restrictedZipCodeTabulationAreas>
-	<restrictedZipCodeTabulationAreas>369</restrictedZipCodeTabulationAreas>
-	<restrictedZipCodeTabulationAreas>556</restrictedZipCodeTabulationAreas>
-	<restrictedZipCodeTabulationAreas>692</restrictedZipCodeTabulationAreas>
-	<restrictedZipCodeTabulationAreas>821</restrictedZipCodeTabulationAreas>
-	<restrictedZipCodeTabulationAreas>823</restrictedZipCodeTabulationAreas>
-	<restrictedZipCodeTabulationAreas>878</restrictedZipCodeTabulationAreas>
-	<restrictedZipCodeTabulationAreas>879</restrictedZipCodeTabulationAreas>
-	<restrictedZipCodeTabulationAreas>884</restrictedZipCodeTabulationAreas>		
-	<restrictedZipCodeTabulationAreas>893</restrictedZipCodeTabulationAreas>
-    </parameters>
-	
-
+<!--  
+    block comment 0
+    block comment 1
+    block comment 2
+-->
+<fhirPathRules>
+    <!--  comment 0   -->
+    <path>Patient.nodesByType('HumanName')</path> 
+    <method>redact</method>
+</fhirPathRules>
+<fhirPathRules>
+    <path>TestResource</path>
+    <method>redact</method>
+</fhirPathRules>
+<fhirPathRules>
+    <path>nodesByType('HumanName')</path>
+    <method>redact</method>
+</fhirPathRules>
+<fhirPathRules>
+    <path>Resource</path>
+    <method>keep</method>
+</fhirPathRules>
+<parameters>
+    <dateShiftKey></dateShiftKey>
+    <enablePartialAgesForRedact>true</enablePartialAgesForRedact>
+    <enablePartialDatesForRedact>true</enablePartialDatesForRedact>
+    <enablePartialZipCodesForRedact>true</enablePartialZipCodesForRedact>
+    <restrictedZipCodeTabulationAreas>036</restrictedZipCodeTabulationAreas>
+    <restrictedZipCodeTabulationAreas>059</restrictedZipCodeTabulationAreas>
+    <restrictedZipCodeTabulationAreas>102</restrictedZipCodeTabulationAreas>
+    <restrictedZipCodeTabulationAreas>203</restrictedZipCodeTabulationAreas>
+    <restrictedZipCodeTabulationAreas>205</restrictedZipCodeTabulationAreas>
+    <restrictedZipCodeTabulationAreas>369</restrictedZipCodeTabulationAreas>
+    <restrictedZipCodeTabulationAreas>556</restrictedZipCodeTabulationAreas>
+    <restrictedZipCodeTabulationAreas>692</restrictedZipCodeTabulationAreas>
+    <restrictedZipCodeTabulationAreas>821</restrictedZipCodeTabulationAreas>
+    <restrictedZipCodeTabulationAreas>823</restrictedZipCodeTabulationAreas>
+    <restrictedZipCodeTabulationAreas>878</restrictedZipCodeTabulationAreas>
+    <restrictedZipCodeTabulationAreas>879</restrictedZipCodeTabulationAreas>
+    <restrictedZipCodeTabulationAreas>884</restrictedZipCodeTabulationAreas>
+    <restrictedZipCodeTabulationAreas>893</restrictedZipCodeTabulationAreas>
+</parameters>
 ```
 
