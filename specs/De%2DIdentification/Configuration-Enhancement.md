@@ -1,2 +1,3 @@
 We have a few work items to enhance our configuration file.
-1. [Supporting standard FHIRPath with extension](https://microsofthealth.visualstudio.com/Health/_wiki/wikis/Resolute.wiki/128/Design-Spec-Support-standard-FHIR-path-with-extension)
+1. [Design Spec: Support standard FHIR path with extension](https://microsofthealth.visualstudio.com/Health/_wiki/wikis/Resolute.wiki/128/Design-Spec-Support-standard-FHIR-path-with-extension)
+2. [Filtering anonymization output data](https://microsofthealth.visualstudio.com/Health/_wiki/wikis/Resolute.wiki/125/Filtering-anonymization-output-data)
