@@ -86,26 +86,33 @@ We can replace the original name with a GUID:
 
 No result will be returned by this query.
 
+Note that since **prefix might change the meaning of the query completely**, this need to be done very carefully according to the prefix.
+
+For example, searching with prefix "ne" before a date returns dates that does not meet this value:
+```
+[base]/Patient?birthdate=ne1998-01-01
+```
+
 ### Redact (partial)
 Date, dateTime, instant and postal code data could be partially redacted according to Safe Harbor method.
 
 - Example 1, anonymize 2002-01-03 to 2002. Year could keep as indicative age is not over 89.
 - Example 2, anonymize 98052 to 98000, first 3 digits could keep as this postal code is not restricted.
 
-For postal code data, one problem is that when searching with address with an anonymized postal code, we do not know whether the value comes from postal code or other fields.
+For postal code data, one problem is that when searching with address, we do not know whether the value comes from postal code or other fields.
 If it comes from postal code, we should search with prefix (980).
 If not, we should search with entire value.
 ```
 [base]/Patient?address=98000
 ```
 
-If we want to enable it, we need to **make an assumption of the format of postal code**, like a string made up of 5 digits.
+If we want to enable it, we need to **make an assumption of the format of postal code**, like a string made up of 5 digits. So we can distinguish postal code from other data.
 
 For date, dateTime and instant data, search is available with value remained (2002).
 Data that fit in the range are all returned.
 
-##### DateShift
-According to the spec, date-shifted fields should be queryable using the shifted values.
+### DateShift
+According to the spec, date-shifted fields should be able for query using the shifted values.
 
 To achieve this, **the shifting amount should be the same for the whole endpoint.**
 Date shift by resource ids are not applicable, because the shifting amount cannot be pre-calculated until we gets the exact resource.
@@ -120,17 +127,18 @@ Note that time is redacted to zero for dateTime and instant data.
 Data that matches the date but of different times will all be returned.
 **If we need to do exact match, we can keep time in anonymized data.**
 
-##### CryptoHash
+### CryptoHash
 CryptoHash is used for resource ids in case they contain identifiers.
-Since the resource id in FHIR Server is replaced with GUID, we do not need to apply cryptoHash again.
+Since resource id in FHIR Server is replaced with GUID, we do not need to apply cryptoHash again.
 
-If we want to support cryptoHash, when creating an anonymized endpoint, we need to run cryptoHash on relative fields and save the results in database.
+(If we want to support cryptoHash, when creating an anonymized endpoint, we need to run cryptoHash according to the configuration and save the results in database.
 So when a request with a crypto-hashed value comes, we can look up the database and find its original value.
-Looking up the database might be expensive.
+Looking up the database frequently might be expensive.)
 
-#### Special cases
-- According to FHIR Search spec, search of Address and HumanName cover all string elements in them.
-For a patient's address, postal code is stored in both "address" and "address-postalcode":
+## Special cases
+### Address and HumanName
+According to FHIR Search spec, search of Address and HumanName cover all string elements in them.
+In FHIR Server, a patient's postal code is stored in both "address" and "address-postalcode":
 
 ```json
 {
@@ -200,19 +208,15 @@ when the user searches:
 ```
 [base]/Patient?address-postalcode=12345
 ```
-by above steps we get the target FHIR path "Patient.address.postalCode" and we know the method is "redact". But when the user searches
+by above steps we get the target FHIR path "Patient.address.postalCode" and we know the method is "redact". But when the user searches:
 ```
 [base]/Patient?address=12345
 ```
 we get the target FHIR path "Patient.address" and there's no anonymization rule matched.
 
-So when user searches Address or HumanName, we need to flatten the query to its children elements:
-```
-[base]/Patient?address-postalcode=12345,address-city=12345,address-state=12345,address-country=12345
-```
-
-- Search can apply to multiple or all resource types.
-When matching the search parameters to FHIR paths in anonymization configuration, we need to flatten it to exact resource types.
+### Multiple resource types
+Search can apply to multiple or all resource types.
+But when matching the search parameters to FHIR paths in anonymization configuration, we need to know the exact resource types.
 
 When the user searches:
 ```
@@ -233,21 +237,26 @@ with following anonymization configuration:
   }
 }
 ```
-we need to search Patient with 1980-12-05, Practitioner with 1980-12-15 and Person with default DateTime.
+we need to search Patient with 1980-12-05, Practitioner with 1980-12-15 and Person with a value that will never be satisfied.
 
-- For ":text" modifier with token, we need to search the text part - either CodeableConcept.text, Coding.display, or Identifier.type.text.
+### Modifiers and prefix
+For ":text" modifier with token, we need to map the FHIR paths to the text part - either CodeableConcept.text, Coding.display, or Identifier.type.text.
 
-- **Not sure if ":missing" modifier is supported.**
-When the search parameter has modifier ":missing=true", if its relative FHIR path is redacted, we need to remove this condition from the query.
-If its relative FHIR path is partially redacted zip code, we need to replace the value with a new one that no resource will ever match.
-**If its relative FHIR path is partially redacted or shifted date?**
+For ":missing" modifier, we are not sure whether this could be supported.
+Searching for "name:missing=true" will return all the resources that don't have a value for the name parameter.
+If the search parameter has modifier ":missing=true" and its relative FHIR path is redacted, we need to remove this condition from the query, because every anonymized resource satisfies this condition.
+If it's relative FHIR path is partially redacted or date-shifted, we are not sure how to handle them yet.
 
-- _text, _content, _query have empty expression in definition.
+The example of prefix is shown in .
+
+### _text, _content, _query
 The _text and _content parameters search on the narrative of the resource and the entire content of the resource respectively.
 The _query parameter names a custom search profile that describes a specific search operation.
+_text, _content, _query have empty expression in definition.
+We are not able to map them with specific FHIR paths in anonymization configuration.
 These search parameters are not supported.
 
-#### Pros and cons
+## Pros and cons
 Pros:
 - It is a safe operation as no extra data is fetched from the database.
 
@@ -255,9 +264,8 @@ Cons:
 - The implementation of re-identification is complicated.
 Special cases need to be handled properly.
 - Only basic FHIR paths are supported in anonymization configuration.
-- The cons are basically because that we need to map search parameters to FHIR paths in anonymization configuration during re-identification.
 
-### Pure downstream
+# Pure downstream
 In upstream, we do not apply any re-identification.
 Instead, we search by both anonymized values and original values.
 - If the query contains date, we search by both original date and shifted date.
@@ -271,7 +279,7 @@ If not, it means this result is retrieved by some field that is anonymized. This
 
 This requires more processing effort on downstream.
 
-#### Special cases
+## Special cases
 - Modifier ":missing" is not supported.
 
 Pros:
@@ -279,4 +287,4 @@ Pros:
 
 Cons:
 - We fetch more results than the query asks for from the database.
-- The check of whether the search result could be returned all relies on downstream processing.
+- This requires more computation on extra resources. We need to evaluate the time performance.
