@@ -62,6 +62,7 @@ CREATE TABLE dicom.tbl_DicomMetadataIntTags (
 
 CREATE TABLE dicom.tbl_CustomTag (
 	TagId SMALLINT NOT NULL,
+	TagLevel TINYINT NOT NULL,
 	--Tag 4*4+4 10/20/30/40, 4 level deep supported
 	TagPath VARCHAR(20) NOT NULL,
 	TagType VARCHAR(2) NOT NULL,
