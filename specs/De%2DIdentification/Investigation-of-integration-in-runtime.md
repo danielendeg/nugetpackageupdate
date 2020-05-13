@@ -1,5 +1,7 @@
 [[_TOC_]]
 
+This page is currently in draft.
+
 This solution makes no copy of anonymized data.
 When an anonymized search request comes, the service re-identifies the search fields in the query, searches the database and anonymizes search results in runtime.
 
