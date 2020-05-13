@@ -247,7 +247,7 @@ Searching for "name:missing=true" will return all the resources that don't have 
 If the search parameter has modifier ":missing=true" and its relative FHIR path is redacted, we need to remove this condition from the query, because every anonymized resource satisfies this condition.
 If it's relative FHIR path is partially redacted or date-shifted, we are not sure how to handle them yet.
 
-The example of prefix is shown in .
+The example of prefix is shown in [above section](https://microsofthealth.visualstudio.com/Health/_wiki/wikis/Resolute.wiki/138/Investigation-of-integration-in-runtime?anchor=redact-(complete)).
 
 ### _text, _content, _query
 The _text and _content parameters search on the narrative of the resource and the entire content of the resource respectively.
