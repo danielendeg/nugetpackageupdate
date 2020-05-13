@@ -283,7 +283,9 @@ This requires more processing effort on downstream.
 
 ## Special cases
 - Modifier ":missing" is not supported.
+- Prefix should be handled properly.
 
+## Pros and cons
 Pros:
 - All FHIR paths that anonymization configuration supports could be used.
 
