@@ -209,6 +209,9 @@ by above steps we get the target FHIR path "Patient.address.postalCode" and we k
 ```
 we get the target FHIR path "Patient.address" and there's no anonymization rule matched.
 
+If we flatten the search into the search combination of its children elements, there are some issues as well.
+For example, "Patient.address.text" is searchable in search parameter "address", but it does not has its independent search parameter.
+
 ### Multiple resource types
 Search can apply to multiple or all resource types.
 But when matching the search parameters to FHIR paths in anonymization configuration, we need to know the exact resource types.
