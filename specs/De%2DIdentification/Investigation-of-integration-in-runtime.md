@@ -209,8 +209,13 @@ by above steps we get the target FHIR path "Patient.address.postalCode" and we k
 ```
 we get the target FHIR path "Patient.address" and there's no anonymization rule matched.
 
-If we flatten the search into the search combination of its children elements, there are some issues as well.
-For example, "Patient.address.text" is searchable in search parameter "address", but it does not has its independent search parameter.
+If we flatten Address and HumanName to its children elements, we can solve some of this problem.
+```
+[base]/Patient?address-postalcode=12345,address-city=12345,address-state=12345,address-country=12345
+```
+
+But for "Patient.address.text", it is searchable with search parameter "address", but it does not has an independent search parameter.
+We can not distinguish it from other values stored in "address" field.
 
 ### Multiple resource types
 Search can apply to multiple or all resource types.
