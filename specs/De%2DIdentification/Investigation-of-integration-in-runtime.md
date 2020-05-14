@@ -74,7 +74,7 @@ Finding the first match is OK as former anonymization rules have higher priority
 
 ### Redact (complete)
 According to the spec, searching completely redacted fields is not available.
-We can replace this condition with a new one that will never be satisfied.
+We can **replace this condition with a new one that will never be satisfied**.
 
 Take following query as an example:
 ```
@@ -87,13 +87,6 @@ We can replace the original name with a GUID:
 ```
 
 No result will be returned by this query.
-
-Note that since **prefix might change the meaning of the query completely**, this need to be done very carefully according to the prefix.
-
-For example, searching with prefix "ne" before a date returns dates that does not meet this value:
-```
-[base]/Patient?birthdate=ne1998-01-01
-```
 
 ### Redact (partial)
 Date, dateTime, instant and postal code data could be partially redacted according to Safe Harbor method.
@@ -241,7 +234,10 @@ with following anonymization configuration:
 ```
 we need to search Patient with 1980-12-05, Practitioner with 1980-12-15 and Person with a value that will never be satisfied.
 
-### Modifiers and prefix
+### Composite search
+If the type of the search parameter is composite, instead of looking directly into its expression, we should iterate its components and find the expressions of its components instead.
+
+### Modifiers
 For ":text" modifier with token, we need to map the FHIR paths to the text part - either CodeableConcept.text, Coding.display, or Identifier.type.text.
 
 For ":missing" modifier, we are not sure whether this could be supported.
@@ -249,9 +245,18 @@ Searching for "name:missing=true" will return all the resources that don't have 
 If the search parameter has modifier ":missing=true" and its relative FHIR path is redacted, we need to remove this condition from the query, because every anonymized resource satisfies this condition.
 If it's relative FHIR path is partially redacted or date-shifted, we are not sure how to handle them yet.
 
-The example of prefix is shown in [above section](https://microsofthealth.visualstudio.com/Health/_wiki/wikis/Resolute.wiki/138/Investigation-of-integration-in-runtime?anchor=redact-(complete)).
+### Prefix
+Since prefix can change the meaning of the query completely, it needs to be processed very carefully.
 
-### _text, _content, _query
+Prefix can appear before multiple data types, like date, number and quantity.
+
+For example, searching with prefix "ne" before a date returns dates that does not meet this value:
+```
+[base]/Patient?birthdate=ne1998-01-01
+```
+This changes the meaning of the query completely.
+
+### _text, _content, _query parameters
 The _text and _content parameters search on the narrative of the resource and the entire content of the resource respectively.
 The _query parameter names a custom search profile that describes a specific search operation.
 _text, _content, _query have empty expression in definition.
