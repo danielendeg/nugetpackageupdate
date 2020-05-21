@@ -170,12 +170,13 @@ Note: we ensure that the values we pull from the InstanceSchema table are not st
 ### SQL Schema Manager tool
 
 The following commands will be available via the tool
-
 | Command           | Description                                                                                                                                                    | Options                                                                                |
 | ----------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------- |
-| currentversion    | Returns the current versions from the `SchemaVersion` table along with information on the instances using the given version                                    | --fhir-server                                                                          |
-| availableversions | Returns the versions greater than or equal to the current version along with links to the T-SQL scripts for upgrades                                           | --fhir-server                                                                          |
-| applyversion      | Applies the specified version(s) to the connection string supplied. Optionally can poll the FHIR server current version to apply multiple versions in sequence | --fhir-server<br /> --connection-string<br />--next <br />--version<br />--latest<br />--force|
+| current    | Returns the current versions from the `SchemaVersion` table along with information on the instances using the given version                                    | --server                                                                          |
+| available | Returns the versions greater than or equal to the current version along with links to the T-SQL scripts for upgrades                                           | --server                                                                          |
+| apply      | Applies the specified version(s) to the connection string supplied. Optionally can poll the FHIR server current version to apply multiple versions in sequence | --server<br /> --connection-string<br />--next <br />--version<br />--latest<br />--force|
+
+#### Options 
 
 #### --next
 
