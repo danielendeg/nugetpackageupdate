@@ -10,7 +10,7 @@ For each anonymized view, we allocate a new data collection (cosmos container) t
 2. New anonymized collection creation will fail if the collection already exists in the database.
 
 ![container (1).jpg](/.attachments/container%20(1)-2e8890a3-82a0-4a65-aec5-73be97271b66.jpg)
-## Anonymized data collection creation
+## Creating anonymized data collection
 Here we describe the process to create an anonymized data collection:
 1. When the FHIR server application starts, a background service called anonymization worker will also be started. It polls anonymization jobs from FHIR Operation Store.
 2. When the data owner submits a creation request, the FHIR server will persist an anonymization job record and return status code 202.
@@ -25,15 +25,18 @@ We designed several goals that anonymized worker needs to meet
 - Worker must be able to resume relatively inexpensively if terminated in the middle.
 - Worker must be able to throttle so that it doesn't consume all available resources.
 
+## Deleting anonymized data collection
+When customers want to cancel an anonymized view provision request or delete an existing anonymized view, we need to implement a deleting logic to remove the corresponding data collection.
+
 ## Anonymized View with FHIR CRUD, Search and Export
-With anonymized data collections in the same cosmos DB, we can naturally have all standard FHIR APIs for anonymized view without add extra controllers/actions. \
+With anonymized data collections in the same Cosmos DB, we can naturally have all standard FHIR APIs for anonymized view without add extra controllers/actions. \
 A possible change would be that we need to inject anonymized collection Ids as a scoped service. Each FHIR request has a unique collection Id, and the Data Store will get the scoped collection Id for each read/write operation. \
 For export scenario, we need to add collection id information to export job record and inject the scoped id when picking up a job record.
 
 ## Impact components
 * PaaS Repo
 1. New Anonymizer Worker Background Service, including JobWorker/JobRecord/JobConfiguration/JobTask/JobProgress.
-2. Update export module to support export jobs of anonymized views.
+2. Update the export module to support export jobs of anonymized views.
 
 * OSS Repo
 1. Update persistence module for multiple collection Id injection.
