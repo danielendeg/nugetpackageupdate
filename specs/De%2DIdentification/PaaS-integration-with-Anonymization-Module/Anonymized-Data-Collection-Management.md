@@ -9,6 +9,7 @@ For each anonymized view, we allocate a new data collection (cosmos container) t
 1. Each anonymized collection are named with anonymized view name for simlicity, format: ```anonymized{viewName}{version}```, like "anonymizedexampleR4".
 2. New anonymized collection creation will fail if the collection already exists in database.
 
+![container (1).jpg](/.attachments/container%20(1)-2e8890a3-82a0-4a65-aec5-73be97271b66.jpg)
 ## Anonymized data collection creation
 Here we describe the process to create an anonymized data collection:
 1. When FHIR server application starts, a background service called anonymization worker will also be started. It polls anonymization jobs from FHIR Operation Store.
@@ -49,12 +50,7 @@ However, we will have mulpitile containers with anonymized views and we should b
     - Con: Customer can not get predictable performance on any specific container. 
     - Con: Customer can have a maximum of 25 containers in a shared throughput database. After the first 25 containers, you can add more containers to the database only if they are provisioned with dedicated throughput, which is separate from the shared throughput of the database.
 
-### 2. When do we validate the anonymized configuration?
-When a provision request comes, we should validate the anonymization configuration before saving it into anonymized view store.
-- If it's valid, `202 Accepted` should be returned.
-- If it's invalid, `400 Bad Request` should be returned.
-
-### 3. Bulk Import support for migrating anonymized data to new collections 
+### 2. Bulk Import support for migrating anonymized data to new collections 
 We can only import resource to cosmos db one by one for now. A bulk import function would be a big improvement for anonymized view provisioning process. Should we implement a bulk import function by ourselves or leverage any possible work from FHIR  OSS?
 
 ## Performance
