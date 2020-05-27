@@ -8,8 +8,6 @@ Here we designed to integrate anonymized views to persistence layer of FHIR Serv
 For each anonymized view, we allocate a new data collection (cosmos container) to persist anonymized data.
 1. Each anonymized collection are named with anonymized view name for simlicity, format: ```anonymized{viewName}{version}```, like "anonymizedexampleR4".
 2. New anonymized collection creation will fail if the collection already exists in database.
-![container.jpg](/.attachments/container-b0692ead-196a-4d2f-91b5-e25e51356f3b.jpg)
-
 
 ## Anonymized data collection creation
 Here we describe the process to create an anonymized data collection:
