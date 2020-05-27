@@ -15,6 +15,14 @@ A migration is a T-SQL script that alters the database in some way and has a ver
 * The FHIR server will not run against a database with an unknown version.
 * The upgrade tool will not upgrade to the next version until all instances of the code are using the preceding version.
 
+### High Level Diagram
+
+#### Server
+![Schema Flow](Server-Flow-Diagram.jpg)
+
+#### SchemaManager tool
+![Schema Flow](SchemaManager-Flow-Diagram.jpg)
+
 ### Example
 Suppose we have a database currently on version 54 and a code version of 1.0.1. The next version of the FHIR server (1.0.2) decides to consolidate a "FirstName" and "LastName" column into a "Name" column, and drop the original columns.
 
@@ -133,39 +141,57 @@ For Example:
 |Name| CurrentVersion | MinVersion | MaxVersion | timeout |
 |--|--|--|--|--|
 |instance1  | 53 | 53 | 55 |  |
-| instance2 |54  | 53 | 55 |  |
+| instance2 |54  | 52 | 55 |  |
 |  instance3| 53 | 53 | 56 |  |
 
 2. SchemaVersion table looks like
 
 |version| status |
 |--|--|
+| 52 |  complete|
 | 53 |  complete|
 | 54 | complete  |
-3. Ideally the compability api(for instance1) returns
+
+3. Ideally the compability api returns
 ```json
 {
     "min": 53,
     "max": 54
 }
 ```
-Technically, SQL Query be like-
+#### Technically(in words), 
+* The compatibility API returns two values: min and max. 
+* These are the minimum and maximum versions with which all running instances are compatible.
+* min is calculated by finding the MAX(InstanceSchema.MinVersion).
+* max is calculated by finding the the MIN(InstanceSchema.MaxVersion).
 
-select min(MaxVersion), current from InstanceSchema where timeout>now and Name="instance1"
-
-for server1 -  returns 55, 53
-
-select max(version) from SchemaVersion where Version between Current and min(MaxVersion) and Status="complete"
+Note: we ensure that the values we pull from the InstanceSchema table are not stale by checking that the current time has not exceeded the value in the Timeout column.
 
 ### SQL Schema Manager tool
 
 The following commands will be available via the tool
-
 | Command           | Description                                                                                                                                                    | Options                                                                                |
 | ----------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------- |
-| currentversion    | Returns the current versions from the `SchemaVersion` table along with information on the instances using the given version                                    | --fhir-server                                                                          |
-| availableversions | Returns the versions greater than or equal to the current version along with links to the T-SQL scripts for upgrades                                           | --fhir-server                                                                          |
-| applyversion      | Applies the specified version(s) to the connection string supplied. Optionally can poll the FHIR server current version to apply multiple versions in sequence | --fhir-server<br /> --connection-string<br />--next <br />--version<br />--latest<br />|
+| current    | Returns the current versions from the `SchemaVersion` table along with information on the instances using the given version                                    | --server                                                                          |
+| available | Returns the versions greater than or equal to the current version along with links to the T-SQL scripts for upgrades                                           | --server                                                                          |
+| apply      | Applies the specified version(s) to the connection string supplied. Optionally can poll the FHIR server current version to apply multiple versions in sequence | --server<br /> --connection-string<br />--next <br />--version<br />--latest<br />--force|
+
+#### Options 
+
+#### --next
+
+It fetches the available versions and apply the next immediate available version to the current version.
+
+#### -- version
+
+It applies all the versions between current version and the specified version.
+
+#### --latest
+
+It fetches the available versions and apply all the versions between current and the latest available version.
+
+#### --force
+This option can be used with --next, --version and --latest. It skips all the checks to validate version and forces SchemaManager to perform schema migration.
 
 #### Deployment mechanism
 The tool should be available as a [.NET Core Global Tool](https://docs.microsoft.com/en-us/dotnet/core/tools/global-tools).
