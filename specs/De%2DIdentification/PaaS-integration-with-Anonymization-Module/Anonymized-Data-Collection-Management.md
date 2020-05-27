@@ -15,7 +15,7 @@ Here we describe the process to create an anonymized data collection:
 1. When the FHIR server application starts, a background service called anonymization worker will also be started. It polls anonymization jobs from FHIR Operation Store.
 2. When the data owner submits a creation request, the FHIR server will persist an anonymization job record and return status code 202.
 3. Anonymization worker schedules an anonymization task which reads the submitted job, creates a new data collection, performs a search to query all resources, do anonymization, import the anonymized data to the new data collection and update the job progress.
-4. Anonymization worker updates the job record to ```Completed``` status if all data has been transformed or ```Failed``` status if encountered an error.
+4. Updates the job record to ```Completed``` status if all data has been transformed or ```Failed``` status if encountered an error.
 
 ![worker.jpg](/.attachments/worker-7ed8a018-9c10-4e88-8078-005cc4ab3b68.jpg)
 
