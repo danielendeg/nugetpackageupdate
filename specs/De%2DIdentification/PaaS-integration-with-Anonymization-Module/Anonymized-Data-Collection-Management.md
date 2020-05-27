@@ -19,6 +19,7 @@ Here we describe the process to create an anonymized data collection:
 4. Anonymization worker updates the job record to <span style="color:green">Completed</span> status if all data has been transformed or ```Failed``` status if encountered an error.
 
 ![worker.jpg](/.attachments/worker-7ed8a018-9c10-4e88-8078-005cc4ab3b68.jpg)
+
 We designed several goals that anonymized worker needs to meet
 - Worker must be able to anonymize all data to the destination data collection.
 - Worker must be able to pickup new job periodically.
