@@ -8,8 +8,8 @@ Here we designed to integrate anonymized views to persistence layer of FHIR Serv
 For each anonymized view, we allocate a new data collection (cosmos container) to persist anonymized data.
 1. Each anonymized collection are named with anonymized view name for simlicity, format: ```anonymized{viewName}{version}```, like "anonymizedexampleR4".
 2. New anonymized collection creation will fail if the collection already exists in database.
+![container.jpg](/.attachments/container-b0692ead-196a-4d2f-91b5-e25e51356f3b.jpg)
 
-![a](.\images\container.jpg)
 
 ## Anonymized data collection creation
 Here we describe the process to create an anonymized data collection:
@@ -17,8 +17,8 @@ Here we describe the process to create an anonymized data collection:
 2. When data owner submit a creation request, FHIR server will presist a anonymization job record and return status code 202.
 3. Anonymization worker schedules an anonymization task which reads the submitted job, creates a new data collection, perform search to query all resources, do anonymization, import the anonymized data to the new data collection and update the job progress.
 4. Anonymization worker updates the job record to <span style="color:green">Completed</span> status if all data has been transformed or ```Failed``` status if encountered an error.
-![a](.\images\worker.jpg)
 
+![worker.jpg](/.attachments/worker-7ed8a018-9c10-4e88-8078-005cc4ab3b68.jpg)
 We designed several goals that anonymized worker needs to meet
 - Worker must be able to anonymize all data to the destination data collection.
 - Worker must be able to pickup new job periodically.
