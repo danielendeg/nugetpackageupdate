@@ -12,4 +12,6 @@ Multiple customers can be assigned access to an anonymized view.
 - **\*** When anonymized views are created, _Administrators_ are able to **manage** (e.g., view, update, delete, enable, disable) these views.
 - **\*** When anonymized views are created, administrators are able to **synchronize data** to specific anonymized views.
 
+## Architecture
+![arch.jpg](/.attachments/arch-ecbe9873-cddb-48fe-ae1b-d91981bb0c57.jpg)
 
