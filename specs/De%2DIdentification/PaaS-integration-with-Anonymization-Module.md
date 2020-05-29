@@ -9,7 +9,7 @@ Multiple customers can be assigned access to an anonymized view.
 - _Customers_ who have the access to an anonymized view are provided with anonymized data according to specific configuration.
 - _Customers_ can use APIs supported by FHIR Server (e.g., search, export). Actions with write permissions are not allowed (e.g., create, delete).
 - _Administrators_ are able to **check** if anonymized views are still creating or already created.
-- **\***When anonymized views are created, _Administrators_ are able to **manage** (e.g., view, update, delete, enable, disable) these views.
+- **\*** When anonymized views are created, _Administrators_ are able to **manage** (e.g., view, update, delete, enable, disable) these views.
 - **\*** When anonymized views are created, administrators are able to **synchronize data** to specific anonymized views.
 
 
