@@ -7,7 +7,7 @@ This document summarizes current proposed solution for Anonymization integration
 
 This diagram shows the current design.
 
-![duplicate-data-design.jpg](/.attachments/duplicate-data-design-bbcb7123-033a-4fbf-bcac-ddf6d158713f.jpg)## Investigation Summary on Anonymization Integration with FHIR Managed Service (PaaS)
+![duplicate-data-design.jpg](/.attachments/duplicate-data-design-bbcb7123-033a-4fbf-bcac-ddf6d158713f.jpg)
 
 
 New anonymized data set get created and indexed during provisioning time wtih its own configuraiton. When ready, users can access the anonymized data through FHIR API with context based controller support. 
