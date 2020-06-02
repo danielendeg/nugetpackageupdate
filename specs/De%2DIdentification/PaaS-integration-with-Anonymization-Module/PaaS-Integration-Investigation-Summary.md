@@ -1,4 +1,3 @@
-## Investigation Summary on Anonymization Integration with FHIR Managed Service (PaaS)
 
 **Summary**
 
@@ -8,7 +7,7 @@ This document summarizes current proposed solution for Anonymization integration
 
 This diagram shows the current design.
 
-![Diagram](https://microsofthealth.visualstudio.com/Health/_git/de-identification?path=%2FSpecs%2Fduplicate-data-design.jpg&version=GBpersonal%2Ftongwu%2Fspec-paas)
+![duplicate-data-design.jpg](/.attachments/duplicate-data-design-bbcb7123-033a-4fbf-bcac-ddf6d158713f.jpg)## Investigation Summary on Anonymization Integration with FHIR Managed Service (PaaS)
 
 
 New anonymized data set get created and indexed during provisioning time wtih its own configuraiton. When ready, users can access the anonymized data through FHIR API with context based controller support. 
@@ -34,8 +33,7 @@ Provisioning User Interface for managing Anonymized Virtual Endpoints will happe
 
 Provision, Cancel, List, Get, Delete operations will be supported. With success provision, an anonymized view name/id will be generated. The name/id will be used in URL for accessing anonymized data. 
 
-![Diagram](paas-provision.jpg)
-
+![architecture.jpg](/.attachments/architecture-9f06fd86-925c-41ec-8686-44426d5b4c59.jpg)
 
 **Backend Provisioning Process**
 
