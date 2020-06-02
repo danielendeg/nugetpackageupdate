@@ -1,7 +1,7 @@
 
 **Summary**
 
-This document summarizes current proposed solution for Anonymization integration with FHIR Managed Service. In this design, the service keeps seperate anonymized dataset in DB while providing Anonymized View through its controller and needed provisioning functions. 
+This document summarizes current proposed solution for Anonymization integration with FHIR Managed Service. In this design, the service keeps separate anonymized dataset in DB while providing Anonymized View through its controller and needed provisioning functions. 
 
 **Architecture**
 
@@ -10,7 +10,7 @@ This diagram shows the current design.
 ![duplicate-data-design.jpg](/.attachments/duplicate-data-design-bbcb7123-033a-4fbf-bcac-ddf6d158713f.jpg)
 
 
-New anonymized data set get created and indexed during provisioning time wtih its own configuraiton. When ready, users can access the anonymized data through FHIR API with context based controller support. 
+New anonymized data set get created and indexed during provisioning time with its own configuration. When ready, users can access the anonymized data through FHIR API with context based controller support. 
 
 
 **Design Assumptions**
@@ -42,12 +42,12 @@ The backend provisioning process follows similiar design as $Export. It has work
 
 **Cosmos DB Integration**
 
-Futher investigation needed on pricing model with options of shared RU or multiple RU. 
+Further investigation needed on pricing model with options of shared RU or multiple RU. 
 
 
 **Anonymized View Controller and RBAC integration**
 
-Call routing and URL rewrite is needed for Anonynimzed view data access API calls to get through authorization and locate right dataset with view name/id. RBAC phase1 shall the scenario with pre-defined scope of authorization.  Further discussion needed on how to leverage RBAC phase2 dataslice for the scenario. 
+Call routing and URL rewrite is needed for Anonymized view data access API calls to get through authorization and locate right dataset with view name/id. RBAC phase1 shall the scenario with pre-defined scope of authorization.  Further discussion needed on how to leverage RBAC phase2 data slice for the scenario. 
 
 
 **Monitoring, Logging and Audits**
