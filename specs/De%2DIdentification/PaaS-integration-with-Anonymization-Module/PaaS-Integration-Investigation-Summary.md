@@ -8,7 +8,7 @@ This document summarizes current proposed solution for Anonymization integration
 
 This diagram shows the current design.
 
-![Diagram](duplicate-data-design.jpg)
+![Diagram](https://microsofthealth.visualstudio.com/Health/_git/de-identification?path=%2FSpecs%2Fduplicate-data-design.jpg&version=GBpersonal%2Ftongwu%2Fspec-paas)
 
 
 New anonymized data set get created and indexed during provisioning time wtih its own configuraiton. When ready, users can access the anonymized data through FHIR API with context based controller support. 
