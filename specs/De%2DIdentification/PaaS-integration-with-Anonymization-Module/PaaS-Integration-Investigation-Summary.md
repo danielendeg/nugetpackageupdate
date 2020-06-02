@@ -75,3 +75,64 @@ ARM - ARM onboarding support needed to register new provisioning APIs on ARM
 RP - Needed change on Resource Provider and add service auth for the purpose. 
 
 FHIR Operation Store - changes are needed for background Anonymization process
+
+
+** Appendix Cost Estimate **
+
+Features	Weeks
+Provision and Cancel op 	2
+List, Get, Delete	2
+Integration with provision	1
+Integration with RP	1
+	
+RP Change (Service + Wokrer)	2
+Integration with ARM	1
+	
+ARM onboard + reviews	1
+	
+Provision UX	3
+Provision UX integration	1
+	
+Provision CLI	2
+CLI Integration	1
+	
+RBAC Authenticate & Authorization support	3
+Security review	1
+	
+Engineering core lib, nuget, branch 	1
+	
+OSS FHIR change for store and export	2
+PaaS support anonymized view FHIR API - routing	2
+	
+Backend - Export and Anonymization Processs	2
+Backend - Anoymized Export	1
+Backend - Store Q management and optimization	1
+	
+Backend - Bulk Import	2
+Performance tuning and stress	2
+	
+Controller for Anonymized View	2
+	
+Search Integration 	1
+Export Integration	1
+	
+Core - Anonymization Engine - Validation of Config	1
+Core - Anonymization Engine - Consistency with FHIR Server	1
+	
+Data Insulation & RU management	2
+Compute Isolation	1
+	
+OneBox Support	1
+Performance 	2
+	
+Logginng	2
+Monitoring	1
+	
+deployment - test	1
+deployment - staging	1
+deployment - production	1
+	
+Total without buffer    52
+	
+	
+Total with buffer	68
