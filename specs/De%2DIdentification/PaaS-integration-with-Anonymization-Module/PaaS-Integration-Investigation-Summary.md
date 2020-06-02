@@ -77,7 +77,7 @@ RP - Needed change on Resource Provider and add service auth for the purpose.
 FHIR Operation Store - changes are needed for background Anonymization process
 
 
-** Appendix Cost Estimate **
+**Appendix Cost Estimate**
 
 Features	Weeks
 Provision and Cancel op 	2
