@@ -5,6 +5,11 @@ This page is currently in draft.
 This solution makes no copy of anonymized data.
 When an anonymized search request comes, the service re-identifies the search fields in the query, searches the database and anonymizes search results in runtime.
 
+
+![image.png](/.attachments/image-58fba4bf-c271-4aae-a2e1-80a1e1c0bb5a.png)
+
+
+
 There are 2 kinds of possible implementations:
 - Upstream re-dentification + downstream anonymization
 - Pure downstream
