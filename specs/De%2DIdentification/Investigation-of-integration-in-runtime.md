@@ -88,18 +88,21 @@ We can replace the original name with a GUID:
 
 No result will be returned by this query.
 
+We need to **double confirm** that whether we could find an impossible value for every data type.
+
 ### Redact (partial)
 Date, dateTime, instant and postal code data could be partially redacted according to Safe Harbor method.
 
 - Example 1, anonymize 2002-01-03 to 2002. Year could keep as indicative age is not over 89.
 - Example 2, anonymize 98052 to 98000, first 3 digits could keep as this postal code is not restricted.
 
-For postal code data, one problem is that when searching with address, we do not know whether the value comes from postal code or other fields.
-If it comes from postal code, we should search with prefix (980).
-If not, we should search with entire value.
+For postal code data, one problem is that when searching with parameter _address_, we do not know whether the value comes from postal code or its other children fields, like city, state, etc:
 ```
 [base]/Patient?address=98000
 ```
+
+If it comes from postal code, we should search with prefix (980).
+If not, we should search with entire value.
 
 If we want to enable it, we need to **make an assumption of the format of postal code**, like a string made up of 5 digits. So we can distinguish postal code from other data.
 
@@ -128,11 +131,11 @@ Since resource id in FHIR Server is replaced with GUID, we do not need to apply 
 
 (If we want to support cryptoHash, when creating an anonymized endpoint, we need to run cryptoHash according to the configuration and save the results in database.
 So when a request with a crypto-hashed value comes, we can look up the database and find its original value.
-Looking up the database frequently might be expensive.)
+Looking up the database frequently might be computational expensive.)
 
 ## Special cases
 ### Address and HumanName
-According to FHIR Search spec, search of Address and HumanName cover all string elements in them.
+According to FHIR Search spec, searching Address or HumanName covers all string elements in them.
 In FHIR Server, a patient's postal code is stored in both "address" and "address-postalcode":
 
 ```json
@@ -209,13 +212,13 @@ by above steps we get the target FHIR path "Patient.address.postalCode" and we k
 ```
 we get the target FHIR path "Patient.address" and there's no anonymization rule matched.
 
-If we flatten Address and HumanName to its children elements, we can solve some of this problem.
+If we flatten Address to its children elements, we can solve some of this problem.
 ```
 [base]/Patient?address-postalcode=12345,address-city=12345,address-state=12345,address-country=12345
 ```
 
-But for "Patient.address.text", it is searchable with search parameter "address", but it does not has an independent search parameter.
-We can not distinguish it from other values stored in "address" field.
+One problem remained is that for "address.text", it is searchable with search parameter "address", but it does not has an independent search parameter.
+When we flatten Address into its children elements, we lose the control of this field.
 
 ### Multiple resource types
 Search can apply to multiple or all resource types.
