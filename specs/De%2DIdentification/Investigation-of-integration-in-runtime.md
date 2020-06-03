@@ -8,7 +8,8 @@ When an anonymized search request comes, the service re-identifies the search fi
 
 ![image.png](/.attachments/image-58fba4bf-c271-4aae-a2e1-80a1e1c0bb5a.png)
 
-
+Upstream modules - Anonymization modules on query before sending to Query API/Module
+Downstream modules - Anonymization processing on query results 
 
 There are 2 kinds of possible implementations:
 - Upstream re-dentification + downstream anonymization
