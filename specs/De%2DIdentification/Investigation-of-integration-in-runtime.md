@@ -5,11 +5,13 @@ This page is currently in draft.
 This solution makes no copy of anonymized data.
 When an anonymized search request comes, the service re-identifies the search fields in the query, searches the database and anonymizes search results in runtime.
 
+**Diagram on anonymization processing with Query on the fly**
 
 ![image.png](/.attachments/image-58fba4bf-c271-4aae-a2e1-80a1e1c0bb5a.png)
 
-Upstream modules - Anonymization modules on query before sending to Query API/Module
-Downstream modules - Anonymization processing on query results 
+**Upstream modules** - Anonymization modules on query before sending to Query API/Module
+
+**Downstream modules** - Anonymization processing on query results 
 
 There are 2 kinds of possible implementations:
 - Upstream re-dentification + downstream anonymization
