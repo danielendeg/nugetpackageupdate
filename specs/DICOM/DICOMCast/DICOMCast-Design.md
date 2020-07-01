@@ -242,6 +242,15 @@ For MVP, the we will have hard-coded mapping and will keep them minimum.
 | :------- | :----- | :------- | :--- |
 | Patient.identifier.where(system = '') | (0010,0020) | PatientID | For now, the system will be empty string. We will add support later for allowing the system to be specified. |
 | Patient.name.where(use = 'usual') | (0010,0010) | PatientName | PatientName will be split into components and added as HumanName to the Patient resource. |
+| Patient.gender | (0010,0040) | PatientSex ||
+
+**Endpoint:**
+
+| Property | Tag Id | Tag Name | Note |
+| :------- | :----- | :------- | :--- |
+| Endpoint.status ||| The value 'active' will be used when creating Endpoint. |
+| Endpoint.connectionType ||| The system 'http://terminology.hl7.org/CodeSystem/endpoint-connection-type' and value 'dicom-wado-rs' will be used when creating Endpoint. |
+| Endpoint.address ||| The root URL to the DICOMWeb service will be used when creating Endpoint. The rule is described in http://hl7.org/fhir/imagingstudy.html#endpoint. |
 
 **ImagingStudy:**
 
@@ -249,18 +258,17 @@ For MVP, the we will have hard-coded mapping and will keep them minimum.
 | :------- | :----- | :------- | :--- |
 | ImagingStudy.identifier.where(system = 'urn:dicom:uid') | (0020,000D) | StudyInstanceUID | The value will have prefix of `urn:oid:`. |
 | ImagingStudy.status | | | The value 'available' will be used when creating ImagingStudy. |
-| ImagingStudy.modality | (0008,0060) | Modality | Or should this be (0008,0061) Modalities​In​Study? |
-| ImagingStudy.subject | | | It will be linked to the Patient above. |
-| ImagingStudy.started | (0008,0020), (0008,0030), (0008,0201) | StudyDate, StudyTime, Timezone​Offset​From​UTC | More detail about how timestamp is constructed below. |
-| ImagingStudy.endpoint | | | The URL to the study using WADO-RS. |
+| ImagingStudy.modality | (0008,0060) | Modality | Or should this be (0008,0061) ModalitiesInStudy? |
+| ImagingStud y.subject | | | It will be linked to the Patient above. |
+| ImagingStudy.started | (0008,0020), (0008,0030), (0008,0201) | StudyDate, StudyTime, TimezoneOffsetFromUTC | More detail about how timestamp is constructed below. |
+| ImagingStudy.endpoint | | | It will be linked to the Endpoint above. |
 | ImagingStudy.note | (0008,1030) | StudyDescription | |
-| ImagingStudy.series.uid | (0020,000E) | Series​Instance​UID | |
-| ImagingStudy.series.number | (0020,0011) | Series​Number | |
+| ImagingStudy.series.uid | (0020,000E) | SeriesInstanceUID | |
+| ImagingStudy.series.number | (0020,0011) | SeriesNumber | |
 | ImagingStudy.series.modality | (0008,0060) | Modality | |
 | ImagingStudy.series.description | (0008,103E) | SeriesDescription | |
-| ImagingStudy.series.endpoint | | | The URL t o the series using WADO-RS. |
-| ImagingStudy.series.started | (0008,0021), (0008,0031), (0008,0201) | SeriesDate, SeriesTime, Timezone​Offset​From​UTC | More detail about how timestamp is constructed below. |
-| ImagingStudy.series.instance.uid | (0008,0018) | SOP​Instance​UID | |
+| ImagingStudy.series.started | (0008,0021), (0008,0031), (0008,0201) | SeriesDate, SeriesTime, TimezoneOffsetFromUTC | More detail about how timestamp is constructed below. |
+| ImagingStudy.series.instance.uid | (0008,0018) | SOPInstanceUID | |
 | ImagingStudy.series.instance.sopClass | (0008,0016) | SOPClassUID | |
 | ImagingStudy.series.instance.number | (0020,0013) | InstanceNumber | |
 
