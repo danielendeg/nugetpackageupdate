@@ -154,10 +154,7 @@ RetryAfter      | datetime2(0) | The datetime that the retry can be attempted
 
 ### FHIR integration
 
-- Sync to FHIR will be configurable.
-- Async evens to create FHIR resource. 
-- DICOM service will be the master for ImagingStudy resourceType. We will have a service identity with write access to edit ImagingStudy
-- Patient, Practitioner and Encounter ResourceType: Default FHIR service is the master. Configurable.
+- [Dicom cast design](DICOMCast/DICOMCast-Design.md)
 
 DEMO
 
