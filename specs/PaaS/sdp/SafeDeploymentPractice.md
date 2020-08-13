@@ -38,7 +38,7 @@ N/A
 ## Regional Update Policy
 Adhere to 'regional update' strategy which requires to preserve region pairing constraints. Regional update policy is depicted in picture below. 
 
-![](../media/sdp-rollout.png)
+![](./media/sdp-rollout.png)
 
 
 Regional Update Strategy Explained:

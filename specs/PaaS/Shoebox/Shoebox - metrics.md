@@ -37,11 +37,11 @@ Metrics will be exposed in Azure portal under Monitoring section, initially show
 * Database
 * Availability
 
-![](../media/MetricsCosmosDBover.png)
+![](./media/MetricsCosmosDBover.png)
 
-![](../media/MetricsCosmosDBdata.png)
+![](./media/MetricsCosmosDBdata.png)
 
-![](../media/MetricsCosmosDBaval.png)
+![](./media/MetricsCosmosDBaval.png)
 
 ## Data Collection
 

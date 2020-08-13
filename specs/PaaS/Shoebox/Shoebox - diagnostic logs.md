@@ -25,9 +25,9 @@ N/A
 
 ## Diagnostics Log
 
-![](../media/DiagnosticOver.png)
+![](./media/DiagnosticOver.png)
 
-![](../media/DiagnosticDet.png)
+![](./media/DiagnosticDet.png)
 
 
 # Test Strategy

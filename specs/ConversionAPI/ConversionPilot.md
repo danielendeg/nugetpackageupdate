@@ -417,7 +417,7 @@ We can invite customers into the API management instance, let them subscribe to 
 
 When they consume the API, they will not provide a specific namespace identifier. We will write a policy in API management that, based on their subscription, determines which namespace they have and translates to appropriate, namespace prefixed URLs for the conversion API. The API management proxy will be responsible for obtaining a token for the backend API:
 
-![converter with apim](ConversionApi/converter-api-pilot.png)
+![converter with apim](converter-api-pilot.png)
 
 The use of API management is unlikely to be part of a product in the end, but it will allow us to leverage all the tools of APIM during the pilot phase instead of having to implement namespace management, etc.
 

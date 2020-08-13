@@ -244,11 +244,11 @@ We will extend the existing model, which we will call **"local role assignments"
 
 The portal blade will need an upgrade as part of this work, looking something like this:
 
-![Portal Auth Blade](Azure-RBAC/portal.png)
+![Portal Auth Blade](portal.png)
 
-Note that the portal UI will need to be able to render names of users in the configured tenant, which is not currently supported out of the box. In order to support this, the portal will need to get a Microsoft Graph (or AAD graph) token for a different tenant than the user has selected. To illustrate that this is possible, this spec includes a sample [tenant gymnastics](Azure-RBAC/examples/TenantGym) application:
+Note that the portal UI will need to be able to render names of users in the configured tenant, which is not currently supported out of the box. In order to support this, the portal will need to get a Microsoft Graph (or AAD graph) token for a different tenant than the user has selected. To illustrate that this is possible, this spec includes a sample [tenant gymnastics](examples/TenantGym) application:
 
-![Tenant Gymnastics App Demo](Azure-RBAC/examples/TenantGym/tenant-gym.gif)
+![Tenant Gymnastics App Demo](examples/TenantGym/tenant-gym.gif)
 
 This application signs the user in to a given tenant and gets a token from that tenant for ARM (`aud: https://management.azure.com`), it uses this token to enumerate other tenants that a user has access to, i.e. tenants that the current signed-in user (same credentials) is a user or guest user in. The tenant enumeration is done with `GET https://management.azure.com/tenants?api-version=2019-11-01`. In the example app, the user can then browse tenant information for another tenant (for example, list users).
 
@@ -411,7 +411,7 @@ When using the remote CheckAccess decision engine, much of the orchestration is 
 
 The ARM wiki uses the following figure to illustrate the remote check decision engine flow.
 
-![Auth CheckAccess Endpoint](Azure-RBAC/auth-check-access-endpoint.png)
+![Auth CheckAccess Endpoint](auth-check-access-endpoint.png)
 
 This diagram suggests that our service should enumerate the groups for an incoming user/principal (and cache the response) before sending a request to the CheckAccess API. This is actually not required, we can ask the CheckAccess API to perform that using the `xms-pasrp-retrievegroupmemberships` property of the `SubjectInfo` object. We could also optionally decide to include that property or do the enumeration of groups in the service based on what we see in the token. This would be an optimization.
 
@@ -419,7 +419,7 @@ The diagram also shows the data plane requests going through the RP, however, ou
 
 [![](https://mermaid.ink/img/eyJjb2RlIjoic2VxdWVuY2VEaWFncmFtXG5cdENsaWVudC0-PitSZXF1ZXN0SGFuZGxlcjogL1BhdGllbnQ_bmFtZT1Cb2JcbiAgICBSZXF1ZXN0SGFuZGxlci0-PitBdXRoU2VydmljZTogQ2hlY2tBY2Nlc3MocmVhZClcbiAgICBBdXRoU2VydmljZS0-PkF1dGhTZXJ2aWNlOiBDaGVja0NhY2hlKG9pZCwgcmVhZClcbiAgICBBdXRoU2VydmljZS0-PitBQUQ6IEdldFRva2VuXG4gICAgQUFELS0-Pi1BdXRoU2VydmljZTogVG9rZW5cbiAgICBBdXRoU2VydmljZS0-PkF1dGhTZXJ2aWNlOiBjYWNoZSB0b2tlblxuICAgIEF1dGhTZXJ2aWNlLT4-K01pY3Jvc29mdC5BdXRob3JpemF0aW9uOiBDaGVja0FjY2VzcyhvaWQsIHJlYWQpXG4gICAgTWljcm9zb2Z0LkF1dGhvcml6YXRpb24tLT4-LUF1dGhTZXJ2aWNlOiBkZWNpc2lvbihhbGxvd2VkKVxuICAgIEF1dGhTZXJ2aWNlLT4-QXV0aFNlcnZpY2U6IENhY2hlRGVjaXNpb24ob2lkLCByZWFkKVxuICAgIEF1dGhTZXJ2aWNlLS0-Pi1SZXF1ZXN0SGFuZGxlcjogZGVjaXNpb24oYWxsb3dlZClcbiAgICBSZXF1ZXN0SGFuZGxlci0-PitEYXRhU3RvcmU6IEV4ZWN1dGUgU2VhcmNoXG4gICAgRGF0YVN0b3JlLS0-Pi1SZXF1ZXN0SGFuZGxlcjogc2VhcmNoIHJlc3VsdHNcbiAgICBSZXF1ZXN0SGFuZGxlci0tPj4tQ2xpZW50OiBzZWFyY2ggcmVzdWx0c1xuICAgIFxuXHRcdFx0XHRcdCIsIm1lcm1haWQiOnsidGhlbWUiOiJkZWZhdWx0In0sInVwZGF0ZUVkaXRvciI6ZmFsc2V9)](https://mermaid-js.github.io/mermaid-live-editor/#/edit/eyJjb2RlIjoic2VxdWVuY2VEaWFncmFtXG5cdENsaWVudC0-PitSZXF1ZXN0SGFuZGxlcjogL1BhdGllbnQ_bmFtZT1Cb2JcbiAgICBSZXF1ZXN0SGFuZGxlci0-PitBdXRoU2VydmljZTogQ2hlY2tBY2Nlc3MocmVhZClcbiAgICBBdXRoU2VydmljZS0-PkF1dGhTZXJ2aWNlOiBDaGVja0NhY2hlKG9pZCwgcmVhZClcbiAgICBBdXRoU2VydmljZS0-PitBQUQ6IEdldFRva2VuXG4gICAgQUFELS0-Pi1BdXRoU2VydmljZTogVG9rZW5cbiAgICBBdXRoU2VydmljZS0-PkF1dGhTZXJ2aWNlOiBjYWNoZSB0b2tlblxuICAgIEF1dGhTZXJ2aWNlLT4-K01pY3Jvc29mdC5BdXRob3JpemF0aW9uOiBDaGVja0FjY2VzcyhvaWQsIHJlYWQpXG4gICAgTWljcm9zb2Z0LkF1dGhvcml6YXRpb24tLT4-LUF1dGhTZXJ2aWNlOiBkZWNpc2lvbihhbGxvd2VkKVxuICAgIEF1dGhTZXJ2aWNlLT4-QXV0aFNlcnZpY2U6IENhY2hlRGVjaXNpb24ob2lkLCByZWFkKVxuICAgIEF1dGhTZXJ2aWNlLS0-Pi1SZXF1ZXN0SGFuZGxlcjogZGVjaXNpb24oYWxsb3dlZClcbiAgICBSZXF1ZXN0SGFuZGxlci0-PitEYXRhU3RvcmU6IEV4ZWN1dGUgU2VhcmNoXG4gICAgRGF0YVN0b3JlLS0-Pi1SZXF1ZXN0SGFuZGxlcjogc2VhcmNoIHJlc3VsdHNcbiAgICBSZXF1ZXN0SGFuZGxlci0tPj4tQ2xpZW50OiBzZWFyY2ggcmVzdWx0c1xuICAgIFxuXHRcdFx0XHRcdCIsIm1lcm1haWQiOnsidGhlbWUiOiJkZWZhdWx0In0sInVwZGF0ZUVkaXRvciI6ZmFsc2V9)
 
-To make the flow of getting an access decision from the remote check access API a bit more practical, we have written a [console app](Azure-RBAC/CheckAccessApiDemo/) which submits an access decision request to the API. To use this test application, you can issue a command like:
+To make the flow of getting an access decision from the remote check access API a bit more practical, we have written a [console app](CheckAccessApiDemo/) which submits an access decision request to the API. To use this test application, you can issue a command like:
 
 ```console
 dotnet run --client-id xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx --client-secret "XXXXX" --tenant cloudynerd.onmicrosoft.com --oid xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx --resource "/subscriptions/xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx/resourceGroups/mygroup/providers/Microsoft.Storage/storageAccounts/mystorage" --action "Microsoft.Storage/storageAccounts/blobServices/containers/blobs/read"
@@ -864,17 +864,17 @@ The decision would be binary `Allowed` or `Disallowed`.
 
 We will consider this local approach if, we require lower latencies than we can achieve with the remote CheckAccess API. In that case, we will follow the pattern implemented by the Storage team. For ease of reading, we have copied the architecture figure from the ARM teams documentation:
 
-![auth check access sdk](Azure-RBAC/auth-check-access-sdk.png)
+![auth check access sdk](auth-check-access-sdk.png)
 
 In this diagram for storage, RP and service are drawn as the same entity. In our case (and for storage), requests to the data layer don't actually go through the RP.
 
 In our case, the sequence leading to a decision would look something like this:
 
-![Auth engine sequence](Azure-RBAC/auth-engine-sequence.png)
+![Auth engine sequence](auth-engine-sequence.png)
 
 As indicated, the auth engine will need to pull data from two external sources: Microsoft Graph and the Microsoft.Authorization API (a.k.a PAS). In order to get access to those services, it will get a token using the first party service principal, which has been configured to have access to them.
 
-To make the flow a bit more practical and to capture the specific steps, we have implemented an [example command line application](Azure-RBAC/examples/SDKDemo), which uses a service principal to walk through the steps of enumerating groups, pulling the required artifacts from PAS before using the SDK to make an authorization decision. To use the example app:
+To make the flow a bit more practical and to capture the specific steps, we have implemented an [example command line application](examples/SDKDemo), which uses a service principal to walk through the steps of enumerating groups, pulling the required artifacts from PAS before using the SDK to make an authorization decision. To use the example app:
 
 ```console
 .\AzureRBACSDK.exe --client-id xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx --client-secret "XXXXX" --tenant cloudynerd.onmicrosoft.com --oid xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx --resource "/subscriptions/xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx/resourceGroups/mygroup/providers/Microsoft.Storage/storageAccounts/mystorage" --action "Microsoft.Storage/storageAccounts/blobServices/containers/blobs/read"
