@@ -17,12 +17,12 @@ The goal is to allow customers to add custom information to the audit logs.
 Overall this design will build on the already designed/implemented logging mechanisms in OSS and PaaS.  This includes using the Audit middleware, audit helper and logging infrastructure in OSS and also the Shoebox implementation in PaaS to surface these values to the end users.  [Shoebox spec](../Shoebox/DiagnosticLoggingDesignSpec.md)
 
 Any http header named with the following convention: 
-```X-MS-HEALTHCAREAPIS-AUDIT-<name> ```
+```X-MS-AZUREFHIR-AUDIT-<name> ```
 will be included in a property bag that is added to the Audit log.  Examples:
 ```
-X-MS-HEALTHCAREAPIS-AUDIT-USERID: 1234
-X-MS-HEALTHCAREAPIS-AUDIT-USERLOCATION: XXXX
-X-MS-HEALTHCAREAPIS-AUDIT-XYZ: 1234
+X-MS-AZUREFHIR-AUDIT-USERID: 1234
+X-MS-AZUREFHIR-AUDIT-USERLOCATION: XXXX
+X-MS-AZUREFHIR-AUDIT-XYZ: 1234
 ```
 
 ## OSS
