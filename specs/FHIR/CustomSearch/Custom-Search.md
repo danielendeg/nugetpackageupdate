@@ -1,6 +1,6 @@
-FHIR is very extensible and customers that make use of extensions in FHIR resources will want to make some of those extensions searchable. As an example, customers using the US Core (http://hl7.org/fhir/us/core/) profiles may want to be able to search fields such as `race` or `ethnicity`. Another example would be our own internal need to add additional DICOM tags to the `ImagingStudy` resource and make them searchable.
+While the FHIR standard specifies an initial set of search parameters, users often want to be able to search for resources using properties of a resource not yet defined as searchable.  As an example, customers using the US Core (http://hl7.org/fhir/us/core/) profiles may want to be able to search fields such as `race` or `ethnicity`. Another example would be our own internal need to add additional DICOM tags to the `ImagingStudy` resource and make them searchable.
 
-The FHIR standard provides a framework for defining new search parameters and we should provide customers with a mechanism add new search parameters. Note that adding a new search parameter is relatively trivial, but re-indexing will be needed and we need to provide customers with a way to start re-indexing and monitor if it is done.
+The FHIR standard provides a framework for defining new search parameters and we should provide customers with a mechanism to add new search parameters.
 
 [[_TOC_]]
 
@@ -8,7 +8,7 @@ The FHIR standard provides a framework for defining new search parameters and we
 
 To set the stage for the design, we will first have a look at what it takes to add a new `SearchParameter` to the existing FHIR server. Suppose we want to be able to search `race` on `Patient` resources that have the US core extension for race.
 
-The search parameters are defined in `src\Microsoft.Health.Fhir.Core\Features\Definition\search-parameters.json`. We can add a section with something like:
+Our current behavior is to read the standard set of search parameters from FHIR spec upon server start.  We have those stored in `src\Microsoft.Health.Fhir.Core\Features\Definition\search-parameters.json`.  What is possible to do right now is to edit that file and restart the server.  Below is an example for the race search parameter, which could be added to the end of the search-parameters.json file.
 
 ```json
     {
@@ -33,25 +33,7 @@ The search parameters are defined in `src\Microsoft.Health.Fhir.Core\Features\De
       }
 ```
 
-**Note**: 
-1. When we add an ability for customers to provide this `SearchParameter` configuration to the server, we need to validate that a) it is a valid FHIR path expression and b) it doesn't result in indexing every field in the document. We could limit it to extensions, but that may be too restrictive, e.g. `identity` is on patient is something where a customer might want to add `mrn` as a search parameter.
-2. We should be clear about whether we require xpath or not and if we require it, we **should** validate it. 
-
-Additionally, we need to add something like:
-
-```json
-    {
-        "name": "race",
-        "definition": "http://hl7.org/fhir/SearchParameter/Patient-race",
-        "type": "token",
-        "documentation": "Patient race"
-    },
-
-```
-
-To both `src\Microsoft.Health.Fhir.Core\Features\Conformance\AllCapabilities.json` and `src\Microsoft.Health.Fhir.Core\Features\Conformance\DefaultCapabilities.json` to make the search parameter show up in the capability statement.
-
-After adding this search parameter, if we upload a Synthea patients (they have the US core race extension), we see something like this in the database:
+After adding this search parameter and restarting the server, if we upload a Synthea patient (they have the US core race extension), we see something like this in the database:
 
 ```json
 {
@@ -115,91 +97,82 @@ After adding this search parameter, if we upload a Synthea patients (they have t
 }
 ```
 
-Notice how `race` has been extracted as a search parameter and we can now do searches like:
-
-```
-GET https://fhirserver/Patient?race=2106-3
-```
-
-or
-
-```
-GET https://fhirserver/Patient?race:text=black
-```
-
-So we have all the core capabilities for providing this for customers. The work is mostly related to making this operational.
-
-# High-Level Design
-
-To allow customers to define SearchParameters, we need:
+Notice how `race` has been extracted as a search parameter.
 
 ## Uploading new `SearchParameter` definitions
+However, requiring users to edit the search-parameters.json and then restart the server is not how we want to add or edit search parameters.  It is not a good experience, causes downtime and the search-parameters.json should only contain the parameters in the spec.
 
-One relatively simple approach would be directly through the FHIR API:
+One relatively simple approach to allow users to define their own search parameters is directly through the FHIR API:
 
 ```
 POST //fhirserver/SearchParameter
+PUT/DELETE/GET //fhirserver/SearchParameter/id
 ```
 
-with a `SearchParameter` payload as described above. It does create a bit of a chicken and egg situation, since `SearchParameter` is a resource that is also searchable, but it may not be a big problem. We do need to treat create/update/delete on `SearchParameter` a bit differently from other resources since adding or updating search parameters means that we need to change update the logic that extracts search parameters.
+with a `SearchParameter` payload as described above. It does create a bit of a chicken and egg situation since `SearchParameter` is a resource that is also searchable, but it may not be a big problem. We do need to treat create/update/delete on `SearchParameter` a bit differently from other resources since adding or updating search parameters means that we need to update the logic that extracts search parameters.
 
-We also need to make changes to the way the current list of SearchParameters is loaded. It is currently a static file added to the assembly, which means that and update requires a rebuild. This needs to be dynamic.
+An additional problem is what to do if a `SearchParameter` is changed when a Reindex job is running.  As a reindex job runs it will invoke the same extraction logic which runs when a resource is posted to the server, and it uses the current set of search parameters provided by the Search Parameter Definition Manager.  If that is updated while the job is in on going some resources will have that new change applied during extraction and some not.  The most simple solution is reject any POST/PUT of a SearchParameter resource will a reindex job is running.  For the initial version of Custom Search, we will go forward with this simple method of rejecting any changes to Search Parameters while a reindex job is running.
 
-See also comments on the `SearchParameter` definition for considerations on validation, xpath, etc.
+A new filters will be added to the FhirController.  First an `OnActionExecutionAsync` filter will check for the resource type, and if type `SearchParameter` then will perform initial validation on whether or not allow the commit to proceed.  Including:
+* Validation of the url to ensure it is unique
+* Reject changes to search parameters defined in the FHIR spec, changes are only allowed to custom search parameters
+* Reject changes to fully indexed and "live" custom search parameters
+* Reject any changes while Reindex jobs are running
+
+Once the resource of `SearchParameter` has been successfully committed to the datastore, then the filter code will resume.  It will add the search parameter information to the `SearchParameterDefinitionManager`, commit the search parameter status to the datastore, and notify the other instances of the update.
+
+### Alternative approaches which would allow `SearchParameter` updates
+Discussion during review brought up some options for allowing SearchParameters to be updated while a reindex was running. For the moment we are not planning on implementing these, but they are included for future reference:
+* Use an additional state value in the SearchParameterDefinitionManager beyond "supported" and "enabled" which would track the state of a parameter that could become supported once a reindex job completed
+* Use the history of the `SearchParameter` as a snapshot of the state of the search parameters when a reindex job was started
+
+## Communicating Search Parameter changes to other instances
+As Custom Search and Reindexing are interdependent, we will leverage the polling that the Reindex worker is doing to check for reindex jobs and also poll for changes to the Search Parameters at the same time.  In this manner, all instances of the service will get up to date fairly quickly when a change occurs.
+
+### Alternate messaging worker
+Instead of using the reindex worker, we may create a simple messaging worker that is capable enabling communication of the various instances via the data layer.
+
+In addition to the periodic polling, anytime a request occurs which requires up to date search parameters such as:
+* Reindexing job request
+* Synchronous "test" reindex of a resource
+* Special search which includes partially indexed parameters
+  
+will check the database for any search parameter changes before fulfilling the request.
+
+## Loading new `SearchParameter` definitions
+We need to make changes to the way the current list of SearchParameters is loaded. As mentioned currently a static file `search-paraemters.json` is loaded at the beginning.  That will continue to happen, while in addition, any `SearchParaemter`resources currently in the server will be read and added to the `SearchParameterDefinitionManager`.  A more detailed description of how that manager functions is here: [Search Parameter Registry](./SearchParameterRegistry.md).
+
+## Validation for new Search Parameters
+* Validation of the `Fhirpath`, not only that it is a valid `Fhirpath`, but that it does not include too much of the resource
+* Validation of the data type to determine if we support it, and if not we will reject the SearchParameter
+* Validation of the url to ensure it is unique
+* Reject changes to search parameters defined in the FHIR spec, changes are only allowed to custom search parameters
+* Reject changes to fully indexed and "live" custom search parameters
+
+## Search Parameters defined in extensions
+Search parameters will need to be created on properties that are defined in extensions.  We will need to be able to follow the `Fhirpath` that points to data in an extension.
+
 
 ## Re-indexing
-
-We actually have a general needs for a re-indexing mechanism, but with custom SearchParameters, we need to provide this capability to the customer as well. The most consistent way (following on the logic from the `$export` operation), would be to provide an `$reindex` operation:
-
+Once the search parameter is created it will be reported as supported, but not searchable until the data has been reindexed with the new parameter.  The goal is to support a search with the new parameter as shown below:
 ```
-POST //fhirserver/$reindex
+GET https://fhirserver/Patient?race=2106-3
 ```
-
-With an optional payload:
-
-```json
-{
-    "resourceTypes": [
-        "Patient",
-        "Observation"
-    ],
-    "maximumConcurrency": 1 //0 means unlimited, reindex at the expense of server performance
-}
+or
 ```
-
-The `resourceTypes` parameter makes it possible to narrow the scope of the indexing since a given `SearchParameter` would only affect one resource. On success we will return `201 Created` with a response payload of:
-
-```json
-{
-    "startTime": "TIME-STAMP",
-    "progress": "0%"
-}
+GET https://fhirserver/Patient?race:text=black
 ```
+That becomes possible once the data is fully indexed.  For more details on how the reindexing works see: [Reindexing design](./Reindexing.md).
 
-Repeated calls (while indexing is ongoing) will return `200 OK` with the same payload (but updated progress). Unless some calling frequency threshold is exceeded, in which case we will return `429`.
-
-An alternative would be the pattern used by `$export` with a `GET` with header `Prefer` set to `respond-async`.
-
-The motivation for structuring the `$export` call like that seems a bit unclear and `$import` will likely have to use a `POST` and consequently, it would make sense to do that hear too.
-
-## Resuming interrupted re-indexing
-
-Re-indexing could be interrupted by upgrades, outages, etc. Consequently, the re-index job must be persisted so that it can be picked up again. Something like the logic around `$export` would make sense.
-
-## Partially indexed search parameters
-
-When adding a new search parameter, there could be a (potentially long) period of time where a given search parameter is partially indexed. Consequently, we need to maintain a list of all the search parameters included in the last complete re-indexing and then only serve (in capability statement and otherwise) the ones that are completely indexed.
-
-When removing a search parameter, we should immediately remove it from the capability statement, stop honoring it and when the user initiates a re-index, the indexing data will be gone as well.
+Once a parameter is fully reindexed, it should be reported in the capabilities statement.  In addition, once a search parameter is fully indexed and it is "live", 
 
 # Test Strategy
 
 E2E testing is needed where we first load some set of resources, add `SearchParameter`, call `$reindex`, and verify that search works.
+Variations:
+* Update an existing parameter, reindex and then search
+* Remove a parameter, have it immediately unavailable for search and not in the capabilities statement
 
 # Security
 
-The `/SearchParameter` endpoint may need special RBAC rules once we have RBAC built out. Similarly, `$reindex` should be a privileged operation because it could change the search behavior and it consumes resources that could change the performance of the service during re-indexing. All of this should be discussed in the context of the control plane, which may need some modifications moving forvard.
-
-# Other
-
-Re-indexing could be computationally expensive. From a cost perspective, it would make sense to give the customer the opportunity to scale up while re-indexing. We should consider if the frontend or the backend would need to scale more and provide guidance to the customer.
+POST/PUT/DELETE `/SearchParameter` endpoint will be secured using a role called `searchAdmin` we will secure reindexing with the same role (essentially renaming the reindex role)
