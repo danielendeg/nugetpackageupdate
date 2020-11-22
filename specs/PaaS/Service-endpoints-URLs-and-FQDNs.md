@@ -13,45 +13,57 @@ When we think about service FQDNs and URLs we need to consider several aspects:
 * Future services and how they fit into the naming scheme
 * Support for the custom domain – Bring Your Own Domain (BYOD)
 
-Currently we are considering between four options:
+Currently we are considering between three options:
 
-* https://**accountname**.azurehealthcareapis.com/**service**
-* https://**accountname**.**service**.azurehealthcareapis.com/
-* https://**my-organization**.azurehealthcareapis.com/_**service**
-* https://**my-organization**.azurehealthcareapis.com/**service**/**accountname**
+1. https://**workspace**.azurehealthcareapis.com/**service**/**dataset**
+1. https://**workspace**.**service**.azurehealthcareapis.com/**dataset**
+1. https://**workspace-dataset**.**service**.azurehealthcareapis.com/
 
-Where **service** represents one of the core services (fhir, dicom, genomics) and **accountname** represents assigned account name of the service endpoint
+Where **service** represents one of the core services (fhir, dicom, genomics, iot) and **workspace** represents workspace name and **dataset** represents specific dataset (named instance of the service).
 
-### Option 1: https://**accountname**.azurehealthcareapis.com/**service**
+There are currently two major limitations for our FQDN/URLs:
 
-This is the current model for service naming, where we create endpoint **accountname.azurehealthcareapis.com** and map the root to the FHIR Server. Moving forward we could (for backward compatibility) still map the FHIR server to root URL, but then ass a **service** path to url (fhir, dicom,...).
+* SSL certificates can only support only one wild card subdomain.  This effectively prevents another option where the dataset could be a subdomain (https://**dataset**.**workspace**.**service**.azurehealthcareapis.com/**dataset**).  To support this today we would need to create SSL certificates for each workspace the customer creates.  At this the time the automation for production certificates to support this does not exist.
+* SMART on FHIR requires the audience and the service URL match.  This is an issue for option 1 & 2 because AAD doesn't support wildcards in the path.  We are currently following up with the AAD team to see if that is a feature on their roadmap.
 
-Example would be: https://account1.azurehealthcareapis.com/fhir, where for backward compatibility we could have FHIR server mapped to the root https://account1.azurehealthcareapis.com, and expose same FHIR server also at path https://account1.azurehealthcareapis.com/fhir and DICOM server at https://account1.azurehealthcareapis.com/dicom
+### Option 1: https://**workspace**.azurehealthcareapis.com/**service**/**dataset**
+
+This is the current model for service naming, where we create endpoint **account.azurehealthcareapis.com** and map the root to the FHIR Server. Moving forward we could (for backward compatibility) still map the FHIR server to root URL, but then ass a **service** path to url (fhir, dicom,...).
+
+Example would be: https://account1.azurehealthcareapis.com/fhir/dataset1, where for backward compatibility we could have FHIR server mapped to the root https://account1.azurehealthcareapis.com, and expose same FHIR server also at path https://account1.azurehealthcareapis.com/fhir/dataset1 and DICOM server at https://account1.azurehealthcareapis.com/dicom/dataset2
 
 * Pro: Easy backward compatibility
 * Pro: Consistent naming with existing naming scheme
 * Pro: No change in existing TLS certificates as FQDN stays the same
 * Con: Does not allow adding new **services** endpoint under the same account
 * Con: More complex routing between **services** as we would need to parse the url
+* Con: Breaks SMART on FHIR
 
-### Option 2: https://**accountname**.**service**.azurehealthcareapis.com/
+### Option 2: https://**workspace**.**service**.azurehealthcareapis.com/**dataset**
 
-In this model, we would break services at the FQDN level, where we would add **service** as part of the FQDN (fhir, dicom...). This would still allow us to mantain backward compatibility by still creating a legacy endpoint that would map to FHIR service.
+In this model, we would break services at the FQDN level, where we would add **service** as part of the FQDN (fhir, dicom...). This would still allow us to maintain backward compatibility by still creating a legacy endpoint that would map to FHIR service.
 
-Example of this would be: https://account1.fhir.azurehealthcareapis.com, https://account1.dicom.azurehealthcareapis.com
+Example of this would be: https://account1.fhir.azurehealthcareapis.com/dataset1, https://account1.dicom.azurehealthcareapis.com/dataset2
 
 * Pro: Service routing is easy on the domain level
 * Pro: Good backward compatibility
 * Con: Does not allow adding new **services** endpoint under the same account
-* Con: Modifications of our TLS certificates 
+* Con: Modifications of our TLS certificates
+* Con: Breaks SMART on FHIR
 
-### Option 3 & 4: https://**my-organization**.azurehealthcareapis.com/_**service** or https://**my-organization**.azurehealthcareapis.com/**service**/**accountname**
+### Option 3: https://**workspace-dataset**.**service**.azurehealthcareapis.com/
 
-This two options are more complex one as they introduce the concept of Organization or Workbook or Project etc... The concept is that a customer can create a collection of services under common naming scheme. This could be good if we would allow a customer to create new endpoints of existing services or new services under the same URL.
+Option 3 is a modification of option two that includes the dataset concatenated with the workspace to form the subdomain.
 
-Example: https://project1.azurehealthcareapis.com/fhir/service1, https://project1.azurehealthcareapis.com/fhir/service1-deid, https://project1.azurehealthcareapis.com/dicom/service1
+Example of this would be: https://account1-dataset1.fhir.azurehealthcareapis.com/dataset1, https://account1-dataset2.dicom.azurehealthcareapis.com
 
-* Pro: Allows new ways to combine the services under the same organization, project, workbook,...
-* Pro: Flexible naming scheme for including de-id endpoints
-* Con: More complex to maintain backward compatibility
-* Con: More complex routing between **services** as we would need to parse the url
+* Pro: Service routing is easy on the domain level
+* Pro: Good backward compatibility
+* Pro: Works with existing AAD constraints
+* Con: Does not allow adding new **services** endpoint under the same account
+* Con: Modifications of our TLS certificates
+* Con: Non-standard URL pattern.
+
+### Recommendation
+
+At this time we are preceding with **option 3** as the recommendation. Workspaces will be globally unique.  In addition hyphens will be prohibited characters for workspace names to prevent collisions between different hyphenated workspace and dataset combinations.  We are planning on keeping the azurehealthcareapis.com domain for now though this may change prior to release.  The inclusion of the service in the FQDN will prevent collisions between Gen 1 FHIR services and the Gen 2 services.
