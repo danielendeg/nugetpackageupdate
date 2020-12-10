@@ -74,8 +74,9 @@ The creation of the Managed Identity will also result in the creation of a certi
 
 The following properties will be required when configuring an ingestion point for this connection type
 
-- connectionType: Must be 'EventHub'
-- resourceId: The Resource Id of the EventHub to pull events from.
+- eventHubName: The name of the EventHub to read events from.
+- consumerGroup: Optional. Specifies the consumer group to use. If not specified the default consumer group will be used.
+- fullyQualifiedEventHubNamespace: The fully qualified DNS name for the EventHub Namespace to connect to.
 
 Example:
 
@@ -92,8 +93,9 @@ Example:
         ],
         "properties": {
             "ingestionEndpointConfiguration": {
-                "connectionType": "EventHub",
-                "resourceId": "[resourceId(<External Subscription>,<External ResourceGroup>,'Microsoft.EventHub/namespaces/eventhubs', 'eventHubName')]"
+                "eventHubName"  : "EventHub",
+                "consumerGroup" : "consumerGroupA"
+                "fullyQualifiedEventHubNamespace": "myeventhub.servicesbus.windows.net"
             }
         }
     }
