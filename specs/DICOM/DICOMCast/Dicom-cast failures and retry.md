@@ -4,7 +4,7 @@
  Currently when processing change feed entries, certain errors cause the entire dicom-cast application to shut down and stop processing all change feed entries. The current logging of failures is also incomplete as it is difficult for the user to track down which specific dicom file caused the issue.
 
  ## Goals
- 1. Comprehensive retry policy for errors that can be resolved without reuploading a dicom file
+ 1. Comprehensive retry policy for errors that can be resolved without re-uploading a dicom file
     1. In v1 we will allow for the change feed to continue processing and store failed change feed entries, but we will not retry them.
     1. In a future version we may retry entries based on a signal from the user triggering a retry.
  1. Proper logging of failures to allow users to fix any errors on the Dicom or FHIR side
@@ -19,7 +19,7 @@
  Examples: Server Too Busy Exception from FHIR, Timeout waiting for response from FHIR
 
  **Retry Policy for Transient Errors**
- 1. Retry the same entry with exponential back off (or a similar backoff policy)
+ 1. Retry the same entry with exponential back off (or a similar back-off policy)
     1. Log each failure
  1. Do not process additional change feed entries until retry this one x amount of times
  1. After x times, mark it as un-processable, log an error and then move onto the next entry
@@ -39,7 +39,7 @@ These can be broken down further into errors that are caused by the FHIR server 
 
 ### **Fhir side errors**
 
-These errors are errors that we get from the FHIR server when we either try to retrieve an existing resource to modify it or when we make a transaction to update/create resources. Since they are errors that are on the FHIR side, most of them can be resolved by manually fixing something in the FHIR server. Since the dicom file does not need to be changed for this to be fixed, the changes would never get captured in the change log so unless the user deletes and reuploads the dicom file the change feed entry would not be processed again. 
+These errors are errors that we get from the FHIR server when we either try to retrieve an existing resource to modify it or when we make a transaction to update/create resources. Since they are errors that are on the FHIR side, most of them can be resolved by manually fixing something in the FHIR server. Since the dicom file does not need to be changed for this to be fixed, the changes would never get captured in the change log so unless the user deletes and re-uploads the dicom file the change feed entry would not be processed again. 
 
 
 For now we will notify users of these errors, but in the future, we would like to create a retry policy for these cases.
@@ -50,8 +50,8 @@ Some examples of these errors and how they can be handled are following:
 | Exception | Thrown | Reason/Fix | 
 | :------- | :----- | :------- | 
 | ResourceConflictException | A FHIR resource has been modified or created that we are also trying to change | Could possibly be resolved with automatic retry (currently we do this) |
-| MultipleMatchingResourceException | When trying to retrieve an existing FHIR resources and there are multiple | One will most likely need to be manually deleted | 
-| FhirResourceValidationException | When the FHIR resource retrieved is invalid | Some of the data in the FHIR resource is invaid, would need to be manually updted |
+| MultipleMatchingResourceException | When trying to retrieve an existing FHIR resources and there are multiple | One will most likely need to be manually deleted or a more specific condition needs to be provided | 
+| FhirResourceValidationException | When the FHIR resource retrieved is invalid | Some of the data in the FHIR resource is invalid, would need to be manually updated |
 | TransactionFailedException | By FHIR server in response to a request |  | 
 | InvalidFhirResponse | When get a response from FHIR after posting bundle when processing the response we find an error with it. | Most likely due to an error when processing the request in the FHIR server. Uncertain of fix. |
 
@@ -61,7 +61,7 @@ For a few of these errors, automatically retrying could possibly result in a suc
 **v1 retry policy**
 (or lack there of)
 
-After review, it was determined that in v1 for these errors we will not implement a retry policy due to unkowns regarding when the items will be ready to retry.
+After review, it was determined that in v1 for these errors we will not implement a retry policy due to unknowns regarding when the items will be ready to retry.
 
 For intransient errors that are thrown we will catch them so that we can continue to process change feed entries. We will store failed change feed entries into a table in Azure Table Storage so that the user can find entries that we failed to process.
 
@@ -71,7 +71,7 @@ We will also move the sync state from the blob storage and put it into Azure Tab
 
 
 **Possible v2 Retry Policy:**
-1. Place any failed change feed entrys into the persistant storage for dicom-cast
+1. Place any failed change feed entries into the persistent storage for dicom-cast
     1. In addition to the change feed entry, we should store the number of times it has failed, time of most recent failure, and possibly the reason for the failure
 1.  User notifies dicom-cast to retry previously failed change feed entry. (The exact method for this notification has not yet been determined)
 1.  Make a request for the updated change feed entry from the dicom server
@@ -90,26 +90,26 @@ We will also move the sync state from the blob storage and put it into Azure Tab
     1. At this point for these errors we will not automatically retry, we prefer that the user notifies us somehow and we use that to trigger a retry. This will be implemented in a future iteration.
 1. What is the form of storage that we should use?
     1. Storage Blob
-    1. Queue Stoarge
+    1. Queue Storage
     1. Table Storage
-        1. We decided to go with this as it allows us to persist the data, retrieve and update it as needed, and also can be used to store the syncstate (data on how much of the change feed dicom-cast has processed that is currently being stored in a storage blob.).
+        1. We decided to go with this as it allows us to persist the data, retrieve and update it as needed, and also can be used to store the sync state (data on how much of the change feed dicom-cast has processed that is currently being stored in a storage blob.).
 
 
 ### **DICOM Side Errors**
 These errors  are the errors that are raised due to the change feed entry having a problem in it, particularly if the metadata is missing information or is an invalid format.
-We will not have a retry policy for these because they require the dicom file to be reuploaded, but they may be stored in FHIR depending on level of validation configured in dicom-cast
+We will not have a retry policy for these because they require the dicom file to be re-uploaded, but they may be stored in FHIR depending on level of validation configured in dicom-cast
 
 **Validation levels**
 1. Full Validation
     1. We will only do the transaction if all the meta data we get is valid
-        1. In the case that there is invalid data we will not try to make a FHIR transaction, we will just log the error. The solution is for the user to delete the instance and reupload which would be captured in the change feed.
+        1. In the case that there is invalid data we will not try to make a FHIR transaction, we will just log the error. The solution is for the user to delete the instance and re-upload which would be captured in the change feed.
         1. Persist which entries failed in Azure Table Storage so user can access if needed.
 1. Partial Validation (best effort store)
     1. As long as the required elements for the transaction (like InstanceID etc) are present we will complete the transaction.
         1. For any data that is invalid we will log a warning saying which field is invalid and that we did not store it into FHIR
         1. Possibly persist data that is failing to be stored in a table so user can access.
 
-The level of validation should be configurabble and the user can set it in the application settings.
+The level of validation should be configurable and the user can set it in the application settings.
 
 
 ## Logging Policy
@@ -126,7 +126,7 @@ To allow oss users more flexibility on how the want to get errors, we will abstr
 
 ## Testing Strategy
 
-Unit tests to test individual components such as storing to Azure Table Storage and continuing proccessing of change feed in case of a failure when processing a change feed entry.
+Unit tests to test individual components such as storing to Azure Table Storage and continuing processing of change feed in case of a failure when processing a change feed entry.
 
 ## Metrics
 Some metrics we may consider tracking for v1
