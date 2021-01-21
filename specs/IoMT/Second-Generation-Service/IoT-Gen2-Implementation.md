@@ -1,3 +1,5 @@
+[[TOC]]
+
 # Background
 
 The purpose of this document is to detail the changes needed to support Gen 2 modifications for how IomT Connectors get deployed and ingest customer data
@@ -13,6 +15,115 @@ The Gen 2 workstream has identified several key areas of improvement:
 In order to support these several changes need to be made to the customer experience for configuring IomT Connectors as well as to the Resource Provisioning process.
 
 ## Design
+
+### API Definitions
+
+**Microsoft.HealthcareApis/workspaces/iotconnectors**
+```json
+    {
+        "type": "Microsoft.HealthcareApis/workspaces/iotconnectors",
+        "name": "myworkspace/myconnector",
+        "apiVersion": "2020-11-01-preview",
+        "location": "US West 2",
+        "identity": {
+            "type": "SystemAssigned"
+        },
+        "properties": {
+            "ingestionEndpointConfiguration": {
+                "eventHubName"  : "EventHub",
+                "consumerGroup" : "consumerGroupA",
+                "fullyQualifiedEventHubNamespace": "myeventhub.servicesbus.windows.net"
+            },
+            "deviceMapping" :
+            {
+                "content" : {
+                    "templateType": "CollectionContent",
+                    "template": [
+                        {
+                            "templateType": "JsonPathContent",
+                            "template": {
+                                "typeName": "heartrate",
+                                "typeMatchExpression": "$..[?(@heartrate)]",
+                                "deviceIdExpression": "$.deviceid",
+                                "timestampExpression": "$.measurementdatetime",
+                                "values": [
+                                    {
+                                        "required": "true",
+                                        "valueExpression": "$.heartrate",
+                                        "valueName": "hr"
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                }
+            }
+        }
+    }
+
+```
+
+The ```iotconnectors``` resource type has the following properties:
+1. ```ingestionEndpointConfiguration```: Defines the source of data for the IoT Connector. Currently only Event Hub is supported.  Implied is the MSI of the service will be granted read access to the Event Hub.  The properties of the ingestion endpoint are the information required to resolve the Event Hub.
+1. ```deviceMapping```: Defines the device mappings to use.  Has another property ```content``` to allow for future extension.  For now ```content``` will be the only type supported but in the future we may support ```reference``` types.  See **Other Considerations and Future Extensibility** for more details.
+
+
+**Microsoft.HealthcareApis/workspaces/iotconnectors/destinations**
+```json
+    {
+        "type": "Microsoft.HealthcareApis/workspaces/iotconnectors/destinations",
+        "name": "myworkspace/myconnector/mydestination",
+        "apiVersion": "2020-11-01-preview",
+        "location": "US West 2",
+        "properties": {
+            "destinationType": "FhirService",
+            "resourceIdentityResolutionType": "Create",
+            "fhirServiceResourceId": "subscriptions/d1ccd58b-15d5-40f0-a533-f996d447ee57/resourceGroups/myrg/providers/Microsoft.HealthcareApis/workspaces/myworkspace/fhirservices/myfhirservice",
+            "fhirMapping": {
+                "content": {
+                    "templateType": "CollectionFhirTemplate",
+                    "template": [
+                        {
+                            "templateType": "CodeValueFhir",
+                            "template": {
+                                "codes": [
+                                    {
+                                        "code": "8867-4",
+                                        "system": "http://loinc.org",
+                                        "display": "Heart rate"
+                                    }
+                                ],
+                                "periodInterval": 60,
+                                "typeName": "heartrate",
+                                "value": {
+                                    "defaultPeriod": 5000,
+                                    "unit": "count/min",
+                                    "valueName": "hr",
+                                    "valueType": "SampledData"
+                                }
+                            }
+                        }
+                    ]
+                }
+            }            
+        }
+    }
+
+```
+
+The ```iotconnectors/destinations``` resource type has the following properties:
+1. ```destinationType```: The type of destination.  Currently only ```FhirService``` is supported.
+1. ```resourceIdentityResolutionType```:  Determines how identities are resolved on the FHIR server.  Currently supported options are ```Create``` or ```Lookup```.
+1. ```fhirServiceResourceId```: The fully qualified resource id to the FHIR service we will connect to.  FHIR Service should resided with in the same workspace as the ```iotconnectors``` resource or be a Gen1 FHIR service in the same subscription.
+1. ```fhirMapping```: Defines the FHIR mappings to use.  Has another property ```content``` to allow for future extension.  For now ```content``` will be the only type supported but in the future we may support ```reference``` types.  See **Other Considerations and Future Extensibility** for more details.
+
+**Other Considerations and Future Extensibility**
+1.  Because mappings are no longer their own resources we will need to implement patch support to allow the use to selectivity modify the mapping without needing to supply other properties.  One unforunate side effect though is the ARM template which is fully declartive will need to always have the mappings defined otherwise they will be overwritten.  One benefit though is we can validate the mappings are valid and present at resource creation so a customer can no longer create an ```iotconnectors``` resource with out device mappings like they can in Gen1 today.
+1. Support additional ingestion types like IoT Hub.  The current thinking is we would have an different entity definition that we will infer by the structure, i.e. the presence of an ```iotHubName``` property instead of an ```eventHubName``` property.  An alternative is to include an explicty type property that we enumerate and extend in the future as new types are supported. 
+1. Seeding the ingestion endpoint.  The current assumption is if the Event Hub is added or changed the Iot Connector will start from the beginning. If that isn't sufficient we will need to extend the configuration to include a starting point.
+1. Currently the device mapping is defined inline as part of the Iot Connector.  In the future we may support name ```iotmappings``` resources of the IoT Connector that can be defined outside the IoT Connector and added as references.  The ```content``` would be extended to allow either the inline device mapping definition or a reference pointing to the mapping resource to use.  These ```iotmappings``` resources would be siblings of the Iot Connector(s), i.e. children of the workspace.  This allows the user to reuse mappings across multiple connectors and destinations within the workspace.  They unfortunately can't be implemented as children of the ```iotconnectors``` resource if we want to reuse the ```deviceMappings``` property on the ```iotconnectors``` resource.  If the new resource type is implemented as a child of the ```iotconnectors``` resource there would be a circular dependency preventing a declartive expression with in an ARM template (the mapping can't be created without the parent connector and you won't be able to reference the mapping in the parent since it isn't created).
+1.  Additional properties for scalability maybe added in the future.  For example we are currently restricting the Event Hub namepspace we provision to 1 TU but we may allow the customer to increase the capacity in the future.  Such a property though would mostly likely need to be added at the workspace level since the same Event Hub namespace will be shared among all IoT Connectors in the same workspaces.
+1. The FHIR service used in the destination is currently referenced by the resource id, assuming the FHIR service is hosted on Azure and within the same workspace.  If we want to support non-Azure hosted FHIR services or allow a proxy to be used we will need to change this or add aditional options/type.
 
 ### Update Gen 2 (Workspace) Resource Definitions
 
