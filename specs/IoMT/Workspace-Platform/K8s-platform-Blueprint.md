@@ -81,6 +81,37 @@ Furthermore, we can also leverage the Namespace to organize the resources and ma
 
 The final design of naming convention would better be top-down and decided from RP Service side.
 
+# Resource Deprovision
+Deprovision of an IoT Connector service instance means that we should delete(hard-delete) all the resources provisioned for that service instance and purge all data in other resources related to that instance, for example, any registry of any sidecar services, on the target cluster.
+
+## Requirements
+1. The RP Worker should be able to deprovision or delete resources that were created and configured for a designated IoT Connector service instance on the AKS cluster.
+1. The RP Worker should be able to query or pull the current status of the deprovision process.
+1. When the RP worker deletes a request that doesn't exist or has deletion in progress, the request should be handled differently and gracefully.
+
+## Assumptions
+1. Deprovision in this doc scopes to the resources managed on the AKS cluster. 
+1. The triggers are Kubernetes requests with its client. In the Production, it should be the C# K8s SDK client. In the development, it may be either SDK or kubectl.
+1. By design, there should be only one deprovision request to process for any IoT Connector instance at one time. Before the first deprovision request finished, either succeeded or failed, no other provision or deprovision requests should arrive.
+1. Deprovision may take time to finish, either with a successful result or failed result. The deprovision process of the AKS resources does not need to notify the RP service actively. It should support pull-mode for the client to check the current status.
+1. Deprovision does not have to consider a grace period for draining all the data on the fly before terminating all Pods or containers; it should immediately start deleting the resources.
+1. Deprovision may end in a failed case for various reasons; AKS needs to submit telemetry and communicate the failure reasons. In the worst case, the technician will arrive and fix the problem in the case that all automated approaches failed.
+1. Deprovision takes priority over the upgrade or the deployment of the code change since customer had determined to delete everything immediately.
+
+
+## Solution
+The deprovision will rely on the CRD declarative API. The RP worker tells AKS CRD API that a designated IoT Connector instance should be deleted, the CRD API operator will reconcile and make sure the goal should be achieved or report telemetry for errors. 
+
+Kubernetes provides the garbage collection mechanism to clean up the dependent or orphaned resources that do not have the owner resource existing anymore, called cascading deletion. There are two modes of cascading deletion: background and foreground. The tech specs are defined at [here](https://kubernetes.io/docs/concepts/workloads/controllers/garbage-collection/).
+
+In the background mode, the root CRD will get deleted immediately. The remaining dependents get deleted implicitly unless we find or create an additional way to track and check them or use a success-by-default assumption until the alarm is on. This mode will increase either logical or technical complexity for knowing the exact deprovision status of all resources. 
+
+Compared to the background mode, in the foreground mode, the "root" CRD resource has visibility to all its dependents' progress explicitly, until all dependents get deleted, then itself gets deleted. During that time, the RP can query the CRD object for the progress.
+
+Another option considered was use the imperative way to instruct the AKS to delete the resources. This will lose the encapsulation of the resources and move the responsibilities to the RP worker side.
+
+# Repo structure
+
 ## Package Structure
 
 **Status: The package(namespace) structure should be delineated in the diagram. The model of the CRD API contract details will tend to update.**
@@ -209,3 +240,21 @@ The running Pod object owned by above object:
 ```
 
 [Read more](https://kubernetes.io/docs/concepts/workloads/controllers/garbage-collection/)
+
+## Resolved Open questions:
+1. How does RP decide whether the CRD Resource has been purged? 
+   **Option 1:**  Depend on the result from the interface ListNamespacedCustomObject.
+   
+   **Pros:** 
+    - We rely on the result of a 2xx status code and examine whether the resource still exist on the cluster in good hand-shake flow.   
+
+   **Cons:** 
+    - List API needs a generic selector to be assigned, e.g. label or annotation, which make sense for not using the name, which should be unique. However, in this way, we have to maintain the unique name with target selector type, for example, labels.
+
+   **(CHOSEN) Option 2:**  Depend on 404 with GetNamespacedCustomObject  
+   **Pros:** 
+     - We don't need extra naming mechanism since the name of the CR in one namespace must be unique and namespace must be unique as well.
+
+   **Cons:** 
+     - 404 should be reserved for client side errors as the RFC pointed out: "The 4xx class of status code is intended for cases in which the client seems to have erred." In this case, the client, or the RP worker, isn't doing anything erroneous but querying the server with valid intentions. 
+     - Another pitfall is that this approach also would obsfuscate the response shows "CR no longer exists" with other possible mistakes which caused the "Not Found" status on the server side, or AKS cluster. That will confuse the alarming system potentially so we may need to add extra logic for filtering out this erroneous situation as a "valid" use case.
