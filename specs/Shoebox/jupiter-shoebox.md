@@ -83,7 +83,7 @@ outlined below.
     [**shoeboxcore@microsoft.com**](mailto:shoeboxcore@microsoft.com) to
     request exceptions.
 
-## Also, we should plan for the Shoebox onboarding process, which took several months for Gen 1, and start it as soon as we can while providing required information, including documents and packages.
+Also, we should plan for the Shoebox onboarding process, which took quite some time for Gen 1, and start it as soon as we can while providing required information, including documents and packages.
 
 ## Supporting Customer Insights
 
@@ -338,9 +338,9 @@ used.*
 | Provide audit logs and metrics for FHIR                                                                                                                                                                                                                                                                                            | 5/31/21        | P0       |
 | Provide audit logs and metrics for DICOM, including DICOM Cast                                                                                                                                                                                                                                                                     | 5/31/21        | P0       |
 | Provide audit logs and metrics for IoT                                                                                                                                                                                                                                                                                             | 5/31/21        | P0       |
-| Enable Diagnostic Setting on the Azure Portal                                                                                                                                                                                                                                                                                      | 6/31/21        | P0       |
-| Enable exporting data when Private Link is enabled for the FHIR service                                                                                                                                                                                                                                                            | 6/31/21        | P0       |
-| Eliminate any access logs exposed to customers about invalid access attempts (See Private Link [doc](https://microsoft.sharepoint.com/:w:/r/teams/Aznet/_layouts/15/Doc.aspx?sourcedoc=%7B5A022361-2CC6-477E-90C9-20E022337B28%7D&file=Private%20Link%20-%20Validation%20of%20Connection.docx&action=default&mobileredirect=true)) | 6/31/21        | P0       |
+| Enable Diagnostic Setting on the Azure Portal                                                                                                                                                                                                                                                                                      | 6/30/21        | P0       |
+| Enable exporting data when Private Link is enabled for the FHIR service                                                                                                                                                                                                                                                            | 6/30/21        | P0       |
+| Eliminate any access logs exposed to customers about invalid access attempts (See Private Link [doc](https://microsoft.sharepoint.com/:w:/r/teams/Aznet/_layouts/15/Doc.aspx?sourcedoc=%7B5A022361-2CC6-477E-90C9-20E022337B28%7D&file=Private%20Link%20-%20Validation%20of%20Connection.docx&action=default&mobileredirect=true)) | 6/30/21        | P0       |
 |                                                                                                                                                                                                                                                                                                                                    |                |          |
 |                                                                                                                                                                                                                                                                                                                                    |                |          |
 |                                                                                                                                                                                                                                                                                                                                    |                |          |
@@ -555,7 +555,7 @@ preview as part of the release. Use it to align collateral releases.*
 
 #### Target date
 
-Initial rollout: 05/31/2021
+Initial rollout: 06/30/2021
 
 GA: 
 
