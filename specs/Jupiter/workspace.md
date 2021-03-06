@@ -72,7 +72,7 @@ flexible.
 The flowchart below illustrates how a workspace is provisioned and how
 Healthcare API services.
 
-<img src="/media/workspace-flowchart.png" style="width:5.67484in;height:4.4744in" />
+![](media/workspace-flowchart.png)
 
 ## Supporting Customer Insights 
 
@@ -118,7 +118,7 @@ review and approval.
 The flowchart below illustrates how Gen 1 and Jupiter will co-exist and
 API versions we must support during the transition.
 
-<img src="/media/jupiter-api-versions.png" style="width:4.98958in;height:4.125in" />
+![](media/jupiter-api-versions.png)
 
 ## What is Being Proposed? 
 
