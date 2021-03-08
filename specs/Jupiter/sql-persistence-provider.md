@@ -164,7 +164,7 @@ Jupiter GA release, our business will be negatively affected.
 -   At best existing customers will not migrate to Jupiter services,
     thus hindering us from providing latest features to them.
 
--   At worst we will lose existing and new customers to our competitors.
+-   At worst we will lose existing and new customers to our competitors. 
 
 ## Target User / Persona 
 
