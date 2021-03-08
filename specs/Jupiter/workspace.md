@@ -118,6 +118,7 @@ review and approval.
 The flowchart below illustrates how Gen 1 and Jupiter will co-exist and
 API versions we must support during the transition.
 
+
 ![](media/jupiter-api-versions.png)
 
 ## What is Being Proposed? 
