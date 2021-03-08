@@ -86,8 +86,7 @@ left and depends on two different objectives, Recovery Point Objective
 (RPO) and Recovery Time Object (RTO). The goals of DR are have low or
 even zero RPO and RTO.
 
-This document focuses on the DR, not high availability, for the Gen 1
-service.
+This document focuses on the DR for Gen 1, not high availability.
 
 ## Supporting Customer Insights 
 
