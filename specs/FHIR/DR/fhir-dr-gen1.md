@@ -274,78 +274,21 @@ and is not to the target customer and how we measure success.*
 *Guidance: This section describes the goals for how the feature is to be
 used.*
 
-<table>
-<thead>
-<tr class="header">
-<th>Goal</th>
-<th>Target Release</th>
-<th>Priority</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td>Customer opens a support ticket request to enable DR on their Azure API for FHIR Account</td>
-<td>3/31</td>
-<td>P0</td>
-</tr>
-<tr class="even">
-<td>We create and enable a Cosmos DB read replica in Azure Paired region or a specific region based on customer request. The read replica is for Geo replication only and not accessible to the customer. Note that the read replica will be become primary read/write data. (<a href="https://nam06.safelinks.protection.outlook.com/?url=https%3A%2F%2Fdocs.microsoft.com%2Fen-us%2Fazure%2Fbest-practices-availability-paired-regions&amp;data=04%7C01%7CBenjamin.Xue%40microsoft.com%7C6f8dba8c4e0e45dd5f7f08d8d519ae7e%7C72f988bf86f141af91ab2d7cd011db47%7C1%7C0%7C637493653563885410%7CUnknown%7CTWFpbGZsb3d8eyJWIjoiMC4wLjAwMDAiLCJQIjoiV2luMzIiLCJBTiI6Ik1haWwiLCJXVCI6Mn0%3D%7C1000&amp;sdata=DZoSfwb5N9%2Bsa%2F067dLTQ6V1DYSmbyrZy5lbMFVt04E%3D&amp;reserved=0">https://docs.microsoft.com/en-us/azure/best-practices-availability-paired-regions</a>)</td>
-<td>3/31</td>
-<td>P0</td>
-</tr>
-<tr class="odd">
-<td>We document how to handle session tokens (for Cosmos DB session consistency model) when a DR is enabled on the account. We also document new RPO and RTO.</td>
-<td>3/31</td>
-<td>P0</td>
-</tr>
-<tr class="even">
-<td>We follow Cosmos DB process for failover and failback. <a href="https://docs.microsoft.com/en-us/azure/cosmos-db/high-availability">https://docs.microsoft.com/en-us/azure/cosmos-db/high-availability</a></td>
-<td>3/31</td>
-<td>P0</td>
-</tr>
-<tr class="odd">
-<td>We offer a RPO of &lt;15min</td>
-<td>3/31</td>
-<td>P0</td>
-</tr>
-<tr class="even">
-<td>We expose a conflict feed through the endpoint so customers can resolve conflicts in replications in case of regional outages</td>
-<td>4/15</td>
-<td>P0</td>
-</tr>
-<tr class="odd">
-<td>We create a secondary environment of compute in paired regions for customers with DR enabled and enable all customer settings including but are not limited to Private Link and CMK if applicable that the paired region can support. It is important that we make users aware of the read only nature of the secondary compute environment.</td>
-<td>4/30</td>
-<td>P1</td>
-</tr>
-<tr class="even">
-<td>We expose a secondary region endpoint in the paired region, which may be different from the one for the primary region. The secondary regional endpoint serves as a read-only environment for the customer but it will become the primary region after DR failover.</td>
-<td>4/30</td>
-<td>P1</td>
-</tr>
-<tr class="odd">
-<td>We expose DR setting in the Azure Portal and CLI to enable DR replica</td>
-<td>4/30</td>
-<td>P1</td>
-</tr>
-<tr class="even">
-<td>We add audit logs for export when the customer enables/disables the DR option</td>
-<td>4/30</td>
-<td>P1</td>
-</tr>
-<tr class="odd">
-<td>At GA we update our billing (and pricing page) reflecting the cost of enabling DR on the account</td>
-<td>4/30</td>
-<td>P1</td>
-</tr>
-<tr class="even">
-<td>Our RPO &lt;15min RTO &lt;15min<br />
-https://docs.microsoft.com/en-us/azure/cosmos-db/consistency-levels</td>
-<td>4/30</td>
-<td>P1</td>
-</tr>
-</tbody>
-</table>
+
+| Goal                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   | Target Release | Priority |
+| -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------- | -------- |
+| Customer opens a support ticket request to enable DR on their Azure API for FHIR Account                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               | 12-Apr         | P0       |
+| [We create and enable a Cosmos DB read replica in Azure Paired region or a specific region based on customer request. The read replica is for Geo replication only and not accessible to the customer. Note that the read replica will be become primary read/write data. (https://docs.microsoft.com/en-us/azure/best-practices-availability-paired-regions)](https://nam06.safelinks.protection.outlook.com/?url=https%3A%2F%2Fdocs.microsoft.com%2Fen-us%2Fazure%2Fbest-practices-availability-paired-regions&data=04%7C01%7CBenjamin.Xue%40microsoft.com%7C6f8dba8c4e0e45dd5f7f08d8d519ae7e%7C72f988bf86f141af91ab2d7cd011db47%7C1%7C0%7C637493653563885410%7CUnknown%7CTWFpbGZsb3d8eyJWIjoiMC4wLjAwMDAiLCJQIjoiV2luMzIiLCJBTiI6Ik1haWwiLCJXVCI6Mn0%3D%7C1000&sdata=DZoSfwb5N9%2Bsa%2F067dLTQ6V1DYSmbyrZy5lbMFVt04E%3D&reserved=0) | 12-Apr         | P0       |
+| [We follow Cosmos DB process for failover and failback. https://docs.microsoft.com/en-us/azure/cosmos-db/high-availability](https://docs.microsoft.com/en-us/azure/cosmos-db/high-availability)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        | 12-Apr         | P0       |
+| We offer Recovery Point Objective (RPO) is 15 minutes; Recovery Time Objective (RTO) is 120 minutes.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   | 12-Apr         | P0       |
+| We create a secondary environment of compute in an Azure paired region or specific region for customers with DR enabled and enable all customer settings if applicable. The secondary compute environment is for DR only, not accessible to users.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     | 17-May         | P0       |
+| We expose DR setting in the Azure Portal and CLI to enable DR replica                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  | 17-May         | P0       |
+| We add the DR audit trail to audit logs for export when the customer enables/disables the DR option.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   | 17-May         | P1       |
+| At GA we update our billing (and pricing page) reflecting the cost of enabling DR on the account.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      | 17-May         | P0       |
+| We offer Recovery Point Objective (RPO) is 15 minutes; Recovery Time Objective (RTO) is 60 minutes. https://docs.microsoft.com/en-us/azure/cosmos-db/consistency-levels                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      | 17-May         | P0       |
+   
+
+
 
 ## Non-Goals (PM/Dev) 
 
