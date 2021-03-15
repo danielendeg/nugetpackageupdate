@@ -386,22 +386,21 @@ and is not to the target customer and how we measure success.*
 *Guidance: This section describes the goals for how the feature is to be
 used.*
 
-| Goal                                                                                                                                                                                                                                                                                                                               | Target Release | Priority |
-|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|----------------|----------|
-| Provide workspace audit logs                                                                                                                                                                                                                                                                                                       | 4/31/21        | P1       |
-| Start Shoebox onboarding Process                                                                                                                                                                                                                                                                                                   | 5/1/21         | P0       |
-| Provide audit logs and metrics for FHIR                                                                                                                                                                                                                                                                                            | 5/31/21        | P0       |
-| Provide audit logs and metrics for DICOM, including DICOM Cast                                                                                                                                                                                                                                                                     | 5/31/21        | P0       |
-| Provide audit logs and metrics for IoT                                                                                                                                                                                                                                                                                             | 5/31/21        | P0       |
-| Enable Diagnostic Setting on the Azure Portal                                                                                                                                                                                                                                                                                      | 6/30/21        | P0       |
-| Enable exporting data when Private Link is enabled for the FHIR service                                                                                                                                                                                                                                                            | 6/30/21        | P0       |
-| Eliminate any access logs exposed to customers about invalid access attempts (See Private Link [doc](https://microsoft.sharepoint.com/:w:/r/teams/Aznet/_layouts/15/Doc.aspx?sourcedoc=%7B5A022361-2CC6-477E-90C9-20E022337B28%7D&file=Private%20Link%20-%20Validation%20of%20Connection.docx&action=default&mobileredirect=true)) | 6/30/21        | P0       |
-|                                                                                                                                                                                                                                                                                                                                    |                |          |
-|                                                                                                                                                                                                                                                                                                                                    |                |          |
-|                                                                                                                                                                                                                                                                                                                                    |                |          |
-|                                                                                                                                                                                                                                                                                                                                    |                |          |
-|                                                                                                                                                                                                                                                                                                                                    |                |          |
-|                                                                                                                                                                                                                                                                                                                                    |                |          |
+| Goal                                                                    | Target Release | Priority |
+|-------------------------------------------------------------------------|----------------|----------|
+| Provide workspace audit logs                                            | 4/30/2021      | P0       |
+| Start Shoebox onboarding Process                                        | 5/3/2021       | P0       |
+| Provide audit logs and metrics for FHIR                                 | 5/31/2021      | P0       |
+| Provide audit logs and metrics for DICOM, including DICOM Cast          | 5/31/2021      | P0       |
+| Provide audit logs and metrics for IoT                                  | 5/31/2021      | P0       |
+| Enable Diagnostic Setting on the Azure Portal                           | 6/30/2021      | P0       |
+| Enable exporting data when Private Link is enabled for the FHIR service | 6/30/2021      | P0       |
+|                                                                         |                |          |
+|                                                                         |                |          |
+|                                                                         |                |          |
+|                                                                         |                |          |
+|                                                                         |                |          |
+|                                                                         |                |          |
 
 ## Non-Goals (PM/Dev) 
 
