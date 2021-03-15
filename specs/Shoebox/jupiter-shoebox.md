@@ -85,7 +85,14 @@ outlined below.
 
 Also, we should plan for the Shoebox onboarding process, which took quite some time for Gen 1, and start it as soon as we can while providing required information, including documents and packages.
 
-The Azure API for FHIR service includes the following fields in the audit log.
+One customer requirement on resource logd or metrics is that we provide invididual numbers rather than the averages or sums. 
+For example, customers want to see how long each request takes in milliseconds, and how much the transaction costs.  While it is possible
+to combine the new fields for individual values with audit logs and metrics, it may be difficult for customer to parse the info. 
+So it may work better that we provide a new log category to capture individual values and make the option configurable. 
+
+Below are audit logs and metrics we support today and can be used as reference.
+
+**The Azure API for FHIR service includes the following fields in the audit log.**
 
 | Field Name             | Type     | Notes                                                                          |
 |------------------------|----------|--------------------------------------------------------------------------------|
