@@ -55,12 +55,12 @@ target user. What is their goal? Why does this matter to them? Can be of
 the form, “Customers have a hard time doing FOO, I know this because I
 heard it from X, Y, Z.”*
 
-As we work towards Jupiter release, not only must we continue to support
-the Azure required Shoebox feature for Azure API for FHIR in Azure, but
+As we work toward Jupiter release, not only must we continue to support
+the required Shoebox feature for Azure API for FHIR in Azure, but
 also expand the support for new services such as DICOM and IoT.
 
 While the underlying technologies vary for the Healthcare API services,
-it is important that we define a set of common audit logs and metrics
+it is important that we define a set of common audit logs and resource logs or metrics
 for all services, along with unique logs and metrics for each service,
 and develop a framework that enables easy plugging in for future
 services.
@@ -84,6 +84,54 @@ outlined below.
     request exceptions.
 
 Also, we should plan for the Shoebox onboarding process, which took quite some time for Gen 1, and start it as soon as we can while providing required information, including documents and packages.
+
+The Azure API for FHIR service includes the following fields in the audit log.
+
+| Field Name             | Type     | Notes                                                                          |
+|------------------------|----------|--------------------------------------------------------------------------------|
+| CallerIdentity         | Dynamic  | A generic property bag containing identity information                         |
+| CallerIdentityIssuer   | String   | Issuer                                                                         |
+| CallerIdentityObjectId | String   | Object_Id                                                                      |
+| CallerIPAddress        | String   | The caller’s IP address                                                        |
+| CorrelationId          | String   | Correlation ID                                                                 |
+| FhirResourceType       | String   | The resource type for which the operation was executed                         |
+| LogCategory            | String   | The log category (we are currently returning ‘AuditLogs’ LogCategory)          |
+| Location               | String   | The location of the server that processed the request (e.g., South Central US) |
+| OperationDuration      | Int      | The time it took to complete this request in seconds                           |
+| OperationName          | String   | Describes the type of operation (e.g. update, search-type)                     |
+| RequestUri             | String   | The request URI                                                                |
+| ResultType             | String   | The available values currently are Started, Succeeded, or Failed               |
+| StatusCode             | Int      | The HTTP status code. (e.g., 200)                                              |
+| TimeGenerated          | DateTime | Date and time of the event                                                     |
+| Properties             | String   | Describes the properties of the fhirResourceType                               |
+| SourceSystem           | String   | Source System (always Azure in this case)                                      |
+| TenantId               | String   | Tenant ID                                                                      |
+| Type                   | String   | Type of log (always MicrosoftHealthcareApisAuditLog in this case)              |
+| ResourceId             | String   | Details about the resource                                                     |
+
+The metrics for Azure API for FHIR and IoT include the following fields.
+
+| Metric                                     | Exportable via Diagnostic Settings? | Metric Display Name             | Unit         | Aggregation Type | Description                                                                                                                                           | Dimensions                                                                                     |
+|--------------------------------------------|-------------------------------------|---------------------------------|--------------|------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------|
+| Availability                               | Yes                                 | Availability                    | Percent      | Average          | The availability rate of the service.                                                                                                                 | No Dimensions                                                                                  |
+| CosmosDbCollectionSize                     | Yes                                 | Cosmos DB Collection Size       | Bytes        | Total            | The size of the backing Cosmos DB collection, in bytes.                                                                                               | No Dimensions                                                                                  |
+| CosmosDbIndexSize                          | Yes                                 | Cosmos DB Index Size            | Bytes        | Total            | The size of the backing Cosmos DB collection's index, in bytes.                                                                                       | No Dimensions                                                                                  |
+| CosmosDbRequestCharge                      | Yes                                 | Cosmos DB RU usage              | Count        | Total            | The RU usage of requests to the service's backing Cosmos DB.                                                                                          | Operation, ResourceType                                                                        |
+| CosmosDbRequests                           | Yes                                 | Service Cosmos DB requests      | Count        | Sum              | The total number of requests made to a service's backing Cosmos DB.                                                                                   | Operation, ResourceType                                                                        |
+| CosmosDbThrottleRate                       | Yes                                 | Service Cosmos DB throttle rate | Count        | Sum              | The total number of 429 responses from a service's backing Cosmos DB.                                                                                 | Operation, ResourceType                                                                        |
+| IoTConnectorDeviceEvent                    | Yes                                 | Number of Incoming Messages     | Count        | Sum              | The total number of messages received by the Azure IoT Connector for FHIR prior to any normalization.                                                 | Operation, ConnectorName                                                                       |
+| IoTConnectorDeviceEventProcessingLatencyMs | Yes                                 | Average Normalize Stage Latency | Milliseconds | Average          | The average time between an event's ingestion time and the time the event is processed for normalization.                                             | Operation, ConnectorName                                                                       |
+| IoTConnectorMeasurement                    | Yes                                 | Number of Measurements          | Count        | Sum              | The number of normalized value readings received by the FHIR conversion stage of the Azure IoT Connector for FHIR.                                    | Operation, ConnectorName                                                                       |
+| IoTConnectorMeasurementGroup               | Yes                                 | Number of Message Groups        | Count        | Sum              | The total number of unique groupings of measurements across type, device, patient, and configured time period generated by the FHIR conversion stage. | Operation, ConnectorName                                                                       |
+| IoTConnectorMeasurementIngestionLatencyMs  | Yes                                 | Average Group Stage Latency     | Milliseconds | Average          | The time period between when the IoT Connector received the device data and when the data is processed by the FHIR conversion stage.                  | Operation, ConnectorName                                                                       |
+| IoTConnectorNormalizedEvent                | Yes                                 | Number of Normalized Messages   | Count        | Sum              | The total number of mapped normalized values outputted from the normalization stage of the the Azure IoT Connector for FHIR.                          | Operation, ConnectorName                                                                       |
+| IoTConnectorTotalErrors                    | Yes                                 | Total Error Count               | Count        | Sum              | The total number of errors logged by the Azure IoT Connector for FHIR                                                                                 | Name, Operation, ErrorType, ErrorSeverity, ConnectorName                                       |
+| ServiceApiErrors                           | Yes                                 | Service Errors                  | Count        | Sum              | The total number of internal server errors generated by the service.                                                                                  | Protocol, Authentication, Operation, ResourceType, StatusCode, StatusCodeClass, StatusCodeText |
+| ServiceApiLatency                          | Yes                                 | Service Latency                 | Milliseconds | Average          | The response latency of the service.                                                                                                                  | Protocol, Authentication, Operation, ResourceType, StatusCode, StatusCodeClass, StatusCodeText |
+| ServiceApiRequests                         | Yes                                 | Service Requests                | Count        | Sum              | The total number of requests received by the service.                                                                                                 | Protocol, Authentication, Operation, ResourceType, StatusCode, StatusCodeClass, StatusCodeText |
+| TotalErrors                                | Yes                                 | Total Errors                    | Count        | Sum              | The total number of internal server errors encountered by the service.                                                                                | Protocol, StatusCode, StatusCodeClass, StatusCodeText                                          |
+| TotalLatency                               | Yes                                 | Total Latency                   | Milliseconds | Average          | The response latency of the service.                                                                                                                  | Protocol                                                                                       |
+| TotalRequests                              | Yes                                 | Total Requests                  | Count        |                  |                                                                                                                                                       |                                                                                                |
 
 ## Supporting Customer Insights
 
