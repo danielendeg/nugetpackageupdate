@@ -61,10 +61,21 @@ release, it is therefore important that we want to provide an effective
 way of helping customers manage one or multiple service instances. The
 concept of Workspace was conceived.
 
-A workspace is a top-level resource, or more precisely a logical
-container, for all healthcare services. Initially a workspace enables
-many settings such as Private Links, CMK and Region selection to be
-applied to all underlying datasets/services. As we evolve the workspace
+A workspace is a top-level, logical container for all healthcare API services. 
+It represents metadata, not actual service or resource, and performs no processing of customer data.
+
+Initially a workspace supports the following settings or properties for all services:
+1. Private Links
+1. Customer Managed Key (CMK)
+1. Azure Region Selection
+1. Shoebox including audit logs and metrics (aka resource or diagnostic logs)
+1. Application Roles
+1. Billing
+
+Except for billing, which is handled behind the scenes, each property specified at the workspace level, shall be 
+implemented by each service. The benefit of managing properties at the workspace level is to ensure consistency and 
+reduce administrative work. However, doing so may add constraints to a particuplar service. One workaround is to 
+create a new workspace if a setting cannot be applied to a specific service. As we evolve the workspace
 concept, we will relax and/or remove some constraints, to make
 configuration management of the underlying services centralized and more
 flexible.

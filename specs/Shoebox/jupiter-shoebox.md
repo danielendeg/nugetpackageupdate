@@ -55,12 +55,12 @@ target user. What is their goal? Why does this matter to them? Can be of
 the form, “Customers have a hard time doing FOO, I know this because I
 heard it from X, Y, Z.”*
 
-As we work towards Jupiter release, not only must we continue to support
-the Azure required Shoebox feature for Azure API for FHIR in Azure, but
+As we work toward Jupiter release, not only must we continue to support
+the required Shoebox feature for Azure API for FHIR in Azure, but
 also expand the support for new services such as DICOM and IoT.
 
 While the underlying technologies vary for the Healthcare API services,
-it is important that we define a set of common audit logs and metrics
+it is important that we define a set of common audit logs and resource logs or metrics
 for all services, along with unique logs and metrics for each service,
 and develop a framework that enables easy plugging in for future
 services.
@@ -84,6 +84,61 @@ outlined below.
     request exceptions.
 
 Also, we should plan for the Shoebox onboarding process, which took quite some time for Gen 1, and start it as soon as we can while providing required information, including documents and packages.
+
+One customer requirement on resource logd or metrics is that we provide invididual numbers rather than the averages or sums. 
+For example, customers want to see how long each request takes in milliseconds, and how much the transaction costs.  While it is possible
+to combine the new fields for individual values with audit logs and metrics, it may be difficult for customer to parse the info. 
+So it may work better that we provide a new log category to capture individual values and make the option configurable. 
+
+Below are audit logs and metrics we support today and can be used as reference.
+
+**The Azure API for FHIR service includes the following fields in the audit log.**
+
+| Field Name             | Type     | Notes                                                                          |
+|------------------------|----------|--------------------------------------------------------------------------------|
+| CallerIdentity         | Dynamic  | A generic property bag containing identity information                         |
+| CallerIdentityIssuer   | String   | Issuer                                                                         |
+| CallerIdentityObjectId | String   | Object_Id                                                                      |
+| CallerIPAddress        | String   | The caller’s IP address                                                        |
+| CorrelationId          | String   | Correlation ID                                                                 |
+| FhirResourceType       | String   | The resource type for which the operation was executed                         |
+| LogCategory            | String   | The log category (we are currently returning ‘AuditLogs’ LogCategory)          |
+| Location               | String   | The location of the server that processed the request (e.g., South Central US) |
+| OperationDuration      | Int      | The time it took to complete this request in seconds                           |
+| OperationName          | String   | Describes the type of operation (e.g. update, search-type)                     |
+| RequestUri             | String   | The request URI                                                                |
+| ResultType             | String   | The available values currently are Started, Succeeded, or Failed               |
+| StatusCode             | Int      | The HTTP status code. (e.g., 200)                                              |
+| TimeGenerated          | DateTime | Date and time of the event                                                     |
+| Properties             | String   | Describes the properties of the fhirResourceType                               |
+| SourceSystem           | String   | Source System (always Azure in this case)                                      |
+| TenantId               | String   | Tenant ID                                                                      |
+| Type                   | String   | Type of log (always MicrosoftHealthcareApisAuditLog in this case)              |
+| ResourceId             | String   | Details about the resource                                                     |
+
+The metrics for Azure API for FHIR and IoT include the following fields.
+
+| Metric                                     | Exportable via Diagnostic Settings? | Metric Display Name             | Unit         | Aggregation Type | Description                                                                                                                                           | Dimensions                                                                                     |
+|--------------------------------------------|-------------------------------------|---------------------------------|--------------|------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------|
+| Availability                               | Yes                                 | Availability                    | Percent      | Average          | The availability rate of the service.                                                                                                                 | No Dimensions                                                                                  |
+| CosmosDbCollectionSize                     | Yes                                 | Cosmos DB Collection Size       | Bytes        | Total            | The size of the backing Cosmos DB collection, in bytes.                                                                                               | No Dimensions                                                                                  |
+| CosmosDbIndexSize                          | Yes                                 | Cosmos DB Index Size            | Bytes        | Total            | The size of the backing Cosmos DB collection's index, in bytes.                                                                                       | No Dimensions                                                                                  |
+| CosmosDbRequestCharge                      | Yes                                 | Cosmos DB RU usage              | Count        | Total            | The RU usage of requests to the service's backing Cosmos DB.                                                                                          | Operation, ResourceType                                                                        |
+| CosmosDbRequests                           | Yes                                 | Service Cosmos DB requests      | Count        | Sum              | The total number of requests made to a service's backing Cosmos DB.                                                                                   | Operation, ResourceType                                                                        |
+| CosmosDbThrottleRate                       | Yes                                 | Service Cosmos DB throttle rate | Count        | Sum              | The total number of 429 responses from a service's backing Cosmos DB.                                                                                 | Operation, ResourceType                                                                        |
+| IoTConnectorDeviceEvent                    | Yes                                 | Number of Incoming Messages     | Count        | Sum              | The total number of messages received by the Azure IoT Connector for FHIR prior to any normalization.                                                 | Operation, ConnectorName                                                                       |
+| IoTConnectorDeviceEventProcessingLatencyMs | Yes                                 | Average Normalize Stage Latency | Milliseconds | Average          | The average time between an event's ingestion time and the time the event is processed for normalization.                                             | Operation, ConnectorName                                                                       |
+| IoTConnectorMeasurement                    | Yes                                 | Number of Measurements          | Count        | Sum              | The number of normalized value readings received by the FHIR conversion stage of the Azure IoT Connector for FHIR.                                    | Operation, ConnectorName                                                                       |
+| IoTConnectorMeasurementGroup               | Yes                                 | Number of Message Groups        | Count        | Sum              | The total number of unique groupings of measurements across type, device, patient, and configured time period generated by the FHIR conversion stage. | Operation, ConnectorName                                                                       |
+| IoTConnectorMeasurementIngestionLatencyMs  | Yes                                 | Average Group Stage Latency     | Milliseconds | Average          | The time period between when the IoT Connector received the device data and when the data is processed by the FHIR conversion stage.                  | Operation, ConnectorName                                                                       |
+| IoTConnectorNormalizedEvent                | Yes                                 | Number of Normalized Messages   | Count        | Sum              | The total number of mapped normalized values outputted from the normalization stage of the the Azure IoT Connector for FHIR.                          | Operation, ConnectorName                                                                       |
+| IoTConnectorTotalErrors                    | Yes                                 | Total Error Count               | Count        | Sum              | The total number of errors logged by the Azure IoT Connector for FHIR                                                                                 | Name, Operation, ErrorType, ErrorSeverity, ConnectorName                                       |
+| ServiceApiErrors                           | Yes                                 | Service Errors                  | Count        | Sum              | The total number of internal server errors generated by the service.                                                                                  | Protocol, Authentication, Operation, ResourceType, StatusCode, StatusCodeClass, StatusCodeText |
+| ServiceApiLatency                          | Yes                                 | Service Latency                 | Milliseconds | Average          | The response latency of the service.                                                                                                                  | Protocol, Authentication, Operation, ResourceType, StatusCode, StatusCodeClass, StatusCodeText |
+| ServiceApiRequests                         | Yes                                 | Service Requests                | Count        | Sum              | The total number of requests received by the service.                                                                                                 | Protocol, Authentication, Operation, ResourceType, StatusCode, StatusCodeClass, StatusCodeText |
+| TotalErrors                                | Yes                                 | Total Errors                    | Count        | Sum              | The total number of internal server errors encountered by the service.                                                                                | Protocol, StatusCode, StatusCodeClass, StatusCodeText                                          |
+| TotalLatency                               | Yes                                 | Total Latency                   | Milliseconds | Average          | The response latency of the service.                                                                                                                  | Protocol                                                                                       |
+| TotalRequests                              | Yes                                 | Total Requests                  | Count        |                  |                                                                                                                                                       |                                                                                                |
 
 ## Supporting Customer Insights
 
@@ -267,53 +322,15 @@ Date reviewed: \[Date\]
 terms may feed into public docs and blogs as be used to define metric
 names and logging categories.*
 
-<table>
-<thead>
-<tr class="header">
-<th>Term</th>
-<th>Definition</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td>The Shoebox Project</td>
-<td>The shoebox project was launched in 2014 to provide a common metric and logging mechanism for the Azure platform to solve the problems where each team had built their own custom logging pipeline to meet customer requirements. The term shoebox, coined by Azure CTO Mark Russinovich and used internally. The Shoebox project is now part of the “Azure Monitor” product family. See attached doc for more info on Shoebox roadmap. </td>
-</tr>
-<tr class="even">
-<td>Shoebox Onboarding Process</td>
-<td><p>With the Shoebox project, Azure service teams are only responsible for emitting the telemetry into the Shoebox pipeline and no longer having to solve the last mile problem to connect the data to end customers.</p>
-<p>The Shoebox onboarding process is a lengthy internal process and involves several steps. Once is onboarded and deployed, the service can then send telemetry data to the Azure Monitor pipeline. Doing so enables customers to experience fast, simple and standardized access to monitoring data from the RP. Check the example of Log Analytics onboarding <a href="https://1dsdocs.azurewebsites.net/articles/loganalytics-onboarding-guide/onboarding-checklist.html">checklist</a>.</p></td>
-</tr>
-<tr class="odd">
-<td>Resource Logs or Shoebox Logs</td>
-<td><p>Also known as <a href="http://aka.ms/shoeboxlogs">shoebox logs</a> and diagnostic logs, these are the data-plane operations from your resource. These logs depend on the Geneva Logs (aka Warm Path / MDS) and make use of the OnBehalfOf (OBO) service to give customers the option to route log and/or metric data to a customer storage account, Event Hub, or Log Analytics workspace.</p>
-<p><a href="https://1dsdocs.azurewebsites.net/articles/shoebox/shoebox-metrics.html">Metrics</a> depend on the Geneva-MDM pipeline and become available to the customer in the Azure Portal filled via a consistent metric REST API.</p>
-<p>The new manifest file for metrics is based per resource type instead of per resource provider. Once the service team completes metrics onboarding, the resource type’s metrics will be available behind the new public metrics REST API. This is a public API behind ARM. External customers have access to the metrics API without any opt-in.</p>
-<p>Customers can also opt-in to export the metric data to customer storage account, EventHub, or Log Analytics workspace. Customers can create alerts and notifications on these or stream/archive them to storage accounts, event hubs, Log Analytics or to 3rd party services.</p></td>
-</tr>
-<tr class="even">
-<td>Activity Logs</td>
-<td>Provides insight into the operations on each Azure resource in the subscription from the outside (the management plane) in addition to updates on Service Health events. Use the Activity Log, to determine the what, who, and when for any write operations (PUT, POST, DELETE) taken on the resources in your subscription. There is a single Activity log for each Azure subscription.</td>
-</tr>
-<tr class="odd">
-<td>Azure Active Directory Logs</td>
-<td>Contains the history of sign-in activity and audit trail of changes made in the Azure Active Directory for a particular tenant.</td>
-</tr>
-<tr class="even">
-<td>Geneva</td>
-<td><p>Geneva is a 1st party monitoring platform which enables services to do Monitoring, Diagnostics, and Analytics to support the requirement of a service built on different environments.</p>
-<p>Geneva maximizes the availability and performance of applications and services with a comprehensive solution for collecting, analyzing, and acting on telemetry across your cloud and on-premises environments. Large parts of the Geneva infrastructure (e.g. Agents, Metrics, Health System, Pipeline) are utilized to power our external monitoring offering - Azure Monitor.</p>
-<p>Currently, the agents, configuration services, and pipelines used in Geneva and Azure Monitor are separate but managed by the same teams. The PIE Observability team within Microsoft is working to create a converged data collection platform that merges the existing data collection platforms and modernizes to leverage forward-looking platforms like ARM and Azure Policy where appropriate.</p>
-<p>More info on Geneva <a href="https://genevamondocs.azurewebsites.net/getting_started/New%20Getting%20Started/overview.html">here</a>.</p></td>
-</tr>
-<tr class="odd">
-<td>Geneva Actions</td>
-<td><p>Geneva Actions is a secure, auditable, and compliant gateway to your production APIs. You can publish an extension (using C# code or swagger) on Geneva Actions to access your production endpoints through a unified web portal, PowerShell or REST API.</p>
-<p>It's designed for access by on-call engineers, customer support (CSS) teams, or other audiences that you want to provide access to your management operations.</p>
-<p>Geneva Actions is only a gateway for operations that you author in C# or swagger and chose to expose. It does not have any built-in operations to restart VMs, connect to your cluster, database or whatever else you want to do. All Geneva Actions extensions and operations are available to execute via the Jarvis portal or PowerShell.</p></td>
-</tr>
-</tbody>
-</table>
+| Term                          | Definition                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
+| ----------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| The Shoebox Project           | The shoebox project was launched in 2014 to provide a common metric and logging mechanism for the Azure platform to solve the problems where each team had built their own custom logging pipeline to meet customer requirements. The term shoebox, coined by Azure CTO Mark Russinovich and used internally. The Shoebox project is now part of the “Azure Monitor” product family. See attached doc for more info on Shoebox roadmap.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
+| Shoebox Onboarding Process    | With the Shoebox project, Azure service teams are only responsible for emitting the telemetry into the Shoebox pipeline and no longer having to solve the last mile problem to connect the data to end customers. The Shoebox onboarding process involves several steps. Once onboarded and deployed, the service can then send telemetry data to the Azure Monitor pipeline. Doing so enables customers to experience fast, simple and standardized access to monitoring data from the RP. Check the example of Log Analytics onboarding checklist.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
+| Resource Logs or Shoebox Logs | Also known as shoebox logs and diagnostic logs, these are the data-plane operations from your resource. These logs depend on the Geneva Logs (aka Warm Path / MDS) and make use of the OnBehalfOf (OBO) service to give customers the option to route log and/or metric data to a customer storage account, Event Hub, or Log Analytics workspace. Metrics depend on the Geneva-MDM pipeline and become available to the customer in the Azure Portal filled via a consistent metric REST API. The new manifest file for metrics is based per resource type instead of per resource provider. Once the service team completes metrics onboarding, the resource type’s metrics will be available behind the new public metrics REST API. This is a public API behind ARM. External customers have access to the metrics API without any opt-in. Customers can also opt-in to export the metric data to customer storage account, EventHub, or Log Analytics workspace. Customers can create alerts and notifications on these or stream/archive them to storage accounts, event hubs, Log Analytics or to 3rd party services. |
+| Activity Logs                 | Provides insight into the operations on each Azure resource in the subscription from the outside (the management plane) in addition to updates on Service Health events. Use the Activity Log, to determine the what, who, and when for any write operations (PUT, POST, DELETE) taken on the resources in your subscription. There is a single Activity log for each Azure subscription.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
+| Azure Active Directory Logs   | Contains the history of sign-in activity and audit trail of changes made in the Azure Active Directory for a particular tenant.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
+| Geneva                        | Geneva is a 1st party monitoring platform which enables services to do Monitoring, Diagnostics, and Analytics to support the requirement of a service built on different environments. Geneva maximizes the availability and performance of applications and services with a comprehensive solution for collecting, analyzing, and acting on telemetry across your cloud and on-premises environments. Large parts of the Geneva infrastructure (e.g. Agents, Metrics, Health System, Pipeline) are utilized to power our external monitoring offering - Azure Monitor. Currently, the agents, configuration services, and pipelines used in Geneva and Azure Monitor are separate but managed by the same teams. The PIE Observability team within Microsoft is working to create a converged data collection platform that merges the existing data collection platforms and modernizes to leverage forward-looking platforms like ARM and Azure Policy where appropriate.                                                                                                                                                 |
+| Geneva Actions                | Geneva Actions is a secure, auditable, and compliant gateway to your production APIs. You can publish an extension (using C# code or swagger) on Geneva Actions to access your production endpoints through a unified web portal, PowerShell or REST API. It's designed for access by on-call engineers, customer support (CSS) teams, or other audiences that you want to provide access to your management operations. Geneva Actions is only a gateway for operations that you author in C# or swagger and chose to expose. It does not have any built-in operations to restart VMs, connect to your cluster, database or whatever else you want to do. All Geneva Actions extensions and operations are available to execute via the Jarvis portal or PowerShell.                                                                                                                                                                                                                                                                                                                                                        |
 
 ## Branding (PM) 
 
@@ -331,22 +348,21 @@ and is not to the target customer and how we measure success.*
 *Guidance: This section describes the goals for how the feature is to be
 used.*
 
-| Goal                                                                                                                                                                                                                                                                                                                               | Target Release | Priority |
-|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|----------------|----------|
-| Provide workspace audit logs                                                                                                                                                                                                                                                                                                       | 4/31/21        | P1       |
-| Start Shoebox onboarding Process                                                                                                                                                                                                                                                                                                   | 5/1/21         | P0       |
-| Provide audit logs and metrics for FHIR                                                                                                                                                                                                                                                                                            | 5/31/21        | P0       |
-| Provide audit logs and metrics for DICOM, including DICOM Cast                                                                                                                                                                                                                                                                     | 5/31/21        | P0       |
-| Provide audit logs and metrics for IoT                                                                                                                                                                                                                                                                                             | 5/31/21        | P0       |
-| Enable Diagnostic Setting on the Azure Portal                                                                                                                                                                                                                                                                                      | 6/30/21        | P0       |
-| Enable exporting data when Private Link is enabled for the FHIR service                                                                                                                                                                                                                                                            | 6/30/21        | P0       |
-| Eliminate any access logs exposed to customers about invalid access attempts (See Private Link [doc](https://microsoft.sharepoint.com/:w:/r/teams/Aznet/_layouts/15/Doc.aspx?sourcedoc=%7B5A022361-2CC6-477E-90C9-20E022337B28%7D&file=Private%20Link%20-%20Validation%20of%20Connection.docx&action=default&mobileredirect=true)) | 6/30/21        | P0       |
-|                                                                                                                                                                                                                                                                                                                                    |                |          |
-|                                                                                                                                                                                                                                                                                                                                    |                |          |
-|                                                                                                                                                                                                                                                                                                                                    |                |          |
-|                                                                                                                                                                                                                                                                                                                                    |                |          |
-|                                                                                                                                                                                                                                                                                                                                    |                |          |
-|                                                                                                                                                                                                                                                                                                                                    |                |          |
+| Goal                                                                    | Target Release | Priority |
+|-------------------------------------------------------------------------|----------------|----------|
+| Provide workspace audit logs                                            | 4/30/2021      | P0       |
+| Start Shoebox onboarding Process                                        | 5/3/2021       | P0       |
+| Provide audit logs and metrics for FHIR                                 | 5/31/2021      | P0       |
+| Provide audit logs and metrics for DICOM, including DICOM Cast          | 5/31/2021      | P0       |
+| Provide audit logs and metrics for IoT                                  | 5/31/2021      | P0       |
+| Enable Diagnostic Setting on the Azure Portal                           | 6/30/2021      | P0       |
+| Enable exporting data when Private Link is enabled for the FHIR service | 6/30/2021      | P0       |
+|                                                                         |                |          |
+|                                                                         |                |          |
+|                                                                         |                |          |
+|                                                                         |                |          |
+|                                                                         |                |          |
+|                                                                         |                |          |
 
 ## Non-Goals (PM/Dev) 
 
@@ -368,10 +384,10 @@ the feature.*
 
 | Scenario / Use Case                                                                                                                     | Steps to fulfill the scenario                                                                                                         | Priority |
 |-----------------------------------------------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------|----------|
-| The user browses logging data through the portal.                                                                                       | Enable the portal experience by integrating all Healthcare API services with Shoebox.                                                 | P0       |
-| The user configures the Diagnostic Settings to download audit logs and metrics to a storage account, Event Hubs or Analytics Workspace. | Enable the portal experience by integrating all Healthcare API services with Shoebox.                                                 | P0       |
-| The user configures alerts and notifications based on rules, for example, database size exceeding a % or fixed number.                  | Provide user interface to allow configuration for alerts and notifications. Integration all Healthcare API services with Azure Alert. | P1       |
-| The user tries to export data after Private Link has been configured and enabled for the FHIR service                                   | Export data from the portal normally.                                                                                                 | P1       |
+| The user views logging data through the portal.                                                                                         | Go to the portal and view the logging data in the browser.                                                                            | P0       |
+| The user configures the Diagnostic Settings to download audit logs and metrics to a storage account, Event Hubs or Analytics Workspace. | Open the Diagnostic Settings blade, select audit logs and/or metrics, and specify export location.                                    | P0       |
+| The user receives alerts or notifications.                                                                                              | Open the Azure Monitor blade, configures alerts and notifications based on rules, for example, database size in % or fixed number.    | P0       |
+| The user exports data after DR failover.                                                                                                | Export data from the portal normally. Reconfig Private Link if necessary.                                                             | P0       |
 |                                                                                                                                         |                                                                                                                                       |          |
 |                                                                                                                                         |                                                                                                                                       |          |
 |                                                                                                                                         |                                                                                                                                       |          |
@@ -384,34 +400,11 @@ the feature.*
 *Guidance: These are the measures presented to the feature team, e.g.
 number of FHIR endpoints, total data storage size.*
 
-<table>
-<thead>
-<tr class="header">
-<th>Type<br />
-[Biz | Cust | Tech]</th>
-<th>Outcome</th>
-<th>Measure</th>
-<th>Target</th>
-<th>Priority</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td></td>
-<td></td>
-<td></td>
-<td></td>
-<td></td>
-</tr>
-<tr class="even">
-<td></td>
-<td></td>
-<td></td>
-<td></td>
-<td></td>
-</tr>
-</tbody>
-</table>
+
+| Type<br> \[Biz \| Cust \| Tech\] | Outcome | Measure | Target | Priority |
+| -------------------------- | ------- | ------- | ------ | -------- |
+|                            |         |         |        |          |
+|                            |         |         |        |          |
 
 ## What’s in the Box? (PM) 
 
