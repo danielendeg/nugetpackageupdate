@@ -307,13 +307,11 @@ feature is designed to address. Include how the feature is used to solve
 the scenario/use case. Following these steps should be used to validate
 the feature.*
 
-| Scenario / Use Case                                                                                            | Steps to fulfill the scenario                                                                              | Priority |
-|----------------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------|----------|
-| As a service administrator I can raise a SR and enable a geo-redundancy on the Azure API for FHIR              | Open a SR with CSS and request a creation of a geo-redundancy on Azure API for FHIR.                       | P0       |
-| As a Service administrator, I can go into Azure portal and enable/disable geo-redundancy on Azure API for FHIR | Go to Azure portal and enable/disable geo-redundancy. Ask the user to confirm the action.                  | P1       |
-| As a service administrator I can use a CLI or PS to enable/disable geo-redundancy                              | Open a CLI and enable geo-redundancy on Azure API for FHIR.                                                | P1       |
-| As a software developer I can read conflict feeds and make decision on how to resolve conflicts                | Use the endpoint for conflict feeds, process and clean up change feeds.                                    | P0       |
-| As an application developer I can use each regional endpoint to optimize application performance               | The secondary replica and compute instance is for read only. Further improvements will be made in Jupiter. | P1       |
+| Scenario / Use Case                                                                                                         | Steps to fulfill the scenario                                                                                                                                                                                 | Priority |
+|-----------------------------------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|----------|
+| As a service administrator I can request a data replica for the Azure API for FHIR                                        | Open a SR support ticket through the portal or with CSS to request creating a secondary read only data replica for Azure API for FHIR.                                                                       | P0       |
+| As a Service administrator, I can request a specific region for geo data replica for Azure API for FHIR                     | Specify an Azure region in the SR support ticket if it is different from Azure paired regions. Explain why the specific region is required and if it is a hard requirement.  | P0       |
+| As a Service administrator, I can enable/disable disaster recovery for Azure API for FHIR without creating a support ticket | Go to Azure portal and enable or disable the disaster recovery option. Confirm and save the setting change.                                                                                                       | P0       |
 
 ## Scenario KPIs (PM) 
 
