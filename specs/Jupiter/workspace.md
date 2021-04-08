@@ -55,33 +55,44 @@ target user. What is their goal? Why does this matter to them? Can be of
 the form, “Customers have a hard time doing FOO, I know this because I
 heard it from X, Y, Z.”*
 
-As we continue to expand the healthcare API platform and add new
-services such as DICOM and IoT to the FHIR base service in Jupiter
-release, it is therefore important that we want to provide an effective
-way of helping customers manage one or multiple service instances. The
-concept of Workspace was conceived.
+As we continue to expand the healthcare APIs platform and add new
+services such as DICOM and IoT Connector in Jupiter
+release, it is important that we enable customers to manage one or multiple 
+service instances effectively. The workspace concept was conceived to address the anticipated requirement.
 
 A workspace is a top-level, logical container for all healthcare API services. 
-It represents metadata, not actual service or resource, and performs no processing of customer data.
+It represents metadata, not an actual service or resource, and does not process customer data. 
+From compliance perspective a workspace is obviously not a medical device.
 
-Initially a workspace supports the following settings or properties for all services:
-1. Private Links
-1. Customer Managed Key (CMK)
-1. Azure Region Selection
-1. Shoebox including audit logs and metrics (aka resource or diagnostic logs)
-1. Application Roles
-1. Billing
+There are two primary benefits to introduce the workspace concept. First, it enables customers to group
+service instances based on business functions such as patient services vs. data scientist research, 
+or production vs. test vs. development. Second, it enables application or inheritance of configuration settings 
+from workspace to child services. 
 
-Except for billing, which is handled behind the scenes, each property specified at the workspace level, shall be 
-implemented by each service. The benefit of managing properties at the workspace level is to ensure consistency and 
-reduce administrative work. However, doing so may add constraints to a particuplar service. One workaround is to 
-create a new workspace if a setting cannot be applied to a specific service. As we evolve the workspace
-concept, we will relax and/or remove some constraints, to make
-configuration management of the underlying services centralized and more
-flexible.
+Initially a workspace supports the following configuration settings for all services:
+1. Private Links - This setting is applicable to FHIR and DICOM, but not IoT Connector,
+which does not require Private Link. Please refer to the Private Link spec for more details.
+1. Customer Managed Key (CMK) - This setting is applicable to FHIR and DICOM, but not IoT Connector,
+which does not require CMK. 
+1. Azure Monitoring (Shoebox) - All services should support a set of common logging metrics 
+while each service can support additional unique logging fields. In Jupiter release, customers can specify export 
+location for each service instance. In future releases, customers can specify an export location for all services 
+in a workspace.
+1. Role-based access control (RBAC). Applicaiton roles are available in a workspace. In Jupiter release,
+customers can manage applicaiton roles for each service. In future releases, customers can grant application roles 
+in a workspace, and each service inherits them.
 
-The flowchart below illustrates how a workspace is provisioned and how
-Healthcare API services.
+Note that the billing service is handled internally and thus its settings are not exposed to customers.
+
+The flowchart below illustrates a high-level workspace and child service provisioning process. 
+
+1. A workspace must be provisioned and available before child services can be created.
+1. An Azure region is required for a workspace, and cannot be changed after a workspace is created.
+1. All child services must be created in the same region as the one for the workspace.
+1. When a workspace is deleted, all child services within the workspace are deleted.
+
+While one or more workspaces can be created for each resource group, the number of child services within each workspace 
+may be limited due to a variety of factors. It is importatant that we test and document the limit.
 
 ![](media/workspace-flowchart.png)
 
@@ -136,8 +147,8 @@ API versions we must support during the transition.
 
 *Guidance: In 20 words or less, describe the proposed solution.*
 
-Provision a workspace as a top-level container along with applicable
-settings and associate Healthcare API service(s) with it.
+Provision a workspace as a top-level container with shared configuration settings for 
+all child services within it.
 
 ## Elevator Pitch / Press Release 
 
@@ -240,15 +251,15 @@ used.*
 |---------------------------------------------------------------------------------------------------|----------------|----------|
 | Provision a workspace as a top-level, logical container.                                          | 3/31/21        | P0       |
 | Create one or multiple instances of FHIR, DICOM, and/or IoT for a given workspace.                | 3/31/21        | P0       |
-| Support Private Link and CMK during the initial provision.                                        | 3/31/21        | P0       |
-| Enable and validate setting changes at the workspace level.                                       | 3/31/21        | P0       |
-| Deprovision a workspace and all associated service instances.                                     | 3/31/21        | P0       |
-| Provide workspace level audit log and metrics and include the data in export.                     | 5/31/21        | P0       |
-| Allow managed identity for each service.                                                          | 5/31/21        | P0       |
+| Support Private Link during the initial provision.                                                | 3/31/21        | P0       |
+| Deprovision a workspace and all child service instances within the workspace.                     | 3/31/21        | P0       |
+| Support CMK during the initial provision.                                                         | 5/31/21        | P0       |
+| Enable and validate configuration setting changes.                                                | 5/31/21        | P0       |
+| Provide workspace audit log and metrics and include the logging data in export.                   | 5/31/21        | P0       |
+| Support managed identity for each service.                                                        | 5/31/21        | P0       |
 | Enable IoT to communicate with FHIR service when Private Link is enabled.                         | 5/31/21        | P0       |
 | Improve workspace capabilities based on feedback during public preview.                           | 5/31/21        | P1       |
-| Browse workspaces and look up services within a workspace.                                        | 5/31/21        | P0       |
-| Support movable workspace and underlying services to a different resource group and subscription. | 5/31/21        | P0       |
+| Enable workspace in Azure portal.                                                                 | 5/31/21        | P0       |
 |                                                                                                   |                |          |
 |                                                                                                   |                |          |
 
@@ -288,34 +299,11 @@ the feature.*
 *Guidance: These are the measures presented to the feature team, e.g.
 number of FHIR endpoints, total data storage size.*
 
-<table>
-<thead>
-<tr class="header">
-<th>Type<br />
-[Biz | Cust | Tech]</th>
-<th>Outcome</th>
-<th>Measure</th>
-<th>Target</th>
-<th>Priority</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td></td>
-<td></td>
-<td></td>
-<td></td>
-<td></td>
-</tr>
-<tr class="even">
-<td></td>
-<td></td>
-<td></td>
-<td></td>
-<td></td>
-</tr>
-</tbody>
-</table>
+| Type<br> \[Biz \| Cust \| Tech\] | Outcome | Measure | Target | Priority |
+| -------------------------- | ------- | ------- | ------ | -------- |
+|                            |         |         |        |          |
+|                            |         |         |        |          |
+
 
 ## What’s in the Box? (PM) 
 
