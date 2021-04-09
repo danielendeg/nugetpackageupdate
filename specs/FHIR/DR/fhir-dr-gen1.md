@@ -68,15 +68,23 @@ through geographical replication and disaster recovery (DR) offering. It
 is time to make critical features like DR available to all customers
 without any further delay.
 
-For the DR offering in Gen 1, our goals are to enable all customer
-settings available in the primary region when DR failover takes place,
-including but are not limited to Private Link, CMK, and $export to
-secure locations if applicable. For any customer settings that cannot be
-enabled in an Azure paired region, document the discrepancy and notify
-impacted customers and seek their approval if necessary, before enabling
-the DR feature for them. In addition, we will make the disaster recovery
-feature available directly through the Azure portal, while enabling auto
-scaling for the service.
+**Phase I - Limited Release. Available to customers per request, mid-April, 2021**
+	 
+Features and limits include:
+	 
+1. Data replication is available in an Azure paired region or a specific region where applicable.
+1. Recovery Point Objective (RPO) is 15 minutes; Recovery Time Objective (RTO) is 120 minutes.
+1. Database failover takes place when the disaster happens. The default is automatic failover, unless a manual trigger is required.
+1. A one-time support ticket is required to enable the feature
+	 
+**Phase II - Generally available, mid-May, 2021**
+	 
+Features and limits include:
+	 
+1. A secondary region including compute and database is available. Phase II is built on top of Phase I.
+1. Recovery Point Objective (RPO) is 15 minutes; Recovery Time Objective (RTO) is 60 minutes.
+1. The DR option is available through the Azure portal and no support ticket is required.
+1. The secondary compute environment is for DR only, not accessible to users.
 
 It is important to note the difference between HA and DR. HA is about
 eliminating single points of failure through hardware and software
