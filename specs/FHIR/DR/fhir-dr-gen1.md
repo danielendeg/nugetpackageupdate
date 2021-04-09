@@ -282,7 +282,7 @@ used.*
 | [We follow Cosmos DB process for failover and failback. https://docs.microsoft.com/en-us/azure/cosmos-db/high-availability](https://docs.microsoft.com/en-us/azure/cosmos-db/high-availability)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        | 12-Apr         | P0       |
 | We offer Recovery Point Objective (RPO) is 15 minutes; Recovery Time Objective (RTO) is 120 minutes.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   | 12-Apr         | P0       |
 | We create a secondary environment of compute in an Azure paired region or specific region for customers with DR enabled and enable all customer settings if applicable. The secondary compute environment is for DR only, not accessible to users.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     | 17-May         | P0       |
-| We expose DR setting in the Azure Portal and CLI to enable DR replica                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  | 17-May         | P0       |
+| We expose the DR setting in the Azure Portal and CLI to make the DR option available to customers                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  | 17-May         | P1       |
 | We add the DR audit trail to audit logs for export when the customer enables/disables the DR option.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   | 17-May         | P1       |
 | At GA we update our billing (and pricing page) reflecting the cost of enabling DR on the account.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      | 17-May         | P0       |
 | We offer Recovery Point Objective (RPO) is 15 minutes; Recovery Time Objective (RTO) is 60 minutes. https://docs.microsoft.com/en-us/azure/cosmos-db/consistency-levels                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      | 17-May         | P0       |
@@ -311,41 +311,18 @@ the feature.*
 |-----------------------------------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|----------|
 | As a service administrator I can request a data replica for the Azure API for FHIR                                        | Open a SR support ticket through the portal or with CSS to request creating a secondary read only data replica for Azure API for FHIR.                                                                       | P0       |
 | As a Service administrator, I can request a specific region for geo data replica for Azure API for FHIR                     | Specify an Azure region in the SR support ticket if it is different from Azure paired regions. Explain why the specific region is required and if it is a hard requirement.  | P0       |
-| As a Service administrator, I can enable/disable disaster recovery for Azure API for FHIR without creating a support ticket | Go to Azure portal and enable or disable the disaster recovery option. Confirm and save the setting change.                                                                                                       | P0       |
+| As a Service administrator, I can enable/disable disaster recovery for Azure API for FHIR without creating a support ticket | Go to Azure portal and enable or disable the disaster recovery option. Confirm and save the setting change.                                                                                                       | P1       |
 
 ## Scenario KPIs (PM) 
 
 *Guidance: These are the measures presented to the feature team, e.g.
 number of FHIR endpoints, total data storage size.*
 
-<table>
-<thead>
-<tr class="header">
-<th>Type<br />
-[Biz | Cust | Tech]</th>
-<th>Outcome</th>
-<th>Measure</th>
-<th>Target</th>
-<th>Priority</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td></td>
-<td></td>
-<td></td>
-<td></td>
-<td></td>
-</tr>
-<tr class="even">
-<td></td>
-<td></td>
-<td></td>
-<td></td>
-<td></td>
-</tr>
-</tbody>
-</table>
+| Type<br> \[Biz \| Cust \| Tech\] | Outcome | Measure | Target | Priority |
+| -------------------------- | ------- | ------- | ------ | -------- |
+|                            |         |         |        |          |
+|                            |         |         |        |          |
+
 
 ## What’s in the Box? (PM) 
 
