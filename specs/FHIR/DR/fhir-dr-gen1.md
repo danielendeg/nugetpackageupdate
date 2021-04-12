@@ -74,7 +74,7 @@ Features and limits include:
 	 
 1. Data replication is available in an Azure paired region or a specific region where applicable.
 1. Recovery Point Objective (RPO) is 15 minutes; Recovery Time Objective (RTO) is 120 minutes.
-1. Database failover takes place when the disaster happens. The default is automatic failover, unless a manual trigger is required.
+1. Database failover takes place when the disaster happens.  Automatic failover is enabled per Cosmos DB documentation.
 1. A one-time support ticket is required to enable the feature
 	 
 **Phase II - Generally available, mid-May, 2021**
