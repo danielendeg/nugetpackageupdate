@@ -350,7 +350,7 @@ areas which may be impacted: Persistence Provider, FHIR API.*
 | Cosmos DB High Availability | One secondary, read region through Cosmos DB data replication.                                                                                  | Built-in                                                                                                                                                                                             |     |     |
 | Azure Traffic Manager       | Routing traffic from the primary region to the secondary region, which then becomes the write region, as part of DR operation.                                                                                  | We need to investigate if/how Traffic Manager plays a role when the read-only option is enabled                                                                                                      |     |     |
 | Billing                     | Enabling one read region doubles the Cosmos DB cost and requires a different billing meter. Also, standard data transfer rates apply. | Apply a multiplier of 2 for customers with the DR feature enabled. In the long run we should be able to add support for different billing rates for all underlying billable services, e.g. database. |     |     |
-
+| Cosmos DB automatic failover| Enabling Cosmos DB failover automatically                                | | |
 ### Features that have a dependency on this design 
 
 | Team Name | Contacts | PM  | Dev |
