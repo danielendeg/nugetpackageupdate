@@ -78,8 +78,8 @@ as or different from the region for the resource group.
 1. A workspace cannot be deleted unless all child services within the workspace have been deleted.
 1. When a resoure group is deleted, all workspaces and their child service instances are deleted.
 
-While one or more workspaces can be created for each resource group, the number of child services within each workspace 
-may be limited due to a variety of factors. It is importatant that we test and document the limit.
+While one or more workspaces can be created for each resource group, the number of child service instances users can create 
+within each workspace may be limited due to a variety of factors. It is importatant that we test and document the limit.
 
 ![](media/workspace-flowchart.png)
 
