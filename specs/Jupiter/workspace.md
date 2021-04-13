@@ -69,6 +69,18 @@ service instances based on business functions such as patient services vs. data 
 or production vs. test vs. development. Second, it enables application or inheritance of configuration settings 
 from workspace to child services. 
 
+The flowchart below illustrates a high-level workspace and child service provisioning process. 
+
+1. A workspace must be provisioned and available before child services can be created.
+1. An Azure region is required for a workspace, and cannot be changed after a workspace is created.
+1. All child services must be created in the same region as the one for the workspace.
+1. When a workspace is deleted, all child services within the workspace are deleted.
+
+While one or more workspaces can be created for each resource group, the number of child services within each workspace 
+may be limited due to a variety of factors. It is importatant that we test and document the limit.
+
+![](media/workspace-flowchart.png)
+
 Initially a workspace supports the following configuration settings for all services:
 1. Private Links - This setting is applicable to FHIR and DICOM, but not IoT Connector,
 which does not require Private Link. Please refer to the Private Link spec for more details.
@@ -83,18 +95,6 @@ customers can manage applicaiton roles for each service. In future releases, cus
 in a workspace, and each service inherits them.
 
 Note that the billing service is handled internally and thus its settings are not exposed to customers.
-
-The flowchart below illustrates a high-level workspace and child service provisioning process. 
-
-1. A workspace must be provisioned and available before child services can be created.
-1. An Azure region is required for a workspace, and cannot be changed after a workspace is created.
-1. All child services must be created in the same region as the one for the workspace.
-1. When a workspace is deleted, all child services within the workspace are deleted.
-
-While one or more workspaces can be created for each resource group, the number of child services within each workspace 
-may be limited due to a variety of factors. It is importatant that we test and document the limit.
-
-![](media/workspace-flowchart.png)
 
 ## Supporting Customer Insights 
 
