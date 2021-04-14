@@ -113,13 +113,13 @@ customers in which they describe the problem they are having.*
 *Guidance: What other features are related to this work? Please include
 links.*
 
-One related work is Azure ARM resource provider (RP). As we introduce
-the workspace concept and onboard DICOM and IoT managed services, it is
-inevitable that we introduce new API versions and possibly new ARM RP,
+One related feature is Azure ARM resource provider (RP). As we introduce
+the workspace concept and new managed services such as DICOM and IoT managed services, it is
+inevitable that we introduce new API versions and revise the exisitng resource provicer,
 thus potential breaking changes as defined by [Azure breaking change
-policy](http://aka.ms/azbreakingchangespolicy). The rationale behind the
+policy](http://aka.ms/azbreakingchangespolicy). The rationale behind the breaking change 
 policy is to ensure that we do not break customer solutions that are
-built with our services, thus satisfactory customer experience.
+built with our services, thus ensuring satisfactory customer experience.
 
 There are possibly three options, each of which has significant business
 impact as we work towards the general release of Jupiter.
@@ -134,9 +134,9 @@ impact as we work towards the general release of Jupiter.
     possibly delaying the Jupiter release
 
 With the goal of moving all customers to Jupiter once it is GA’ed as
-quickly as we reasonably can, it appears that the first option provides
-the least resistance to us. As soon as we help migrate customers to
-Jupiter, we can safely deprecate Gen 1 service, subject to some internal
+quickly as we can, it appears that the first option provides
+the least resistance path to us. As soon as we help migrate customers to
+Jupiter, we can then safely deprecate Gen 1 service, subject to some internal
 review and approval.
 
 The flowchart below illustrates how Gen 1 and Jupiter will co-exist and
