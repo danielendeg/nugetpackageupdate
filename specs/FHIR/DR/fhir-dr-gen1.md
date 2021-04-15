@@ -68,15 +68,23 @@ through geographical replication and disaster recovery (DR) offering. It
 is time to make critical features like DR available to all customers
 without any further delay.
 
-For the DR offering in Gen 1, our goals are to enable all customer
-settings available in the primary region when DR failover takes place,
-including but are not limited to Private Link, CMK, and $export to
-secure locations if applicable. For any customer settings that cannot be
-enabled in an Azure paired region, document the discrepancy and notify
-impacted customers and seek their approval if necessary, before enabling
-the DR feature for them. In addition, we will make the disaster recovery
-feature available directly through the Azure portal, while enabling auto
-scaling for the service.
+**Phase I - Limited Release. Available to customers per request, mid-April, 2021**
+	 
+Features and limits include:
+	 
+1. Data replication is available in an Azure paired region or a specific region where applicable.
+1. Recovery Point Objective (RPO) is 15 minutes; Recovery Time Objective (RTO) is 120 minutes.
+1. Database failover takes place when the disaster happens.  Automatic failover is enabled per Cosmos DB documentation.
+1. A one-time support ticket is required to enable the feature
+	 
+**Phase II - Generally available, mid-May, 2021**
+	 
+Features and limits include:
+	 
+1. A secondary region including compute and database is available. Phase II is built on top of Phase I.
+1. Recovery Point Objective (RPO) is 15 minutes; Recovery Time Objective (RTO) is 60 minutes.
+1. The DR option is NOT available through the Azure portal. Support ticket is required to enable the DR option. This is a change to the initial plan.
+1. The secondary compute environment is for DR only, not accessible to users.
 
 It is important to note the difference between HA and DR. HA is about
 eliminating single points of failure through hardware and software
@@ -282,11 +290,10 @@ used.*
 | [We follow Cosmos DB process for failover and failback. https://docs.microsoft.com/en-us/azure/cosmos-db/high-availability](https://docs.microsoft.com/en-us/azure/cosmos-db/high-availability)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        | 12-Apr         | P0       |
 | We offer Recovery Point Objective (RPO) is 15 minutes; Recovery Time Objective (RTO) is 120 minutes.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   | 12-Apr         | P0       |
 | We create a secondary environment of compute in an Azure paired region or specific region for customers with DR enabled and enable all customer settings if applicable. The secondary compute environment is for DR only, not accessible to users.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     | 17-May         | P0       |
-| We expose DR setting in the Azure Portal and CLI to enable DR replica                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  | 17-May         | P0       |
-| We add the DR audit trail to audit logs for export when the customer enables/disables the DR option.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   | 17-May         | P1       |
 | At GA we update our billing (and pricing page) reflecting the cost of enabling DR on the account.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      | 17-May         | P0       |
 | We offer Recovery Point Objective (RPO) is 15 minutes; Recovery Time Objective (RTO) is 60 minutes. https://docs.microsoft.com/en-us/azure/cosmos-db/consistency-levels                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      | 17-May         | P0       |
-   
+| We do not expose the DR setting in the Azure Portal and through CLI. The DR option is only available to customers through a support ticket.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  | 17-May         | P1       |
+| We add the DR audit trail to audit logs for export when the customer enables/disables the DR option.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   | 17-May         | P1       |
 
 
 
@@ -298,7 +305,7 @@ feature is specifically not addressing, and why.*
 | Non-Goal                                                                           | Mitigation                                                     |
 |------------------------------------------------------------------------------------|----------------------------------------------------------------|
 | As a user I want to have an active/active HA configuration with two write replicas | Out of scope. The replica in the secondary region is read-only |
-|                                                                                    |                                                                |
+| As a user I can enable or disable the DR option through the portal                 | The full DR experience will be addressed in Jupiter release    |
 
 ## Scenarios and Use Cases (PM/Dev) 
 
@@ -307,47 +314,22 @@ feature is designed to address. Include how the feature is used to solve
 the scenario/use case. Following these steps should be used to validate
 the feature.*
 
-| Scenario / Use Case                                                                                            | Steps to fulfill the scenario                                                                              | Priority |
-|----------------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------|----------|
-| As a service administrator I can raise a SR and enable a geo-redundancy on the Azure API for FHIR              | Open a SR with CSS and request a creation of a geo-redundancy on Azure API for FHIR.                       | P0       |
-| As a Service administrator, I can go into Azure portal and enable/disable geo-redundancy on Azure API for FHIR | Go to Azure portal and enable/disable geo-redundancy. Ask the user to confirm the action.                  | P1       |
-| As a service administrator I can use a CLI or PS to enable/disable geo-redundancy                              | Open a CLI and enable geo-redundancy on Azure API for FHIR.                                                | P1       |
-| As a software developer I can read conflict feeds and make decision on how to resolve conflicts                | Use the endpoint for conflict feeds, process and clean up change feeds.                                    | P0       |
-| As an application developer I can use each regional endpoint to optimize application performance               | The secondary replica and compute instance is for read only. Further improvements will be made in Jupiter. | P1       |
+| Scenario / Use Case                                                                                                         | Steps to fulfill the scenario                                                                                                                                                                                 | Priority |
+|-----------------------------------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|----------|
+| As a service administrator I can request a data replica for the Azure API for FHIR                                        | Open a SR support ticket through the portal or with CSS to request creating a secondary data replica for Azure API for FHIR. This step is only required before the DR feature is generally available.                                                                      | P0       |
+| As a Service administrator, I can request a specific region (different from Azure paired regions) for the seconary data replica for Azure API for FHIR                     | Specify an Azure region in the SR support ticket. The customer can choose an Azure paired region, or any region, not limited by single region data residency requirements, as long as it is a supported region.   | P0       |
+| As a Service administrator, I can request disaster recovery for Azure API for FHIR through a support ticket | Create a support ticket to request to enable or disable the disaster recovery option. Expect initial response time as outlined in Azure support and responsiveness document.                                                                                                       | P0       |
 
 ## Scenario KPIs (PM) 
 
 *Guidance: These are the measures presented to the feature team, e.g.
 number of FHIR endpoints, total data storage size.*
 
-<table>
-<thead>
-<tr class="header">
-<th>Type<br />
-[Biz | Cust | Tech]</th>
-<th>Outcome</th>
-<th>Measure</th>
-<th>Target</th>
-<th>Priority</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td></td>
-<td></td>
-<td></td>
-<td></td>
-<td></td>
-</tr>
-<tr class="even">
-<td></td>
-<td></td>
-<td></td>
-<td></td>
-<td></td>
-</tr>
-</tbody>
-</table>
+| Type<br> \[Biz \| Cust \| Tech\] | Outcome | Measure | Target | Priority |
+| -------------------------- | ------- | ------- | ------ | -------- |
+|                            |         |         |        |          |
+|                            |         |         |        |          |
+
 
 ## What’s in the Box? (PM) 
 
@@ -364,10 +346,10 @@ areas which may be impacted: Persistence Provider, FHIR API.*
 
 | Feature Name                | Nature of dependency                                                                                                                  | Mitigation/Fallback                                                                                                                                                                                  | PM  | Dev |
 |-----------------------------|---------------------------------------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-----|-----|
-| Cosmos DB High Availability | One or multiple read regions through Geo replication                                                                                  | Built-in                                                                                                                                                                                             |     |     |
-| Azure Traffic Manager       | Routing traffic from read-only region to write region                                                                                 | We need to investigate if/how Traffic Manager plays a role when the read-only option is enabled                                                                                                      |     |     |
+| Cosmos DB High Availability | One secondary, read region through Cosmos DB data replication.                                                                                  | Built-in                                                                                                                                                                                             |     |     |
+| Azure Traffic Manager       | Routing traffic from the primary region to the secondary region, which then becomes the write region, as part of DR operation.                                                                                  | We need to investigate if/how Traffic Manager plays a role when the read-only option is enabled                                                                                                      |     |     |
 | Billing                     | Enabling one read region doubles the Cosmos DB cost and requires a different billing meter. Also, standard data transfer rates apply. | Apply a multiplier of 2 for customers with the DR feature enabled. In the long run we should be able to add support for different billing rates for all underlying billable services, e.g. database. |     |     |
-
+| Cosmos DB automatic failover| Enabling Cosmos DB failover automatically                                | | |
 ### Features that have a dependency on this design 
 
 | Team Name | Contacts | PM  | Dev |
