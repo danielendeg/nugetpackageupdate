@@ -109,20 +109,27 @@ customers in which they describe the problem they are having.*
 
 Cigna, one of the large customers on our healthcare data platform, has
 50TB, or 7 years of data, mostly prescription claims and provider
-directory data, small resource size but large volume, 3.5 billion,
-with 8 million provider resources. In
+directory data, which consists of small resource size but large number of resources, 
+3.5 billion resources and 8 million provider resources. In
 addition, Cigna processes 7 million claims/hour. They experienced 429
 errors and performance throttling issues recently. To support such a
-large number of requests/second, we have granted them with 1million
+large number of requests/second, we granted them with 1million
 RU/s, 45 instances with 25 concurrent sessions for each instance.
 
 #### Walgreens
 
-Walgreens runs a Covid-19 vaccination program on our platform. They
+Walgreens rolledd out a Covid-19 vaccination program on our platform in early 2021. They
 recently reported some performance issues due to high transaction
-volumes. We have since addressed the performance issue by increasing
-their compute replicas to 16 with 25 concurrent sessions for each, and
+volumes. We worked with the internal support team and addressed the performance issue by increasing
+their compute replicas to 16 with 25 concurrent sessions for each, and increased 
 database RU/s to 50k.
+
+#### Humana
+
+Humana complained about lack of autoscaling and on getting 429s, and escalated the issue. They indicated taht 
+autoscaling on CosmosDB would resolve their issue most likely. As a direct response to the customer request,
+we enabled Cosmos DB autocaling manually for the customer in early April. We discovered a technical issue that 
+none of the Azure portal settings could be changed or saved. This issue has yet to be addressed.
 
 ## Related Work 
 
@@ -142,8 +149,8 @@ manual process with two options that DRIs use.
 
 *Guidance: In 20 words or less, describe the proposed solution.*
 
-Support compute autoscaling and possibly database autoscaling for Azure
-API for FHIR Gen 1
+Support compute autoscaling and database autoscaling for Azure
+API for FHIR
 
 ## Elevator Pitch / Press Release 
 
