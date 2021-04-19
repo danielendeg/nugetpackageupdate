@@ -30,7 +30,9 @@ As transaction volumes increase, customers can adjust the max database
 throughput from the default 400 RU/s up to 10k RU/s through the portal, to 
 meet the peformance demands. A customer support ticket is required to raise
 the max throughput value beyond 10k RU/s. 
-The preliminary performance numbers show that at 10k RU/s 
+The preliminary performance numbers available
+ [here](https://docs.microsoft.com/en-us/azure/healthcare-apis/fhir/fhir-features-supported) 
+ show that at 10k RU/s 
 the service can process 225-400 requests per second. Any higher volumes
 can result in slow reponse times and 429 errors or “too many requests”.
 
@@ -86,7 +88,7 @@ database RU/s to 50k.
 
 #### Humana
 
-Humana complained about lack of autoscaling and on getting 429s, and escalated the issue. They indicated taht 
+Humana complained about lack of autoscaling and on getting 429s, and escalated the issue. They indicated that  
 autoscaling on CosmosDB would resolve their issue most likely. As a direct response to the customer request,
 we enabled Cosmos DB autocaling manually for the customer in early April. We discovered a technical issue that 
 none of the Azure portal settings could be changed or saved. This issue has yet to be addressed.
