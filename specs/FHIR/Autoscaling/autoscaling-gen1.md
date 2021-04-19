@@ -6,7 +6,7 @@
 
 **Program Manager (PM):** Benjamin Xue
 
-**Software Engineer (Dev):** TBD
+**Software Engineer (Dev):** Deepak Bansal, Abhijeet Thacker
 
 # How to Use This Document
 
@@ -55,41 +55,49 @@ target user. What is their goal? Why does this matter to them? Can be of
 the form, “Customers have a hard time doing FOO, I know this because I
 heard it from X, Y, Z.”*
 
-The Azure API for FHIR service runs in a shared environment,
-specifically a Service Fabric cluster, in each Azure region. Each
-customer account or application is provisioned based on a default
-configuration, which includes the compute environment with 2 replicas
-(instances) and 5 concurrent sessions for each instance and a Cosmos
-database.
+The Azure API for FHIR runs in a shared environment,
+currently a Service Fabric cluster, in each Azure region. Each
+customer account or application is provisioned with default
+configuration settings, which includes the compute environment with 2 replicas
+(instances) and 5 concurrent sessions for each instance and a Cosmos DB 
+database. It is currently a manual process to adjust the settings, 
+which has presented a big challenge for customers and for the Microsoft support team.
 
 As transaction volumes increase, customers can adjust the max database
-throughput from 400 RU/s to 10k RU/s through the portal, to avoid or
-reduce the number of request errors, including the so called 429 errors
-or “too many requests”. A customer support ticket is required to raise
-the max value. Often it is necessary to adjust the default configuration
-values, the number of instances and the number of concurrent sessions,
+throughput from the default 400 RU/s up to 10k RU/s through the portal, to 
+meet the peformance demands. A customer support ticket is required to raise
+the max throughput value beyond 10k RU/s. 
+The preliminary performance numbers show that at 10k RU/s 
+the service can process 225-400 requests per second. Any higher volumes
+can result in slow reponse times and 429 errors or “too many requests”.
+
+Another option is to adjust the number of instances and the number of concurrent sessions, 
+especially the database throughput RU/s has been significantly increased, 
 to support increased requests/second at peak times and reduce the
-response times.
+response times. While it is
+a general consensus that the number of compute instances and the underlying concurrent sessions 
+should be proportional to the database throughput, the optimal ratios between them can vary 
+significantly depending on the operation types, 
+simple reads, complex reads or queries, and writes. 
 
 As we continue to expand our customer base and onboard customers with
 large production workloads, we have seen a few major support incidents
-due to 429 errors among other issues. For customers dealing with
-performance throttling issues due to large data volumes we ended up with
+related to performance issues, mainly 429 errors, among other issues. 
+To help customers resolve these issues, we ended up with
 increasing max database throughput, the number of instances, the number
 of concurrent sessions or a combination of them.
 
 To better serve our customers and meet their business needs, we must
-look for options to improve our Gen 1 service capabilities while
-minimizing engineering efforts as we focus on Jupiter release.
-Fortunately, both Service Fabric and Cosmos DB support autoscaling,
-which allows us to scale up (or down) computing resources automatically
-and reduce customer support incidents.
+look for ways to support autoscaling as we continue to 
+focus on Jupiter release.
+Fortunately, both Service Fabric and Cosmos DB provide 
+built-in autoscaling capabilities.
 
-Our goals are to enable compute autoscaling and database autoscaling.
-However, we may enable database autoscaling for a few customers until we
-are ready to support all customers. Note that Cosmos DB autoscaling
-costs 50% more than standard or manual scaling and may use a different
-meter in some Azure regions.
+Our goals are to enable compute autoscaling and database autoscaling 
+for all customers, 
+to provide better experinces with our healthcare APIs platform 
+and reduce support incidents especially those related to 
+service peroformance.
 
 **Supporting Customer Insights**
 
