@@ -1,6 +1,6 @@
-# FHIR Compute Autoscaling Gen 1
+# FHIR Autoscaling Gen 1
 
-## Autoscale Up and Down Compute Instances
+## Autoscale Up and Down Compute Instances and Cosmos DB
 
 # Scenario Contacts 
 
@@ -8,39 +8,7 @@
 
 **Software Engineer (Dev):** Deepak Bansal, Abhijeet Thacker
 
-# How to Use This Document
-
-*This is a living document tracking the specification for your feature.
-It follows the lifecycle of the feature and should be written and
-reviewed in four stages.*
-
-*1. Justifying the work, in which the feature is greenlit for
-engineering resources. **This portion must be completed and achieve
-Director approval before committing engineering resources.***
-
-*2. User-facing feature design, which goes into detail about how a
-customer interacts with the feature.*
-
-*3. Implementation design, which describes the work the team is doing.*
-
-*4. Release activities, including documentation, demos, and field
-readiness.*
-
-*Not all sections may be relevant to your feature, and that’s okay.
-Leave unused sections empty – do not delete them!*
-
-**Note:** Not everything described in this document is part of the
-solution scope. Some information is provided to help understand the
-overall problem domain and should be kept in mind while designing a
-solution. Scenarios are yet to be prioritized.
-
 # Why There is a Gap Today? (PM) 
-
-*Guidance: This section is used to build consensus around the need for
-work to be done in a specific feature area and is equivalent to a “one
-pager”. This section is likely to be 2-3 pages when completed. When
-pitching the idea via a PowerPoint presentation, make sure all these
-items are included in your presentation.*
 
 *This section is **required** for assignment of engineering resources.*
 
@@ -49,11 +17,6 @@ Section status: \[draft\]
 Date reviewed: \[Date\]
 
 ## Problem Statement 
-
-*Guidance: State the problem or challenge in a way that ties back to the
-target user. What is their goal? Why does this matter to them? Can be of
-the form, “Customers have a hard time doing FOO, I know this because I
-heard it from X, Y, Z.”*
 
 The Azure API for FHIR runs in a shared environment,
 currently a Service Fabric cluster, in each Azure region. Each
@@ -102,14 +65,10 @@ service peroformance.
 
 **Supporting Customer Insights**
 
-*Guidance: This section should include direct quotes from customers,
-direct quotes from the field, and summaries of interactions with
-customers in which they describe the problem they are having.*
-
 #### Cigna
 
 Cigna, one of the large customers on our healthcare data platform, has
-50TB, or 7 years of data, mostly prescription claims and provider
+accumulated approximagtely 80 TB over the past sever years or so, mostly prescription claims and provider
 directory data, which consists of small resource size but large number of resources, 
 3.5 billion resources and 8 million provider resources. In
 addition, Cigna processes 7 million claims/hour. They experienced 429
@@ -134,9 +93,6 @@ none of the Azure portal settings could be changed or saved. This issue has yet 
 
 ## Related Work 
 
-*Guidance: What other features are related to this work? Please include
-links.*
-
 There is no directly related work to autoscaling. Currently we have a
 manual process with two options that DRIs use.
 
@@ -148,22 +104,12 @@ manual process with two options that DRIs use.
 
 ## What is Being Proposed? 
 
-*Guidance: In 20 words or less, describe the proposed solution.*
-
 Support compute autoscaling and database autoscaling for Azure
 API for FHIR
 
 ## Elevator Pitch / Press Release 
 
-*Guidance: Create a story for your scenario – detail out the customer,
-their problem and/or goal, and then specific outcomes the customer will
-achieve or how success would be measured. Avoid implementation details.
-Think of this as the blog post announcing this feature. 500 words max.*
-
 ## Justification, Expected Business Impact, and Value Proposition 
-
-*Guidance: Why are we tackling this scenario? What is the expected
-impact? What’s the value proposition of this work?*
 
 We have recently seen strong demands from customers for the autoscaling
 feature, especially from those who run large production workloads in Azure 
@@ -182,15 +128,9 @@ when the autoscaling feature is enabled.
 
 ## Target User / Persona 
 
-*Guidance: Specify the target user/persona(s).*
-
-Once the autoscaling is enabled, no direct user interaction is required.
+Once the autoscaling is enabled by an authorized user or administrator, no direct user interaction is required.
 
 ## Existing Solutions and Compete Info 
-
-*Guidance: List the various ways in which a user may currently handle
-this problem/challenge. With what expectations will customers approach
-our solution? What are our competitors doing in this space?*
 
 GCP 
 
@@ -212,13 +152,6 @@ scalability.
 
 ## Customers/Partners Interaction Log 
 
-*Guidance: What customer have voiced and validated the specific problem
-statements? Did you discuss the elevator pitch and the potential
-solutions (under NDA)? Are they candidates for continued follow-up and
-participation in our early access program? This should be a list of the
-different customers you have talked to. Repeated interactions with the
-same customer, such as via private preview customers, should be tracked
-elsewhere.*
 
 | Customer/Partner Name | Conversation Details / Specific Requirements | Last Contact | Private Preview Candidate |
 |-----------------------|----------------------------------------------|--------------|---------------------------|
@@ -246,9 +179,6 @@ Date reviewed: \[Date\]
 
 ## Terminology (PM/Dev) 
 
-*Guidance: This section defines terms used in the rest of the spec. The
-terms may feed into public docs and blogs as be used to define metric
-names and logging categories.*
 
 | Term | Definition |
 |------|------------|
@@ -259,19 +189,9 @@ names and logging categories.*
 
 ## Branding (PM) 
 
-*Guidance: This section discusses branding decisions such as
-product/feature names. Note that all branding decisions **require**
-sign-off by the Product Marketing Manager.*
-
 ## Detailed Feature Description (PM/Dev) 
 
-*Guidance: This section describes, at a high level, what the feature is
-and is not to the target customer and how we measure success.*
-
 ## Goals (PM/Dev) 
-
-*Guidance: This section describes the goals for how the feature is to be
-used.*
 
 | Goal                                                                                                                                           | Target Release | Priority |
 |------------------------------------------------------------------------------------------------------------------------------------------------|----------------|----------|
@@ -291,20 +211,12 @@ used.*
 
 ## Non-Goals (PM/Dev) 
 
-*Guidance: This section describes the topical customer goals that this
-feature is specifically not addressing, and why.*
-
 | Non-Goal                                                                     | Mitigation                                                                                                                |
 |------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------|
 | Change billing the billing service.                                          | Cosmos DB autoscaling costs 50% more than the rate for standard scaling. The existing Cosmos DB billing method ajusts consumed RU/s units by a 1.5 muliplier, thus requiring no change to the billing service for Azure ApI for FHIR. |
 | Provide option for compute autoscaling.                                      | Compute autoscaling should be enabled automatically when database autoscaling is enabled.                                      |
 
 ## Scenarios and Use Cases (PM/Dev) 
-
-*Guidance: This section describes the customer scenarios that this
-feature is designed to address. Include how the feature is used to solve
-the scenario/use case. Following these steps should be used to validate
-the feature.*
 
 | Scenario / Use Case                                     | Steps to fulfill the scenario                                     | Priority |
 |---------------------------------------------------------|-------------------------------------------------------------------|----------|
@@ -318,8 +230,6 @@ the feature.*
 
 ## Scenario KPIs (PM) 
 
-*Guidance: These are the measures presented to the feature team, e.g.
-number of FHIR endpoints, total data storage size.*
 
 
 | Type<br> \[Biz \| Cust \| Tech\] | Outcome | Measure | Target | Priority |
