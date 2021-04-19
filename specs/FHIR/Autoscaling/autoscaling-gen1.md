@@ -277,6 +277,7 @@ used.*
 |------------------------------------------------------------------------------------------------------------------------------------------------|----------------|----------|
 | Enable Cosmos DB autoscaling with a max throughput (RU/s) set to the existing, standard scaling max RU/s.                                      | 5/31/21        | P0       |
 | Enable compute autoscaling and adjust the number of concurrent sessions accordingly.                                                           | 6/30/21        | P0       |
+| Support autoscaling when DR is enabled.                                                                                                        | 6/30/21        | P1       |
 | Enable autoscaling settings from the Azure portal.                                                                                             | 6/30/21        | P1       |
 |                                                                                                                                                |                |          |
 |                                                                                                                                                |                |          |
