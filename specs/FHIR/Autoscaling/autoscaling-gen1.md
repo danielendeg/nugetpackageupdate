@@ -164,19 +164,20 @@ Think of this as the blog post announcing this feature. 500 words max.*
 *Guidance: Why are we tackling this scenario? What is the expected
 impact? What’s the value proposition of this work?*
 
-We have seen recently strong demands from customers for the autoscaling
-feature, especially from those who run large production workloads in the
-FHIR service. If we don’t address the performance throttling issue
-immediately our customers especially those large customers will be
-concerned that their business operations that depend on the FHIR service
-will be negatively impacted or even constantly interrupted.
+We have recently seen strong demands from customers for the autoscaling
+feature, especially from those who run large production workloads in Azure 
+API for FHIR. Our customers especially those large customers have shared and even 
+escalated their concerns over the service performance issues and 
+asked that we help resolve the issues by providing the autoscaling feature.
 
-On the other side we can leverage the built-in autoscaling features in
-Service Fabric and Cosmos DB and make necessary code change to enable
-and support them. In the short term doing so means that we need to
-invest engineering sources and slow down our Jupiter effort, but in the
-long run we can learn from the experience and improve it in Jupiter and
-future release to better serve our customers.
+While we can leverage the built-in autoscaling features in
+Service Fabric and Cosmos DB, we must investiage what impract the change will have 
+on our existing design and delployment and what changes we will have to make
+to ensure a reliable service offering and a smooth customer experience.
+
+Meanwhile, we will also undersand and communicate the extra costs resulted from the 
+autoscaling offering, especially on the Cosmos DB side, which adds a 50% cost increase
+when the autoscaling feature is enabled.
 
 ## Target User / Persona 
 
