@@ -94,7 +94,8 @@ Fortunately, both Service Fabric and Cosmos DB provide
 built-in autoscaling capabilities.
 
 Our goals are to enable compute autoscaling and database autoscaling 
-for all customers, 
+for all customers, preferably through the Azure portal or through the 
+support team as an alternative, 
 to provide better experinces with our healthcare APIs platform 
 and reduce support incidents especially those related to 
 service peroformance.
@@ -274,9 +275,9 @@ used.*
 
 | Goal                                                                                                                                           | Target Release | Priority |
 |------------------------------------------------------------------------------------------------------------------------------------------------|----------------|----------|
-| Enable compute autoscaling based on one or more criteria with a max number of instances. Adjust the number of concurrent sessions accordingly. | 5/31/21        | P0       |
-| Enable autoscaling settings from the Azure portal.                                                                                             | 6/30/21        | P0       |
-| Enable Cosmos DB autoscaling with a max throughput (RU/s).                                                                                     | 6/30/21        | P1       |
+| Enable Cosmos DB autoscaling with a max throughput (RU/s) set to the existing, standard scaling max RU/s.                                      | 5/31/21        | P0       |
+| Enable compute autoscaling and adjust the number of concurrent sessions accordingly.                                                           | 6/30/21        | P0       |
+| Enable autoscaling settings from the Azure portal.                                                                                             | 6/30/21        | P1       |
 |                                                                                                                                                |                |          |
 |                                                                                                                                                |                |          |
 |                                                                                                                                                |                |          |
@@ -294,8 +295,8 @@ feature is specifically not addressing, and why.*
 
 | Non-Goal                                                                     | Mitigation                                                                                                                |
 |------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------|
-| Change billing service to use Cosmos DB autoscaling billing meter and rates. | Cosmos DB autoscaling costs 50% more than the rate for standard scaling. Use a multiplier of 1.5 to adjust billing costs. |
-|                                                                              |                                                                                                                           |
+| Change billing the billing service.                                          | Cosmos DB autoscaling costs 50% more than the rate for standard scaling. The existing Cosmos DB billing method ajusts consumed RU/s units by a 1.5 muliplier, thus requiring no change to the billing service for Azure ApI for FHIR. |
+| Provide option for compute autoscaling.                                      | Compute autoscaling should be enabled automatically when database autoscaling is enabled.                                      |
 
 ## Scenarios and Use Cases (PM/Dev) 
 
@@ -306,9 +307,11 @@ the feature.*
 
 | Scenario / Use Case                                     | Steps to fulfill the scenario                                     | Priority |
 |---------------------------------------------------------|-------------------------------------------------------------------|----------|
-| The user enables compute autoscaling from the portal.   | Update customer account settings and reprovision the application. | P0       |
-| The user enables Cosmos DB autoscaling from the portal. | Update customer account settings and reprovision the application. | P1       |
-|                                                         |                                                                   |          |
+| The user enables Cosmos DB autoscaling from the portal. | Change the setting to autoscaling. The max RU/s is set to the existing standard scaling RU/s.            | P0       |
+| The user disables Cosmos DB autoscaling from the portal. | Change the setting to standard scaling. The max RU/s is kept unchanged.            | P0       |
+| The user changes the max database throughput RU/s with autoscaling enabled.      | Change the max RU/s to a number within the supported range.       | P1       |
+| The user changes the max database throughput RU/s to a number exceeding the supported range.      | Create a support ticket to request the max RU/s.       | P1         |
+| The user verifies if autoscaling is enabled.      | Go to the portal to see the autoscaling setting. In case the portal setting is not available, create a support ticket to confirm the autoscaling status.       | P1         |
 |                                                         |                                                                   |          |
 |                                                         |                                                                   |          |
 
@@ -317,34 +320,14 @@ the feature.*
 *Guidance: These are the measures presented to the feature team, e.g.
 number of FHIR endpoints, total data storage size.*
 
-<table>
-<thead>
-<tr class="header">
-<th>Type<br />
-[Biz | Cust | Tech]</th>
-<th>Outcome</th>
-<th>Measure</th>
-<th>Target</th>
-<th>Priority</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td></td>
-<td></td>
-<td></td>
-<td></td>
-<td></td>
-</tr>
-<tr class="even">
-<td></td>
-<td></td>
-<td></td>
-<td></td>
-<td></td>
-</tr>
-</tbody>
-</table>
+
+| Type<br> \[Biz \| Cust \| Tech\] | Outcome | Measure | Target | Priority |
+| -------------------------- | ------- | ------- | ------ | -------- |
+|                            |         |         |        |          |
+|                            |         |         |        |          |
+
+
+
 
 ## What’s in the Box? (PM) 
 
