@@ -28,7 +28,6 @@ We will look at dicom requirements and how we can optimize the capacity of a sub
 - Resources per Dicom server
     - Managed Identity
     - Storage account
-    - Keyvault
     - Role assignments
 - Shared resources
     - SQL server, DB
@@ -40,16 +39,35 @@ We will look at dicom requirements and how we can optimize the capacity of a sub
 | Resource | Limit | Unit  |
 | -------- | ----- | ----- |
 | Resource group | 980 | Per Subscription
-| Deployments | 800 | Per Subscription Per Location
+| Deployments | 800 | Per Subscription Per Resource Group
 | Resource | 800 | Per Resource type Per Resource Group
 | Managed Identity | 500K | Per Tenant
 | Key Vault | No limit |
-| Storage Account | 250-350-5000 | Per Region Per Subscription
+| Storage Account | 250 | Per Region Per Subscription
+| Traffic Manger|  200 | Profiles per subscription
 | SQL   | 20-200 | Per Subscription
 | SQL DB | 5000 | Per SQL server
-| AKS | 100 | Per Subscribtion
+| AKS | 1000 | Per Subscription
 | AKS nodes | 1000 | 100 per node pool
-| Role assignments | 2000 | Per subscribtion 
+| Role assignments | 2000 | Per subscription 
+
+Notes:
+
+- 980 limit on resource groups can be removed completely
+    - 800 limit resource type per resource group can also be removed
+    - 800 limit deployments per resource group **can not** be removed, old deployments need to be cleaned up
+- Storage Account
+    - Information on limits: https://docs.microsoft.com/en-us/azure/storage/common/scalability-targets-standard-account
+- Traffic Manger
+    - Has limit of 200 per subscription but can be increased by creating a ticket with the traffic manager team. FHIR subscriptions have increased to 1000 per subscription. 
+    - Information on limits: https://docs.microsoft.com/en-us/azure/azure-resource-manager/management/azure-subscription-service-limits#traffic-manager-limits
+
+- AKS
+    - Information on limits: https://docs.microsoft.com/en-us/azure/aks/quotas-skus-regions
+
+Monitoring:
+- We will be monitoring the resources in the certain subscriptions to have alerts when we are reaching a limit. For information about which resources currently have monitoring and how alerting works view: [resource-monitoring](resource-monitoring.md)
+
 
 ## Options
 
