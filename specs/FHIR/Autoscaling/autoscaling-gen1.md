@@ -229,11 +229,11 @@ Date reviewed: \[Date\]
 
 | Scenario / Use Case                                     | Steps to fulfill the scenario                                     | Priority |
 |---------------------------------------------------------|-------------------------------------------------------------------|----------|
-| The user enables Cosmos DB autoscale from the portal. | Change the setting to autoscale. The max RU/s is set to the existing standard scaling RU/s.            | P0       |
+| The user enables Cosmos DB autoscale from the portal. | Change the setting to autoscale. The max RU/s is set to the existing standard scaling RU/s and can be changed to up to 10,000 RU.              | P0       |
 | The user disables Cosmos DB autoscale from the portal. | Change the setting to standard scaling. The max RU/s is kept unchanged.            | P0       |
 | The user changes the max database throughput RU/s with autoscale enabled.      | Change the max RU/s to a number within the supported range.       | P1       |
 | The user changes the max database throughput RU/s to a number exceeding the supported range.      | Create a support ticket to request the max RU/s.       | P1         |
-| The user verifies if autoscale is enabled.      | Go to the portal and verify the autoscale setting. In case the portal setting is not available, create a support ticket to confirm the autoscale status.       | P1         |
+| The user verifies if autoscale is enabled (or disabled).      | Go to the portal and verify the autoscale setting. In case the portal setting is not available, create a support ticket to confirm the autoscale status.       | P1         |
 |                                                         |                                                                   |          |
 |                                                         |                                                                   |          |
 
