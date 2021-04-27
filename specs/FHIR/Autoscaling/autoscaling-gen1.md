@@ -58,12 +58,19 @@ focus on Jupiter release.
 Fortunately, both Service Fabric and Cosmos DB provide 
 built-in autoscaling capabilities.
 
-Our goals are to allow customers to enable (or disable) compute autoscale and database autoscale 
+Our goals are to allow customers to enable (or disable) autoscale 
 through the Azure portal. Doing so should help reduce support incidents especially those related to 
-service peroformance and improve overall customer experience with our healthcare API platform.
+service peroformance and improve overall customer experience with our FHIR service.
 
-Because there is extra cost to enable Cosmos DB autoscale, customers must opt in for the option. 
-On the other hand, compute autoscale should be included automatically when the autoscale option is enabled (or disabled). 
+Autoscale includes Cosmos DB autoscale and compute autoscale. Because Cosmos DB autoscale incurs extra cost, 
+customers must opt in for the option and specify a max throughput. Compute autoscale, on the other hand, can be changed accordingly. 
+In practice, it is unnecessary that we disable compute autoscale, as long as we set a max value for compute instances. 
+There are for at least two reasons that we do not disable compute autoscale.
+First, disabling compute autoscale requires that we change the setting to either the default values, or to the values that 
+we can determine using Geneva logs or other measures. In either case it is not optimal and we may continue to deal with 
+performance issues we try to solve. Second, customers pay only fixed compute runtime costs; 
+they are not charged with extra computing resources today.
+So keeping compute autoscale should not have revenue impact on our side.
 
 Alternatively, we can require that customers create a support ticket to enable or disable the autoscale option, if the portal 
 integration requires significant effort that we agree to defer the work until Jupiter release.
@@ -206,7 +213,6 @@ Date reviewed: \[Date\]
 |------------------------------------------------------------------------------------------------------------------------------------------------|----------------|----------|
 | Enable Cosmos DB autoscale with a max throughput (RU/s) set to the existing, standard scale max RU/s.                                          | 5/31/21        | P0       |
 | Enable compute autoscale, with a max instance number, and adjust the number of concurrent sessions accordingly.                                | 6/30/21        | P0       |
-| Support autoscale when DR is enabled.                                                                                                          | 6/30/21        | P1       |
 | Enable the autoscale setting from the Azure portal.                                                                                            | 6/30/21        | P1       |
 |                                                                                                                                                |                |          |
 |                                                                                                                                                |                |          |
