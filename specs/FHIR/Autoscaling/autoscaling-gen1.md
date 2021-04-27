@@ -104,19 +104,12 @@ database RU/s to 50k.
 
 Humana complained about lack of autoscaling and on getting 429s, and escalated the issue. They indicated that  
 autoscaling on CosmosDB would resolve their issue most likely. As a direct response to the customer request,
-we enabled Cosmos DB autocaling manually for the customer in early April. We discovered a technical issue that 
-none of the Azure portal settings could be changed or saved. This issue has yet to be addressed.
+we enabled Cosmos DB autocaling manually for the customer in early April. 
 
 ## Related Work 
 
-There is no directly related work to autoscaling. Currently we have a
-manual process with two options that DRIs use.
-
-1.  Use the ResoluteMultiTool to reprovision these accounts as described
-    > [here](onenote:#Execute%20MultiTool%20on%20Prod%20From%20non-SAW&section-id={D4D99CD6-8FB8-492B-ADE2-F4FCCDCDD552}&page-id={B7D9FF2A-1DD7-416B-A067-8E2802B4A5C2}&end&base-path=https://microsoft.sharepoint.com/teams/msh/Shared%20Documents/Notebooks/Resolute%20Engineering/Operations/How%20to.one)
-
-2.  Run the Update-FhirServiceApplicationConfig.ps1 as described
-    > [here](onenote:#Modify%20the%20Configuration%20of%20a%20Running%20Fhir%20Service&section-id={D4D99CD6-8FB8-492B-ADE2-F4FCCDCDD552}&page-id={C3F7213E-B61A-401A-8A33-B9112F8FBF95}&end&base-path=https://microsoft.sharepoint.com/teams/msh/Shared%20Documents/Notebooks/Resolute%20Engineering/Operations/How%20to.one)
+The compute autoscale relies on Service Fabric's autoscale feature whereas database autoscale uses Cosmos DB's built-in autoscale feature. 
+In addition, some Azure portal UI change and integration with the resource provider are required.
 
 ## What is Being Proposed? 
 
