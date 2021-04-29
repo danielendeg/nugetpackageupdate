@@ -210,10 +210,10 @@ Date reviewed: \[Date\]
 | Scenario / Use Case                                     | Steps to fulfill the scenario                                     | Priority |
 |---------------------------------------------------------|-------------------------------------------------------------------|----------|
 | The user enables or disables autoscale from the portal. | Change to autoscale to enable, or change to manual to disable, and save the setting.               | P0       |
-| The user changes max provisioned throughput RU/s from the portal. | After autoscale is enabled, change the number up to 10,000 RU/s or no less than 10% of the current value.              | P0       |
-| The user changes a max provisioned throughput RU/s higher than 10,000 from the portal. | Create a support ticket to request a higher number.            | P0       |
-| The user changes provisioned throughput RU/s when autoscale is disabled from the portal. | Change up to 10,000 RU/s and no less than storage data in GB multiplied by 40 RU/GB            | P0       |
-| The user changes provisioned throughput RU/s higher than 10,000 RU/s when autoscale is disabled from the portal. | Create a support ticket to request a higher number.             | P0       |
+| The user changes the max provisioned throughput RU/s from the portal. | After autoscale is enabled, change the number up to 10,000 RU/s and no less than 10% of the current value.              | P0       |
+| The user changes a max provisioned throughput RU/s higher than 10,000 from the portal. | Create a support ticket to request a higher throughput RU/s number.            | P0       |
+| The user changes provisioned throughput RU/s, when autoscale is disabled, from the portal. | Change up to 10,000 RU/s and no less than storage data in GB multiplied by 40 RU/GB            | P0       |
+| The user changes provisioned throughput higher than 10,000 RU/s, when autoscale is disabled, from the portal. | Create a support ticket to request a higher throughput RU/s number.             | P0       |
 |                                                         |                                                                   |          |
 |                                                         |                                                                   |          |
 
