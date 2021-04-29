@@ -52,13 +52,7 @@ On the billing side, unlike Cosmos DB autoscale, there is no extra cost.
 And we are currently not charging customers for the extra computing runtime resoures. In short, there is no reason why we should not enable 
 compute autoscale for customers when we are ready to do so.
 
-The screen mockups are included here to demonstrate the customer experience. 
-1.Customers can change the provisoined throughput RU/s as they can today.
-2.Customers can change between the standard (or manual) scale option and the autoscale optoin.
-3.Customers can change max provisioned throughput only after autoscale is enabled.
-4.Customers will pay the extra costs for autoscale.
 
-![portal setting autoscale](portal-setting-autoscale.png)
 
 **Supporting Customer Insights**
 
@@ -195,8 +189,7 @@ Date reviewed: \[Date\]
 |                                                                                                                                                |                |          |
 |                                                                                                                                                |                |          |
 |                                                                                                                                                |                |          |
-|                                                                                                                                                |                |          |
-       |                                                                                                                                         |                |          |
+
 
 ## Non-Goals (PM/Dev) 
 
@@ -282,9 +275,32 @@ All customers.
 
 ### Storyboard 
 
-*Guidance: This section is for features with a UI/UX component.
-Alternatively, you can also create Storyboard in PowerPoint and provide
-link to the PPT in this section.*
+The screen mockups are included here to demonstrate the customer experience. 
+1.Customers can change the provisoined throughput RU/s as they can today.
+2.Customers can change between the standard (or manual) scale option and the autoscale optoin.
+3.Customers can change max provisioned throughput only after autoscale is enabled.
+4.Customers will pay the extra costs for autoscale.
+
+![portal setting autoscale](portal-setting-autoscale.png)
+
+For comparison, the Cosmos DB portal shows UI for manual scale and autoscale.
+-Manual scale
+![comsosdb 1](cosmosdb-1.png)
+
+-Change manual scale to autoscale
+![comsosdb 2](cosmosdb-2.png)
+
+-Autoscale with system assigned max throughput RU/s
+![comsosdb 3](cosmosdb-3.png)
+
+-Change max throughput RU/s, before save, when autoscale is enabled
+![comsosdb 4](cosmosdb-4.png)
+
+-Change max throughput RU/s, after save, when autoscale is enabled
+![comsosdb 5](cosmosdb-5.png)
+
+-Change autoscale to manual
+![comsosdb 6](cosmosdb-6.png)
 
 ### Usability Validation 
 
