@@ -108,8 +108,7 @@ we enabled Cosmos DB autocaling manually for the customer in early April.
 
 ## Related Work 
 
-The compute autoscale relies on Service Fabric's autoscale feature whereas database autoscale uses Cosmos DB's built-in autoscale feature. 
-In addition, some Azure portal UI change and integration with the resource provider are required.
+The autoscale feature is an improvement over the manual process.
 
 ## What is Being Proposed? 
 
@@ -154,10 +153,9 @@ AWS 
 
 Amazon
 announced [<u>HealthLake</u>](https://aws.amazon.com/healthlake/) in
-December of 2020, which is a HIPAA-eligible service. While Amazon claims
+December of 2020, which is a HIPAA-eligible service. Amazon claims
 that HealthLake allows customers to store, transform, query, and analyze
-health data at petabyte scale, there seems no documentation on its
-scalability.
+health data at petabyte scale. 
 
 ## Customers/Partners Interaction Log 
 
@@ -204,9 +202,9 @@ Date reviewed: \[Date\]
 
 | Goal                                                                                                                                           | Target Release | Priority |
 |------------------------------------------------------------------------------------------------------------------------------------------------|----------------|----------|
-| Enable Cosmos DB autoscale with a max throughput (RU/s) set to the existing, standard scale max RU/s.                                          | 5/31/21        | P0       |
-| Enable compute autoscale, with a max instance number, and adjust the number of concurrent sessions accordingly.                                | 6/30/21        | P0       |
-| Enable the autoscale setting from the Azure portal.                                                                                            | 6/30/21        | P1       |
+| Phase I: Support Cosmos DB autoscale, allowing to change max throughput RU/s up to the known limit, 10,000 RU/s. Resolve any known issue resulted from the change. No portal integration.                                  | 5/31/21        | P0       |
+| Phase II: Support compute autoscale, allowing to specify the max number of compute instances and the number of concurrent sessions.            | 6/30/21        | P0       |
+| Phase II: Expose the autoscale feature through the Azure portal. Resolve any integration issue.                                                | 6/30/21        | P1       |
 |                                                                                                                                                |                |          |
 |                                                                                                                                                |                |          |
 |                                                                                                                                                |                |          |
@@ -221,8 +219,8 @@ Date reviewed: \[Date\]
 
 | Non-Goal                                                                     | Mitigation                                                                                                                |
 |------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------|
-| Change billing the billing service.                                          | Cosmos DB autoscale costs 50% more than the rate for standard scaling. The existing Cosmos DB billing method ajusts consumed RU/s units by a 1.5 muliplier, thus requiring no change to the billing service for Azure ApI for FHIR. |
-| Provide option for compute autoscale.                                      | Compute autoscale should be enabled automatically when database autoscale is enabled.                                      |
+| Change the billing service.                                                  | No change to the billing service for Azure ApI for FHIR is necessary. For Cosmos DB autoscale, the RU/s consumption is automatically adjusted. For compute autoscale, runtime billing rates are the same. |
+| Expose the option for compute autoscale through the portal.                  | Exposing compute autoscale is unnecessary. It should be enabled for all customers, regardless of whether or not Cosmos DB autoscale is enabled.                                      |
 
 ## Scenarios and Use Cases (PM/Dev) 
 
@@ -253,6 +251,8 @@ Date reviewed: \[Date\]
 *Guidance: This section lists everything the customer gets in the end.
 Is there a new service? Templates? Samples? SDK?*
 
+It is an improvement to the released service, including some changes to the portal UI.
+
 ## Feature Dependencies (PM/Dev) 
 
 *Guidance: This section describes both the dependencies this feature has
@@ -279,11 +279,21 @@ areas which may be impacted: Persistence Provider, FHIR API.*
 *Guidance: This section gives details on how we plan on engaging with
 customers to validate our assumptions and design.*
 
+We plan to make the autoscale feature available to all customers. However,
+it is not enabled by default. customers must enable (or disable) the feature.
+
 ### Customer Research Required 
+
+We have heard and learned from more than one customer that they wanted to have the autoscale capability to run their data workloads that 
+may vary signficantly. No additonal customer research is required.
 
 ### Criteria for Customer Selection 
 
+All customers are eligible.
+
 ### Customers Selected 
+
+All customers.
 
 ## User Interface (PM) 
 
