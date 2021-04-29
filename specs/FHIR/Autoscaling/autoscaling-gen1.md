@@ -52,7 +52,11 @@ On the billing side, unlike Cosmos DB autoscale, there is no extra cost.
 And we are currently not charging customers for the extra computing runtime resoures. In short, there is no reason why we should not enable 
 compute autoscale for customers when we are ready to do so.
 
-A screen mockup has been created to demonstrate the customer experience. 
+The screen mockups are included here to demonstrate the customer experience. 
+1.Customers can change the provisoined throughput RU/s as they can today.
+2.Customers can change between the standard (or manual) scale option and the autoscale optoin.
+3.Customers can change max provisioned throughput only after autoscale is enabled.
+4.Customers will pay the extra costs for autoscale.
 
 ![portal setting autoscale](portal-setting-autoscale.png)
 
@@ -85,31 +89,35 @@ we enabled Cosmos DB autocaling manually for the customer in early April.
 
 ## Related Work 
 
-The autoscale feature is an improvement over the manual process.
+The autoscale feature is an improvement over the manual process. There is no related work.
 
 ## What is Being Proposed? 
 
-Support compute autoscaling and database autoscaling for Azure
-API for FHIR
+Provide autoscale as an option for the Azure API for FHIR
 
 ## Elevator Pitch / Press Release 
 
 ## Justification, Expected Business Impact, and Value Proposition 
 
-We have recently seen strong demands from customers for the autoscaling
-feature, especially from those who run large production workloads in Azure 
-API for FHIR. Our customers especially those large customers have shared and even 
-escalated their concerns over the service performance issues and 
-asked that we help resolve the issues by providing the autoscaling feature.
+We have recently seen strong demands from customers for the autoscale 
+feature, especially from those who ran large production workloads in Azure 
+API for FHIR and experienced service performance issues. Some of them  
+escalated the issues and 
+asked that we help them resolve the issues by providing the autoscale feature.
 
-While we can leverage the built-in autoscaling features in
-Service Fabric and Cosmos DB, we must investiage what impract the change will have 
-on our existing design and delployment and what changes we will have to make
-to ensure a reliable service offering and a smooth customer experience.
+The team has agreed that, after reviewing the business priorities during the QBPR, 
+we work on the autoscale feature in the second quarter of 2021 for Gen 1. 
 
-Meanwhile, we will also undersand and communicate the extra costs resulted from the 
-autoscaling offering, especially on the Cosmos DB side, which adds a 50% cost increase
-when the autoscaling feature is enabled.
+When the autoscale feature is generally available, we expect that customers can run different workloads with 
+no or less performance issues and that the support cases related to performance issues drop. In addition, 
+we can apply lessons learned, and re-use some code possibly, when we offer the autoscale feature in Jupiter.
+
+However, the autoscale feature may have revenue on some customers. 
+While customers pay 50% extra costs when autoscale is enabled, 
+some customers may pay less because they end up with consuming less database throughput RU/s. 
+We are aware of the potential revenue impact and believe that it is the right thing to do for the customers. In essence, 
+this aligns well with the new pricing model to be introduce in Jupiter where customers only pay what they use.
+
 
 ## Target User / Persona 
 
@@ -179,9 +187,8 @@ Date reviewed: \[Date\]
 
 | Goal                                                                                                                                           | Target Release | Priority |
 |------------------------------------------------------------------------------------------------------------------------------------------------|----------------|----------|
-| Phase I: Support Cosmos DB autoscale, allowing to change max throughput RU/s up to the known limit, 10,000 RU/s. Resolve any known issue resulted from the change. No portal integration.                                  | 5/31/21        | P0       |
-| Phase II: Support compute autoscale, allowing to specify the max number of compute instances and the number of concurrent sessions.            | 6/30/21        | P0       |
-| Phase II: Expose the autoscale feature through the Azure portal. Resolve any integration issue.                                                | 6/30/21        | P1       |
+| Phase I: Provide Cosmos DB autoscale as an option. Allow customers to change max throughput RU/s up to 10,000 RU/s. No portal integration.               | 5/31/21        | P0       |
+| Phase II: Expose the autoscale feature through the Azure portal. Make compute autoscale a default option to all customers.           | 6/30/21        | P0       |                                                                                                                                                |                |          |
 |                                                                                                                                                |                |          |
 |                                                                                                                                                |                |          |
 |                                                                                                                                                |                |          |
@@ -189,25 +196,24 @@ Date reviewed: \[Date\]
 |                                                                                                                                                |                |          |
 |                                                                                                                                                |                |          |
 |                                                                                                                                                |                |          |
-|                                                                                                                                                |                |          |
-|                                                                                                                                                |                |          |
+       |                                                                                                                                         |                |          |
 
 ## Non-Goals (PM/Dev) 
 
 | Non-Goal                                                                     | Mitigation                                                                                                                |
 |------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------|
 | Change the billing service.                                                  | No change to the billing service for Azure ApI for FHIR is necessary. For Cosmos DB autoscale, the RU/s consumption is automatically adjusted. For compute autoscale, runtime billing rates are the same. |
-| Expose the option for compute autoscale through the portal.                  | Exposing compute autoscale is unnecessary. It should be enabled for all customers, regardless of whether or not Cosmos DB autoscale is enabled.                                      |
+|                  |                                       |
 
 ## Scenarios and Use Cases (PM/Dev) 
 
 | Scenario / Use Case                                     | Steps to fulfill the scenario                                     | Priority |
 |---------------------------------------------------------|-------------------------------------------------------------------|----------|
-| The user enables Cosmos DB autoscale from the portal. | Change the setting to autoscale. The max RU/s is set to the existing standard scaling RU/s and can be changed to up to 10,000 RU.              | P0       |
-| The user disables Cosmos DB autoscale from the portal. | Change the setting to standard scaling. The max RU/s is kept unchanged.            | P0       |
-| The user changes the max database throughput RU/s with autoscale enabled.      | Change the max RU/s to a number within the supported range.       | P1       |
-| The user changes the max database throughput RU/s to a number exceeding the supported range.      | Create a support ticket to request the max RU/s.       | P1         |
-| The user verifies if autoscale is enabled (or disabled).      | Go to the portal and verify the autoscale setting. In case the portal setting is not available, create a support ticket to confirm the autoscale status.       | P1         |
+| The user enables or disables autoscale from the portal. | Change to autoscale to enable, or change to manual to disable, and save the setting.               | P0       |
+| The user changes max provisioned throughput RU/s from the portal. | After autoscale is enabled, change the number up to 10,000 RU/s or no less than 10% of the current value.              | P0       |
+| The user changes a max provisioned throughput RU/s higher than 10,000 from the portal. | Create a support ticket to request a higher number.            | P0       |
+| The user changes provisioned throughput RU/s when autoscale is disabled from the portal. | Change up to 10,000 RU/s and no less than storage data in GB multiplied by 40 RU/GB            | P0       |
+| The user changes provisioned throughput RU/s higher than 10,000 RU/s when autoscale is disabled from the portal. | Create a support ticket to request a higher number.             | P0       |
 |                                                         |                                                                   |          |
 |                                                         |                                                                   |          |
 
