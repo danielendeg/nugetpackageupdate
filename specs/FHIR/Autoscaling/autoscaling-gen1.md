@@ -18,62 +18,39 @@ Date reviewed: \[Date\]
 
 ## Problem Statement 
 
-The Azure API for FHIR runs in a shared environment,
-currently a Service Fabric cluster, in each Azure region. Each
-customer account or application is provisioned with default
-configuration settings, which includes the compute environment with 2 replicas
-(instances) and 5 concurrent sessions for each instance and a Cosmos DB 
-database. It is currently a manual process to adjust the settings, 
-which has presented a big challenge for customers and for the Microsoft support team.
+The Azure API for FHIR runs in a shared Service Fabric environment for a set of customers 
+in each Azure region. Each
+customer is provisioned with a designated app or service with default 
+configuration settings, which includes 2 compute instances or replicas
+including 5 concurrent sessions in each instance and a Cosmos DB 
+database. The default settings can only be adjusted manually, 
+which has presented a big challenge for customers as they increase production workloads and
+require more computing resources. It has also become a burden for the support team. 
 
-As transaction volumes increase, customers can adjust the max database
-throughput from the default 400 RU/s up to 10k RU/s through the portal, to 
-meet the peformance demands. A customer support ticket is required to raise
-the max throughput value beyond 10k RU/s. 
-The preliminary performance numbers available
- [here](https://docs.microsoft.com/en-us/azure/healthcare-apis/fhir/fhir-features-supported) 
- show that at 10k RU/s 
-the service can process 225-400 requests per second. Any higher volumes
-can result in slow reponse times and 429 errors or “too many requests”.
+With the manual process, customers can adjust the database provisioned 
+throughput from the default 400 RU/s up to 10k RU/s through the portal, to support 
+large workloads. When their workloads exceed the overall capacity of the API service, customers start 
+seeing slow responses, 429 errors or "too many requests". They can create support tickets to get 
+the support team involved, helping them raise compute instances, 
+including the number of concurrent sessions in each instance, and/or Cosmos DB throughput RU/s. 
+This has not been the best customer experience. Customers have asked that we provide support for autoscale 
+that allows them to run various production workloads without having to worrying about running out of capability 
+or paying extra costs due to over allocated computing resources.
 
-Another option is to adjust the number of instances and the number of concurrent sessions, 
-especially the database throughput RU/s has been significantly increased, 
-to support increased requests/second at peak times and reduce the
-response times. While it is
-a general consensus that the number of compute instances and the underlying concurrent sessions 
-should be proportional to the database throughput, the optimal ratios between them can vary 
-significantly depending on the operation types, 
-simple reads, complex reads or queries, and writes. 
+To better serve our customers and meet their business needs, it is imperative that we improve the service scalability by providing 
+autoscale as an option to the standard (or manual) scale through the Azure portal. The reason why we keep the two options available 
+to customers is because there are extra costs associated with autoscale and customers must agree to pay for the extra costs when they 
+enable the autoscale option. The extra costs are resulted from Cosmos DB autoscale, 
+which is 50% more than the standard (or manual) throughput rates.
 
-As we continue to expand our customer base and onboard customers with
-large production workloads, we have seen a few major support incidents
-related to performance issues, mainly 429 errors, among other issues. 
-To help customers resolve these issues, we ended up with
-increasing max database throughput, the number of instances, the number
-of concurrent sessions or a combination of them.
-
-To better serve our customers and meet their business needs, we must
-look for ways to support autoscaling as we continue to 
-focus on Jupiter release.
-Fortunately, both Service Fabric and Cosmos DB provide 
-built-in autoscaling capabilities.
-
-Our goals are to allow customers to enable (or disable) autoscale 
-through the Azure portal. Doing so should help reduce support incidents especially those related to 
-service peroformance and improve overall customer experience with our FHIR service.
-
-Autoscale includes Cosmos DB autoscale and compute autoscale. Because Cosmos DB autoscale incurs extra cost, 
-customers must opt in for the option and specify a max throughput. Compute autoscale, on the other hand, can be changed accordingly. 
-In practice, it is unnecessary that we disable compute autoscale, as long as we set a max value for compute instances. 
-There are for at least two reasons that we do not disable compute autoscale.
-First, disabling compute autoscale requires that we change the setting to either the default values, or to the values that 
-we can determine using Geneva logs or other measures. In either case it is not optimal and we may continue to deal with 
-performance issues we try to solve. Second, customers pay only fixed compute runtime costs; 
-they are not charged with extra computing resources today.
-So keeping compute autoscale should not have revenue impact on our side.
-
-Alternatively, we can require that customers create a support ticket to enable or disable the autoscale option, if the portal 
-integration requires significant effort that we agree to defer the work until Jupiter release.
+While autoscale involves compute autoscale, which is supported by Service Fabric autoscale, and database autoscale,
+which is supported by Cosmos DB autoscale, it is unnecessary that we make compute autoscale as an option to the customers and that it should be 
+enabled for all customers.
+Here is why. With compute autoscale, the number of compute instances scales up (up to the max limit we can set) 
+and down (down to the default 2 instances) to meet the transaction demands automatically. This is the expected scalability behavior.
+On the billing side, unlike Cosmos DB autoscale, there is no extra cost. 
+And we are currently not charging customers for the extra computing runtime resoures. In short, there is no reason why we should not enable 
+compute autoscale for customers when we are ready to do so.
 
 A screen mockup has been created to demonstrate the customer experience. 
 
