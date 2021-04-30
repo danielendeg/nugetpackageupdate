@@ -1,46 +1,14 @@
-# FHIR Compute Autoscaling Gen 1
+# FHIR Autoscaling Gen 1
 
-## Autoscale Up and Down Compute Instances
+## Autoscale Up and Down Compute Instances and Cosmos DB
 
 # Scenario Contacts 
 
 **Program Manager (PM):** Benjamin Xue
 
-**Software Engineer (Dev):** TBD
-
-# How to Use This Document
-
-*This is a living document tracking the specification for your feature.
-It follows the lifecycle of the feature and should be written and
-reviewed in four stages.*
-
-*1. Justifying the work, in which the feature is greenlit for
-engineering resources. **This portion must be completed and achieve
-Director approval before committing engineering resources.***
-
-*2. User-facing feature design, which goes into detail about how a
-customer interacts with the feature.*
-
-*3. Implementation design, which describes the work the team is doing.*
-
-*4. Release activities, including documentation, demos, and field
-readiness.*
-
-*Not all sections may be relevant to your feature, and that’s okay.
-Leave unused sections empty – do not delete them!*
-
-**Note:** Not everything described in this document is part of the
-solution scope. Some information is provided to help understand the
-overall problem domain and should be kept in mind while designing a
-solution. Scenarios are yet to be prioritized.
+**Software Engineer (Dev):** Deepak Bansal, Abhijeet Thacker
 
 # Why There is a Gap Today? (PM) 
-
-*Guidance: This section is used to build consensus around the need for
-work to be done in a specific feature area and is equivalent to a “one
-pager”. This section is likely to be 2-3 pages when completed. When
-pitching the idea via a PowerPoint presentation, make sure all these
-items are included in your presentation.*
 
 *This section is **required** for assignment of engineering resources.*
 
@@ -50,130 +18,106 @@ Date reviewed: \[Date\]
 
 ## Problem Statement 
 
-*Guidance: State the problem or challenge in a way that ties back to the
-target user. What is their goal? Why does this matter to them? Can be of
-the form, “Customers have a hard time doing FOO, I know this because I
-heard it from X, Y, Z.”*
+The Azure API for FHIR runs in a shared Service Fabric environment for a set of customers 
+in each Azure region. Each
+customer is provisioned with a designated app or service with default 
+configuration settings, which includes 2 compute instances or replicas
+including 5 concurrent sessions in each instance and a Cosmos DB 
+database. The default settings can only be adjusted manually, 
+which has presented a big challenge for customers as they increase production workloads and
+require more computing resources. It has also become a burden for the support team. 
 
-The Azure API for FHIR service runs in a shared environment,
-specifically a Service Fabric cluster, in each Azure region. Each
-customer account or application is provisioned based on a default
-configuration, which includes the compute environment with 2 replicas
-(instances) and 5 concurrent sessions for each instance and a Cosmos
-database.
+With the manual process, customers can adjust the database provisioned 
+throughput from the default 400 RU/s up to 10k RU/s through the portal, to support 
+large workloads. When their workloads exceed the overall capacity of the API service, customers start 
+seeing slow responses, 429 errors or "too many requests". They can create support tickets to get 
+the support team involved, helping them raise compute instances, 
+including the number of concurrent sessions in each instance, and/or Cosmos DB throughput RU/s. 
+This has not been the best customer experience. Customers have asked that we provide support for autoscale 
+that allows them to run various production workloads without having to worrying about running out of capability 
+or paying extra costs due to over allocated computing resources.
 
-As transaction volumes increase, customers can adjust the max database
-throughput from 400 RU/s to 10k RU/s through the portal, to avoid or
-reduce the number of request errors, including the so called 429 errors
-or “too many requests”. A customer support ticket is required to raise
-the max value. Often it is necessary to adjust the default configuration
-values, the number of instances and the number of concurrent sessions,
-to support increased requests/second at peak times and reduce the
-response times.
+To better serve our customers and meet their business needs, it is imperative that we improve the service scalability by providing 
+autoscale as an option to the standard (or manual) scale through the Azure portal. The reason why we keep the two options available 
+to customers is because there are extra costs associated with autoscale and customers must agree to pay for the extra costs when they 
+enable the autoscale option. The extra costs are resulted from Cosmos DB autoscale, 
+which is 50% more than the standard (or manual) throughput rates.
 
-As we continue to expand our customer base and onboard customers with
-large production workloads, we have seen a few major support incidents
-due to 429 errors among other issues. For customers dealing with
-performance throttling issues due to large data volumes we ended up with
-increasing max database throughput, the number of instances, the number
-of concurrent sessions or a combination of them.
+While autoscale involves compute autoscale, which is supported by Service Fabric autoscale, and database autoscale,
+which is supported by Cosmos DB autoscale, it is unnecessary that we make compute autoscale as an option to the customers and that it should be 
+enabled for all customers.
+Here is why. With compute autoscale, the number of compute instances scales up (up to the max limit we can set) 
+and down (down to the default 2 instances) to meet the transaction demands automatically. This is the expected scalability behavior.
+On the billing side, unlike Cosmos DB autoscale, there is no extra cost. 
+And we are currently not charging customers for the extra computing runtime resoures. In short, there is no reason why we should not enable 
+compute autoscale for customers when we are ready to do so.
 
-To better serve our customers and meet their business needs, we must
-look for options to improve our Gen 1 service capabilities while
-minimizing engineering efforts as we focus on Jupiter release.
-Fortunately, both Service Fabric and Cosmos DB support autoscaling,
-which allows us to scale up (or down) computing resources automatically
-and reduce customer support incidents.
 
-Our goals are to enable compute autoscaling and database autoscaling.
-However, we may enable database autoscaling for a few customers until we
-are ready to support all customers. Note that Cosmos DB autoscaling
-costs 50% more than standard or manual scaling and may use a different
-meter in some Azure regions.
 
 **Supporting Customer Insights**
-
-*Guidance: This section should include direct quotes from customers,
-direct quotes from the field, and summaries of interactions with
-customers in which they describe the problem they are having.*
 
 #### Cigna
 
 Cigna, one of the large customers on our healthcare data platform, has
-50TB, or 7 years of data, mostly prescription claims and provider
-directory data, small resource size but large volume, 3.5 billion,
-with 8 million provider resources. In
+accumulated approximagtely 80 TB over the past sever years or so, mostly prescription claims and provider
+directory data, which consists of small resource size but large number of resources, 
+3.5 billion resources and 8 million provider resources. In
 addition, Cigna processes 7 million claims/hour. They experienced 429
 errors and performance throttling issues recently. To support such a
-large number of requests/second, we have granted them with 1million
+large number of requests/second, we granted them with 1million
 RU/s, 45 instances with 25 concurrent sessions for each instance.
 
 #### Walgreens
 
-Walgreens runs a Covid-19 vaccination program on our platform. They
+Walgreens rolledd out a Covid-19 vaccination program on our platform in early 2021. They
 recently reported some performance issues due to high transaction
-volumes. We have since addressed the performance issue by increasing
-their compute replicas to 16 with 25 concurrent sessions for each, and
+volumes. We worked with the internal support team and addressed the performance issue by increasing
+their compute replicas to 16 with 25 concurrent sessions for each, and increased 
 database RU/s to 50k.
+
+#### Humana
+
+Humana complained about lack of autoscaling and on getting 429s, and escalated the issue. They indicated that  
+autoscaling on CosmosDB would resolve their issue most likely. As a direct response to the customer request,
+we enabled Cosmos DB autocaling manually for the customer in early April. 
 
 ## Related Work 
 
-*Guidance: What other features are related to this work? Please include
-links.*
-
-There is no directly related work to autoscaling. Currently we have a
-manual process with two options that DRIs use.
-
-1.  Use the ResoluteMultiTool to reprovision these accounts as described
-    > [here](onenote:#Execute%20MultiTool%20on%20Prod%20From%20non-SAW&section-id={D4D99CD6-8FB8-492B-ADE2-F4FCCDCDD552}&page-id={B7D9FF2A-1DD7-416B-A067-8E2802B4A5C2}&end&base-path=https://microsoft.sharepoint.com/teams/msh/Shared%20Documents/Notebooks/Resolute%20Engineering/Operations/How%20to.one)
-
-2.  Run the Update-FhirServiceApplicationConfig.ps1 as described
-    > [here](onenote:#Modify%20the%20Configuration%20of%20a%20Running%20Fhir%20Service&section-id={D4D99CD6-8FB8-492B-ADE2-F4FCCDCDD552}&page-id={C3F7213E-B61A-401A-8A33-B9112F8FBF95}&end&base-path=https://microsoft.sharepoint.com/teams/msh/Shared%20Documents/Notebooks/Resolute%20Engineering/Operations/How%20to.one)
+The autoscale feature is an improvement over the manual process. There is no related work.
 
 ## What is Being Proposed? 
 
-*Guidance: In 20 words or less, describe the proposed solution.*
-
-Support compute autoscaling and possibly database autoscaling for Azure
-API for FHIR Gen 1
+Provide autoscale as an option for the Azure API for FHIR
 
 ## Elevator Pitch / Press Release 
 
-*Guidance: Create a story for your scenario – detail out the customer,
-their problem and/or goal, and then specific outcomes the customer will
-achieve or how success would be measured. Avoid implementation details.
-Think of this as the blog post announcing this feature. 500 words max.*
-
 ## Justification, Expected Business Impact, and Value Proposition 
 
-*Guidance: Why are we tackling this scenario? What is the expected
-impact? What’s the value proposition of this work?*
+We have recently seen strong demands from customers for the autoscale 
+feature, especially from those who ran large production workloads in Azure 
+API for FHIR and experienced service performance issues. Some of them  
+escalated the issues and 
+asked that we help them resolve the issues by providing the autoscale feature.
 
-We have seen recently strong demands from customers for the autoscaling
-feature, especially from those who run large production workloads in the
-FHIR service. If we don’t address the performance throttling issue
-immediately our customers especially those large customers will be
-concerned that their business operations that depend on the FHIR service
-will be negatively impacted or even constantly interrupted.
+The team has agreed that, after reviewing the business priorities during the QBPR, 
+we work on the autoscale feature in the second quarter of 2021 for Gen 1. 
 
-On the other side we can leverage the built-in autoscaling features in
-Service Fabric and Cosmos DB and make necessary code change to enable
-and support them. In the short term doing so means that we need to
-invest engineering sources and slow down our Jupiter effort, but in the
-long run we can learn from the experience and improve it in Jupiter and
-future release to better serve our customers.
+When the autoscale feature is generally available, we expect that customers can run different workloads with 
+no or less performance issues and that the support cases related to performance issues drop. In addition, 
+we can apply lessons learned, and re-use some code possibly, when we offer the autoscale feature in Jupiter.
+
+However, the autoscale feature may have revenue on some customers. 
+While customers pay 50% extra costs when autoscale is enabled, 
+some customers may pay less because they end up with consuming less database throughput RU/s. 
+We are aware of the potential revenue impact and believe that it is the right thing to do for the customers. In essence, 
+this aligns well with the new pricing model to be introduce in Jupiter where customers only pay what they use.
+
 
 ## Target User / Persona 
 
-*Guidance: Specify the target user/persona(s).*
-
-Once the autoscaling is enabled, no direct user interaction is required.
+Once the autoscaling is enabled by an authorized user or administrator, no direct user interaction is required.
 
 ## Existing Solutions and Compete Info 
-
-*Guidance: List the various ways in which a user may currently handle
-this problem/challenge. With what expectations will customers approach
-our solution? What are our competitors doing in this space?*
 
 GCP 
 
@@ -188,20 +132,12 @@ AWS 
 
 Amazon
 announced [<u>HealthLake</u>](https://aws.amazon.com/healthlake/) in
-December of 2020, which is a HIPAA-eligible service. While Amazon claims
+December of 2020, which is a HIPAA-eligible service. Amazon claims
 that HealthLake allows customers to store, transform, query, and analyze
-health data at petabyte scale, there seems no documentation on its
-scalability.
+health data at petabyte scale. 
 
 ## Customers/Partners Interaction Log 
 
-*Guidance: What customer have voiced and validated the specific problem
-statements? Did you discuss the elevator pitch and the potential
-solutions (under NDA)? Are they candidates for continued follow-up and
-participation in our early access program? This should be a list of the
-different customers you have talked to. Repeated interactions with the
-same customer, such as via private preview customers, should be tracked
-elsewhere.*
 
 | Customer/Partner Name | Conversation Details / Specific Requirements | Last Contact | Private Preview Candidate |
 |-----------------------|----------------------------------------------|--------------|---------------------------|
@@ -229,9 +165,6 @@ Date reviewed: \[Date\]
 
 ## Terminology (PM/Dev) 
 
-*Guidance: This section defines terms used in the rest of the spec. The
-terms may feed into public docs and blogs as be used to define metric
-names and logging categories.*
 
 | Term | Definition |
 |------|------------|
@@ -242,98 +175,59 @@ names and logging categories.*
 
 ## Branding (PM) 
 
-*Guidance: This section discusses branding decisions such as
-product/feature names. Note that all branding decisions **require**
-sign-off by the Product Marketing Manager.*
-
 ## Detailed Feature Description (PM/Dev) 
-
-*Guidance: This section describes, at a high level, what the feature is
-and is not to the target customer and how we measure success.*
 
 ## Goals (PM/Dev) 
 
-*Guidance: This section describes the goals for how the feature is to be
-used.*
-
 | Goal                                                                                                                                           | Target Release | Priority |
 |------------------------------------------------------------------------------------------------------------------------------------------------|----------------|----------|
-| Enable compute autoscaling based on one or more criteria with a max number of instances. Adjust the number of concurrent sessions accordingly. | 5/31/21        | P0       |
-| Enable autoscaling settings from the Azure portal.                                                                                             | 6/30/21        | P0       |
-| Enable Cosmos DB autoscaling with a max throughput (RU/s).                                                                                     | 6/30/21        | P1       |
+| Phase I: Provide Cosmos DB autoscale as an option. Allow customers to change max throughput RU/s up to 10,000 RU/s. No portal integration.               | 5/31/21        | P0       |
+| Phase II: Expose the autoscale feature through the Azure portal. Make compute autoscale a default option to all customers.           | 6/30/21        | P0       |                                                                                                                                                |                |          |
 |                                                                                                                                                |                |          |
 |                                                                                                                                                |                |          |
 |                                                                                                                                                |                |          |
 |                                                                                                                                                |                |          |
 |                                                                                                                                                |                |          |
 |                                                                                                                                                |                |          |
-|                                                                                                                                                |                |          |
-|                                                                                                                                                |                |          |
-|                                                                                                                                                |                |          |
+
 
 ## Non-Goals (PM/Dev) 
 
-*Guidance: This section describes the topical customer goals that this
-feature is specifically not addressing, and why.*
-
 | Non-Goal                                                                     | Mitigation                                                                                                                |
 |------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------|
-| Change billing service to use Cosmos DB autoscaling billing meter and rates. | Cosmos DB autoscaling costs 50% more than the rate for standard scaling. Use a multiplier of 1.5 to adjust billing costs. |
-|                                                                              |                                                                                                                           |
+| Change the billing service.                                                  | No change to the billing service for Azure ApI for FHIR is necessary. For Cosmos DB autoscale, the RU/s consumption is automatically adjusted. For compute autoscale, runtime billing rates are the same. |
+|                  |                                       |
 
 ## Scenarios and Use Cases (PM/Dev) 
 
-*Guidance: This section describes the customer scenarios that this
-feature is designed to address. Include how the feature is used to solve
-the scenario/use case. Following these steps should be used to validate
-the feature.*
-
 | Scenario / Use Case                                     | Steps to fulfill the scenario                                     | Priority |
 |---------------------------------------------------------|-------------------------------------------------------------------|----------|
-| The user enables compute autoscaling from the portal.   | Update customer account settings and reprovision the application. | P0       |
-| The user enables Cosmos DB autoscaling from the portal. | Update customer account settings and reprovision the application. | P1       |
-|                                                         |                                                                   |          |
+| The user enables or disables autoscale from the portal. | Change to autoscale to enable, or change to manual to disable, and save the setting.               | P0       |
+| The user changes the max provisioned throughput RU/s from the portal. | After autoscale is enabled, change the number up to 10,000 RU/s and no less than 10% of the current value.              | P0       |
+| The user changes a max provisioned throughput RU/s higher than 10,000 from the portal. | Create a support ticket to request a higher throughput RU/s number.            | P0       |
+| The user changes provisioned throughput RU/s, when autoscale is disabled, from the portal. | Change up to 10,000 RU/s and no less than storage data in GB multiplied by 40 RU/GB            | P0       |
+| The user changes provisioned throughput higher than 10,000 RU/s, when autoscale is disabled, from the portal. | Create a support ticket to request a higher throughput RU/s number.             | P0       |
 |                                                         |                                                                   |          |
 |                                                         |                                                                   |          |
 
 ## Scenario KPIs (PM) 
 
-*Guidance: These are the measures presented to the feature team, e.g.
-number of FHIR endpoints, total data storage size.*
 
-<table>
-<thead>
-<tr class="header">
-<th>Type<br />
-[Biz | Cust | Tech]</th>
-<th>Outcome</th>
-<th>Measure</th>
-<th>Target</th>
-<th>Priority</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td></td>
-<td></td>
-<td></td>
-<td></td>
-<td></td>
-</tr>
-<tr class="even">
-<td></td>
-<td></td>
-<td></td>
-<td></td>
-<td></td>
-</tr>
-</tbody>
-</table>
+
+| Type<br> \[Biz \| Cust \| Tech\] | Outcome | Measure | Target | Priority |
+| -------------------------- | ------- | ------- | ------ | -------- |
+|                            |         |         |        |          |
+|                            |         |         |        |          |
+
+
+
 
 ## What’s in the Box? (PM) 
 
 *Guidance: This section lists everything the customer gets in the end.
 Is there a new service? Templates? Samples? SDK?*
+
+It is an improvement to the released service, including some changes to the portal UI.
 
 ## Feature Dependencies (PM/Dev) 
 
@@ -361,19 +255,52 @@ areas which may be impacted: Persistence Provider, FHIR API.*
 *Guidance: This section gives details on how we plan on engaging with
 customers to validate our assumptions and design.*
 
+We plan to make the autoscale feature available to all customers. However,
+it is not enabled by default. customers must enable (or disable) the feature.
+
 ### Customer Research Required 
+
+We have heard and learned from more than one customer that they wanted to have the autoscale capability to run their data workloads that 
+may vary signficantly. No additonal customer research is required.
 
 ### Criteria for Customer Selection 
 
+All customers are eligible.
+
 ### Customers Selected 
+
+All customers.
 
 ## User Interface (PM) 
 
 ### Storyboard 
 
-*Guidance: This section is for features with a UI/UX component.
-Alternatively, you can also create Storyboard in PowerPoint and provide
-link to the PPT in this section.*
+The screen mockups are included here to demonstrate the customer experience. 
+1.Customers can change the provisoined throughput RU/s as they can today.
+2.Customers can change between the standard (or manual) scale option and the autoscale optoin.
+3.Customers can change max provisioned throughput only after autoscale is enabled.
+4.Customers will pay the extra costs for autoscale.
+
+![portal setting autoscale](portal-setting-autoscale.png)
+
+For comparison, the Cosmos DB portal shows UI for manual scale and autoscale.
+-Manual scale
+![comsosdb 1](cosmosdb-1.png)
+
+-Change manual scale to autoscale
+![comsosdb 2](cosmosdb-2.png)
+
+-Autoscale with system assigned max throughput RU/s
+![comsosdb 3](cosmosdb-3.png)
+
+-Change max throughput RU/s, before save, when autoscale is enabled
+![comsosdb 4](cosmosdb-4.png)
+
+-Change max throughput RU/s, after save, when autoscale is enabled
+![comsosdb 5](cosmosdb-5.png)
+
+-Change autoscale to manual
+![comsosdb 6](cosmosdb-6.png)
 
 ### Usability Validation 
 
