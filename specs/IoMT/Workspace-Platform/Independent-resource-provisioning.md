@@ -142,7 +142,7 @@ The RP Worker currently separates out provisioning logic for resources into Comm
     - Any Deployments not inside of the desired set should be removed
 
 ## K8s Api
-We continue to use the existing [K8s](./K8s-platform-Blueprint.md#'Source%20Structure') api, specifically the __IotConnectorKubernetesProvisionProvider__. The Spec definition will be updated to introduce the concept of Pods. All containers belonging to a Pod will be included in the same Deployment. This will allow us to support side car containers.
+We continue to use the existing [K8s](./K8s-platform-Blueprint.md#'Source%20Structure') api, specifically the __IotConnectorKubernetesProvisionProvider__. The Spec definition will be updated to introduce the concept of Deployments. All containers belonging to a Deployment will be included in the same K8s Deployment. This will allow us to support side car containers.
 
 ```yaml
 apiVersion: services.azurehealthcareapis.com/v1alpha1
@@ -152,7 +152,7 @@ metadata:
     Tier: AlwaysUpdate
   name: <internal service name of IotConnector Resource>
 spec:
-  pods:
+  deployments:
     - containers:
         - environmentVariables:
             - name: variable_a
@@ -189,7 +189,7 @@ metadata:
     Tier: AlwaysUpdate
   name: abcd1234
 spec:
-  pods:
+  deployments:
     - containers:
         - environmentVariables:
             - name: variable_a
@@ -198,12 +198,13 @@ spec:
               value: value_b
             image: mshapisg2devacr.azurecr.io/iotconnector-normalization:main-20210407-1
             type: Normalization
+            name: <Internal Service Name of Resource>
   serviceIdentity:
     clientId: aaaa
     resourceId: bbbb
 ```
 
-The FhirDestination command would then mutate this spec in order to represent the desired state to provision a FhirDestination Pod:
+The FhirDestination command would then mutate this spec in order to represent the desired state to provision a FhirDestination K8s Deployment:
 
 ```yaml
 apiVersion: services.azurehealthcareapis.com/v1alpha1
@@ -213,7 +214,7 @@ metadata:
     Tier: AlwaysUpdate
   name: abcd1234
 spec:
-  pods:
+  deployments:
     - containers:
         - environmentVariables:
             - name: variable_a
@@ -222,6 +223,7 @@ spec:
               value: value_b
             image: mshapisg2devacr.azurecr.io/iotconnector-normalization:main-20210407-1
             type: Normalization
+            name: <Internal Service Name of Resource>
     - containers:
         - environmentVariables:
             - name: variable_a
@@ -230,15 +232,16 @@ spec:
               value: value_b
             image: mshapisg2devacr.azurecr.io/iotconnector-fhirconverter:main-20210407-1
             type: FhirConverter
+            name: <Internal Service Name of Resource>
   serviceIdentity:
     clientId: aaaa
     resourceId: bbbb
 ```
 
-Similarly, if a FhirDestination is to be deleted it would acquire the latest spec, remove its entry from the Pod section and submit that to AKS. The controller will be updated to remove any deployments not referenced within the request.
+Similarly, if a FhirDestination is to be deleted it would acquire the latest spec, remove its entry from the Deployment section and submit that to AKS. The controller will be updated to remove any deployments not referenced within the request.
 
 ### Deletion
-Because multiple types are managed within the Uber Resource Controller we can no longer simply drop the resource to cleanup K8s resources. Resources such as Destinations need to first update the spec, remove their pod entry, and submit an update request to remove only their K8s resources. 
+Because multiple types are managed within the Uber Resource Controller we can no longer simply drop the resource to cleanup K8s resources. Resources such as Destinations need to first update the spec, remove their deployment entry, and submit an update request to remove only their K8s resources. 
 
 Actual removal of the IotConnector resource can only be removed during IotConnector Deprovisioning.
 
@@ -269,3 +272,60 @@ After review of the approach on 4/16/2021 it was decided to move forward with Ap
 - Less Go code. A Single CRD means a single controller and release manager. This is less Go code to write and maintain/test
 - Simplified version strategry as there is only a single CRD's version to update. In contrast, with a CRD for each resource, each resource may be at a different version. 
 - We can ecapsulate the K8s provision logic inside of .Net K8s providers specific to each resource type. In this way the RP Provision code can treat Creates/Updates/Deletes the same and the implementations take care of the details.
+
+# Upgrading
+Introducing the above design change will result in a breaking change to the current IotConnector Crd and controller. The following section outlines how we will upgrade existing provisioned IotConnectors from V0 (current Crd) to V1 (IotConnector described in Approach 2).
+
+## Design
+We will not be using the [Multi-Versioned Apis](https://book.kubebuilder.io/multiversion-tutorial/tutorial.html) approach suggested by Kubebuilder to support multiple versions of our controllers. Briefly put, this approach deploys a converter function which converts one version of the crd into another. Clients may then continue to send previous versions of the Crd to K8s, which will convert the previous version into the one expected by the controller via the converter functions. 
+
+This approach would require extra infrastructure which would increase our maintenance costs. Instead we will add in a new attribute to both our IotConnector Crd and Release Crd called __Version__:
+
+IotConnectorCrd
+  - __Version__: Indicates what the *current* version of a specific IotConnector is currently at
+
+IotConnector Release Crd
+  - __Version__: Indicates what the *desired* version of all deployed IotConnectors should be
+
+As we will not be using the converter functions as outlined above each client submitting changes to the Crd needs to be aware of the Crd __Version__ and take appropriate action.
+
+### V0 to V1 Crd Upgrade
+V0 Iotconnectors defined the following types of Containers:
+  - At most one Normalization container
+  - At most one FhirTransformation container
+
+Given the above we will upgrade a V0 Crd to [V1](#K8s%20Api) as follows:
+  - For each Container, create a new Deployment Section. Add the __Container__ to the Deployments Containers list.
+  - The __type__ of the Deployment will be calculated from the __Container__ type.
+  - The __name__ of the Deployment will be the Internal Service name of the Service being deployed (i.e. Normalization app, FhirDestination, EventhubDestination, etc). If this isn't available this field will be left blank.
+  - Store the previous version of the Crd as an K8s attribute inside of the updated Crd. This will be used to compare the previous and current Crd (i.e. set difference between deployments).
+
+### Controller Changes
+The controller will be updated to support requests for both V0 and V1 IotConnector Crd changes. Once all clients (i.e. RP Worker) are submitting Crds in V1 format, and all existing V0 IotConnectors are upgraded to V1 we can deprecated this V0 reconciliation code path.
+
+The code path for V0 remains unchanged. For V1, K8s Deployments created by the Controller will observe the following rules:
+  - The name of K8s Deployments will be that of the __name__ specified in the IotConnector Crd Deployments object.
+    - If this value is blank, the name will created by concatenating the IotConnector Crd Name (i.e. IotConnecter Internal Service Name) with the Deployment Type.
+  - Perform a set difference between the Deployments of the previous and current Crd. Remove all of the ones not specified in the current Crd.
+
+### IotConnector Reconciler Changes
+The IotConnector Reconciler will compare the Version contained within the Reconciler Crd with those of all deployed IotConnectors. For a version of 1, the reconciler will perform the mutation steps outlined in [V0 to V1 Crd Upgrade](#V0%20to%20V1%20Crd%20Upgrade). 
+
+**Note** The Deployment __name__ field will be left blank, as that information will not be present.
+
+### RP Worker Changes
+The RP Worker will be updated to produce V1 IotConnector Crds. If the current version of an existing IotConnecter is at V0 the RP Worker will first perform the mutation steps outlined in [V0 to V1 Crd Upgrade](#V0%20to%20V1%20Crd%20Upgrade) before making further modifications. 
+
+**Note** The Deployment __name__ field will be set to the Internal Service name of the resource being deployed.
+
+## Rollout
+Updates to the various components will rollout as follows:
+
+1. IotConnector Controller
+  - The controller changes will rollout first in order to support both V0 and V1 reconciliation requests
+  - IotConnector upgrade requests will continue to have their 'Version' attribute set to 0
+1. RP Worker
+  - Changes to the RP Worker to begin producing V1 IotConnectors will then rollout.
+  - RP Worker will upgrade any existing V0 IotConnector Crds to V1
+1. IotConnector Controller
+  - After all RP Workers have been updated, IotConnector upgrade requests will have their 'Version' attribute set to 1. This will force any remaining V0 IotConnector Crds to be upgraded to V1.
