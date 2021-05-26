@@ -61,7 +61,7 @@ POST /studies
 
 ## WADO
 GET /studies/{studyUid}?ms-health-id=1
-GET /studies/{studyUid}/series/{seriesUid}?ms-health-id=1234
+GET /studies/{studyUid}/series/{seriesUid}?33330001=1234
 GET /studies/{studyUid}/series/{seriesUid}/instances/{sopInstanceUid}?ms-health-id=1234
 
 ## QIDO
@@ -98,5 +98,5 @@ DELETE /studies/{studyUid}/series/{seriesUid}/instances/{sopInstanceUid}?ms-heal
 
 - ✔️ Similar solution to FHIR. Though FHIR as it a little easier with system generated unique identifier.
 - ✔️ External metadata concept can be used to extend DICOM service to support tag morphing a feature supported in VNAs.
-- ❌ External metadata is not enforced to being required or unique in combination with DICOM UIDs. This may result in 2 DICOM instances with same UIDs and tenant label and not being able to uniquely identify them. Managing the uniqueness becomes a client problem.
+- ❌ External metadata is not enforced to being required or unique in combination with DICOM UIDs. This may result in 2 DICOM instances with same UIDs and tenant label.
 
