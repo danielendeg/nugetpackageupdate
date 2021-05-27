@@ -24,7 +24,6 @@ Options: (can do both)
     * Using header added information is consistent with future extensions
         * since we may add features in the future we don't have to worry about ordering in the URL path
 * URL
-    * need to ensure that we don't break dicom standard
     * Allows client app to tenant isolated endpoint
         * We need to understand security & intended audience for messaging.
             * It is common for proxies to add header information and add security guarantees. With URLs we need to ensure we have appropriate security policies in place to allow tenants to not alter eachother.
