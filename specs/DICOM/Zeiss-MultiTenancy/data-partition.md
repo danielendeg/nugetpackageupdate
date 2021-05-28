@@ -47,7 +47,6 @@ DELETE /studies/{studyUid}?microsoft.partitionId=clinic1
 ```
 - Partition value is a string with max length of 32 chars.
 - PartitionId behaves like study level tag in QIDO.
-- Get with multiple instance match and accept of single part will throw an exception.
 - QIDO will return all matching instances.
 - ExtendedQueryTag resources remain unchanged.
 - Expose paritionId as private tag in QIDO and ChangeFeed if this feature is enabled.
