@@ -19,12 +19,12 @@ All resources are put in a single namespace, `default`
 
 ## Options
 
-Change | Pros   | Cons
------- | ------  | ------
-Keep everything in default (no change) | - No code changes needed | - All systems need to keep the same configurations </br> - Unclear ownership across teams </br> - No space for growth; with new services being added, it will be messy to keep in the same namespace 
-One namespace per team (DICOM, FHIR, IoMT) | - Each team owns their own service's configuration </br> - Simple logical split / simple code change </br> - Quotas & Policies can be set based on unique needs of each service </br> - Allows for growth; new teams/services can create new namespaces  | - Could be difficult if one namespace needs to split into two, based on future team changes
-One namespace per customer | - Can easily meet unique needs of customers (ex: set NetworkPolicies to refuse traffic from x) | - Same can be achieved using labels </br> - Brings more complexity to the change </br> - Unclear ownership of namespaces
-Sub-namespaces </br> (per customer namespaces within a team-level namesapce) | - Can use shared quotas/policies on a team level for most things, and only set on customer level if needed | - Over-complicated for little gain </br> - Releases aren't stable yet. [HNC v0.8.0](https://github.com/kubernetes-sigs/multi-tenancy/releases/tag/hnc-v0.8.0)
+| Change | Pros   | Cons |
+| ------ | ------  | ------ |
+| Keep everything in default (no change) | - No code changes needed | - All systems need to keep the same configurations.  - Unclear ownership across teams <br/> - No space for growth; with new services being added, it will be messy to keep in the same namespace |
+| One namespace per team (DICOM, FHIR, IoMT) | - Each team owns their own service's configuration <br/> - Simple logical split / simple code change <br/> - Quotas & Policies can be set based on unique needs of each service <br/> - Allows for growth; new teams/services can create new namespaces  | - Could be difficult if one namespace needs to split into two, based on future team changes |
+| One namespace per customer | - Can easily meet unique needs of customers (ex: set NetworkPolicies to refuse traffic from x) | - Same can be achieved using labels <br/> - Brings more complexity to the change <br/> - Unclear ownership of namespaces |
+| Sub-namespaces <br/> (per customer namespaces within a team-level namesapce) | - Can use shared quotas/policies on a team level for most things, and only set on customer level if needed | - Over-complicated for little gain <br/> - Releases aren't stable yet. [HNC v0.8.0](https://github.com/kubernetes-sigs/multi-tenancy/releases/tag/hnc-v0.8.0) |
 
 ## Proposed change
 
