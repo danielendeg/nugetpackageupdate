@@ -1,7 +1,7 @@
 # Developing
 ## Requirements
-- Azure storage emulator
-- Sql Server 2019
+- Install and run the [Azurite storage emulator](https://docs.microsoft.com/en-us/azure/storage/common/storage-use-azurite?tabs=visual-studio)
+- Install [Sql Server 2019](https://www.microsoft.com/en-us/sql-server/sql-server-downloads), and the "Full Text Search" feature
 - [optional] Visual Studio for IDE
 
 ## Getting Started
