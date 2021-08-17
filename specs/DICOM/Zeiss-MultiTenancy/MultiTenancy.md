@@ -30,6 +30,10 @@ POST {API_VERSION}/{PARTITION_KEY}/studies
 }
 ```
 
+### Errors
+ - Invalid partition id (272)
+ - Resource already exists within partition (45070)
+
 ## WADO
 Users can specify an optional data partition when retrieving studies, series and instances. If no partition is specified, the retrieval will be performed against the default partition.
 
@@ -49,6 +53,9 @@ GET {API_VERSION}/{PARTITION_KEY}/studies/{studyUid}
   ...
 }
 ```
+
+### Errors
+ - 400: bad partition id
 
 ## QIDO [Optional]
 Users can search studies, series and instances within a partition. We don't support cross partition queries.
@@ -73,6 +80,9 @@ GET {API_VERSION}/{PARTITION_KEY}/studies?...
   }
 ]
 ```
+
+### Errors
+ - 400: bad partition id
 
 ## DELETE 
 User can delete studies, series and instances within a partition. If partition is unspecified, default partition record is deleted.
@@ -206,7 +216,16 @@ The format of the image & metadata blobs refers to instance, study, and series. 
 
 ## Cross partition queries
 
-## Error Response
+Two approaches:
+
+1. If `PartitionId` is not specified, search only the default partition. To search all partitions, specify `PartitionId` of `all`.
+
+2. If `PartitionId` is not specified, search all partitions.
+
+For the first iteration, we will take approach 2, with the understanding that the QIDO functionality will not change. In future iterations, we can allow specifying partition(s) to search.
+
+
+
 
 ## PaaS Roll out
 
