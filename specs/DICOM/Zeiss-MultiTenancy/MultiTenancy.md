@@ -1,30 +1,25 @@
-*Summary of the feature.*
-
-Implement a light weight data partition scheme that will enable customer to store multiple copies of same image with same UUID on a single DICOM instance.
+Implement a light weight data partition scheme that will enable customers to store multiple copies of the same image with the same UUID on a single DICOM instance.
 
 [[_TOC_]]
 
 # Business Justification
 
-Zeiss is 8000 practices and growing. The operational overhead of maintaining multiple DICOM instances are too high. From their perspective multi-tenancy is single instance of DICOM service that can horizontally scale to support any number of practices with isolation for each practice.
-And also allow data sharing across practices with each practice having its own copy of DICOM instances with its same UUID.
+Zeiss is 8000 practices and growing. The operational overhead of maintaining separate DICOM instances for each practice is too high. From their perspective, multi-tenancy is a single instance of DICOM service that can horizontally scale to support any number of practices.
+Their key requirement is to allow resources to be cloned to allow data sharing across practices, while maintaining existing UUIDs. This means that within the same DICOM service, there could be multiple DICOM instances sharing one combination of study/series/instance identifiers.
 In order to achieve that we need a data partition solution.
 
 # Scenarios
 
 ## STOW
-Users can specify an optional data partition when storing studies, series and instances. 
+Users can specify an optional data partition when storing studies, series and instances. If no partition is specified, the data will be stored in a default partition.
 
 **Request**
 ```
 POST {API_VERSION}/{PARTITION_KEY}/studies
-{
-    content-type: application/dicom
-}
 ```
 
 **Response**
-```
+```json
 {
   "00081190":
   {
@@ -36,7 +31,7 @@ POST {API_VERSION}/{PARTITION_KEY}/studies
 ```
 
 ## WADO
-Users can specify an optional data partition when retrieving studies, series and instances.
+Users can specify an optional data partition when retrieving studies, series and instances. If no partition is specified, the retrieval will be performed against the default partition.
 
 **Request**
 ```
@@ -44,7 +39,7 @@ GET {API_VERSION}/{PARTITION_KEY}/studies/{studyUid}
 ```
 
 **Response**
-```
+```json
 {
   "00081190":
   {
@@ -66,7 +61,7 @@ GET {API_VERSION}/{PARTITION_KEY}/studies?...
 ```
 
 **Response**
-```
+```json
 [
   {
     "00081190":
@@ -89,20 +84,20 @@ DELETE {API_VERSION}/{PARTITION_KEY}/studies/{studyUid}
 
 # Metrics
 
-Add PartitionId as the dimension to the current metrics. Whenever STOW, WADO, QIDO and DELETE operation requested with partitionId, we should emit a metric so that we can know usage of this feature.
+Add PartitionId as a dimension to current metrics. Whenever STOW, WADO, QIDO and DELETE operation are requested with partitionId, we should emit a metric so that we can know usage of this feature.
 
 # Design
 
-We will be introducing a optional paritionId in all the operations. If the partitionId is not given, then the default partitionId `Microsoft.Deafult` will be used.
+We will be introducing a optional partitionId in all the operations. If the partitionId is not given, then the default partitionId `Microsoft.Default` will be used.
 
 - Add a new column to the below tables. It will be a Not nullable column with a default value. 
-  - Max length of the paritionId will be 32 characters
+  - Max length of the paritionId will be 36 characters (guid with hyphens)
   - 
 
 ```
 CREATE TABLE dbo.Study (
     StudyKey                    BIGINT                            NOT NULL, --PK
-    PartitionId                 VARCHAR(32)                       NOT NULL, --PK
+    PartitionId                 VARCHAR(36)                       NOT NULL, --PK
     StudyInstanceUid            VARCHAR(64)                       NOT NULL,
     PatientId                   NVARCHAR(64)                      NOT NULL,
     PatientName                 NVARCHAR(200)                     COLLATE SQL_Latin1_General_CP1_CI_AI NULL,
@@ -119,7 +114,7 @@ CREATE TABLE dbo.Study (
 ```
 CREATE TABLE dbo.Series (
     SeriesKey                           BIGINT                     NOT NULL, --PK
-    PartitionId                         VARCHAR(32)                NOT NULL, --PK
+    PartitionId                         VARCHAR(36)                NOT NULL, --PK
     StudyKey                            BIGINT                     NOT NULL, --FK
     SeriesInstanceUid                   VARCHAR(64)                NOT NULL,
     Modality                            NVARCHAR(16)               NULL,
@@ -131,7 +126,7 @@ CREATE TABLE dbo.Series (
 ```
 CREATE TABLE dbo.Instance (
     InstanceKey             BIGINT                     NOT NULL, --PK
-    PartitionId             VARCHAR(32)                NOT NULL, --PK
+    PartitionId             VARCHAR(36)                NOT NULL, --PK
     SeriesKey               BIGINT                     NOT NULL, --FK
     -- StudyKey needed to join directly from Study table to find a instance
     StudyKey                BIGINT                     NOT NULL, --FK
@@ -152,7 +147,7 @@ CREATE TABLE dbo.Instance (
 CREATE TABLE dbo.DeletedInstance
 (
     StudyInstanceUid    VARCHAR(64)       NOT NULL,
-    PartitionId         VARCHAR(32)       NOT NULL,
+    PartitionId         VARCHAR(36)       NOT NULL,
     SeriesInstanceUid   VARCHAR(64)       NOT NULL,
     SopInstanceUid      VARCHAR(64)       NOT NULL,
     Watermark           BIGINT            NOT NULL,
@@ -164,7 +159,7 @@ CREATE TABLE dbo.DeletedInstance
 ```
 CREATE TABLE dbo.ChangeFeed (
     Sequence                BIGINT IDENTITY(1,1) NOT NULL,
-    PartitionId             VARCHAR(32)          NOT NULL,
+    PartitionId             VARCHAR(36)          NOT NULL,
     Timestamp               DATETIMEOFFSET(7)    NOT NULL,
     Action                  TINYINT              NOT NULL,
     StudyInstanceUid        VARCHAR(64)          NOT NULL,
@@ -197,7 +192,7 @@ CREATE TABLE dbo.ChangeFeed (
 
 # Security
 
-Srcurity boundaries of the DICOM service is not changed.
+The security boundary of the DICOM service is not changed.
 
 # Other
 
@@ -206,3 +201,4 @@ Srcurity boundaries of the DICOM service is not changed.
 
 # Question
 1. Can Zeiss once on-boarded to partitioning, can they go back?
+2. How will partitions be reflected in blob storage?
