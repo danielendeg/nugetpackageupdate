@@ -88,28 +88,33 @@ Add PartitionId as a dimension to current metrics. Whenever STOW, WADO, QIDO and
 
 # Design
 
-Approaches:
-- tenant identifiers
-- external metadata
-- data partition
+## Explored Approaches
 
-Our approach: provide data partitioning to ,...
+| Option | Notes | Pros ✔ | Cons ❌ |
+| ------ | ----- | ---- | ---- |
+| [Add `tenant` to data model](add-tenant-id.md) | - Tenants created only on STOW operations<br><br>- Tenants deleted in background when they contain no records<br><br>- Need to list tenants | - Consistent with DICOM standard<br><br>- Allows simple client logic<br><br> - Serves as a potential basis to add tenant related default tags / nested tenancy |- Does not solve cross tenant query problems<br><br> - Additional complexity related to background jobs |
+| [Model tenancy with external metadata](external-metadata.md) | - All tenancy information stored in external tags | - Similar solution to FHIR<br><br> - Can be used to extend DICOM service to support tag morphing: a feature supported in VNAs. | - Difficult to guarantee uniqueness |
 
-How to indicate partition:
+## Data Partition
+
+There is a middle way between these two options, which is to partition data via a unique id, maintaining data uniqueness as in the tenancy approach while not requiring the overhead of managing the `tenant` concept. 
+
+It seems best to indicate the data partition as an optional URI segment, after the optional version segment. Here's why:
+
+| Option | Pros ✔ | Cons ❌ |
+| ------ | ------ | ------   |
+| Body   | | Requires parsing entire body; Zeiss doesn't want |
+| Header | | FHIR deep links will break |
+| Query Parameter | | May break OSS viewers |
+| URI Path Segment | Closer to DICOM standard | |
 
 We want to be consistent across all APIs, and consider how changefeed and DICOM cast will be affected.
-
-| Option | Pros | Cons |
-| ------ | ---- | ---- |
-| Body   |      | Requires parsing entire body; Zeiss doesn't want |
-| Header |      | - FHIR deep links will break      |
-| Query Parameter |  | - may break OSS viewers |
-| Path Segment | - Closer to DICOM standard | |
 
 Zeiss creates dynamic test environments. So this may result in too many support requests if we do not make it auto for the customers.
 
 We will be introducing a optional partitionId in all the operations. If the partitionId is not given, then the default partitionId `Microsoft.Default` will be used.
 
+## SQL Data Model Updates
 - Add a new column to the below tables. It will be a Not nullable column with a default value. 
   - Max length of the paritionId will be 36 characters (guid with hyphens)
   - 
@@ -192,6 +197,10 @@ CREATE TABLE dbo.ChangeFeed (
 
 - All the corresponding indexes should be updated. 
 - Update all the stored procedures that are related to retrieving studies, series or instances.
+
+## Blob Storage Updates
+
+The format of the image & metadata blobs refers to instance, study, and series. This virtual path could be optionally prefixed with the partition id, and would not be present for the default tenant.
 
 ## Migration
 
