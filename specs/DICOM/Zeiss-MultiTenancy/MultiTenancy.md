@@ -88,6 +88,26 @@ Add PartitionId as a dimension to current metrics. Whenever STOW, WADO, QIDO and
 
 # Design
 
+Approaches:
+- tenant identifiers
+- external metadata
+- data partition
+
+Our approach: provide data partitioning to ,...
+
+How to indicate partition:
+
+We want to be consistent across all APIs, and consider how changefeed and DICOM cast will be affected.
+
+| Option | Pros | Cons |
+| ------ | ---- | ---- |
+| Body   |      | Requires parsing entire body; Zeiss doesn't want |
+| Header |      | - FHIR deep links will break      |
+| Query Parameter |  | - may break OSS viewers |
+| Path Segment | - Closer to DICOM standard | |
+
+Zeiss creates dynamic test environments. So this may result in too many support requests if we do not make it auto for the customers.
+
 We will be introducing a optional partitionId in all the operations. If the partitionId is not given, then the default partitionId `Microsoft.Default` will be used.
 
 - Add a new column to the below tables. It will be a Not nullable column with a default value. 
