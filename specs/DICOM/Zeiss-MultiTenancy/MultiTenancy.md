@@ -219,7 +219,9 @@ The format of the image & metadata blobs refers to instance, study, and series. 
 
 ## Migration
 
-We'll create a new schema version and diff.
+We'll create a new schema version and diff. Add the `PartitionId` as the composite primary key and fill the default value.
+
+Include `PartitionId` in all the indexes.
 
 ## Cross partition queries
 
