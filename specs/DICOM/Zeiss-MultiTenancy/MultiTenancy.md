@@ -5,10 +5,13 @@ Implement a light weight data partition scheme that will enable customers to sto
 # Business Justification
 
 Zeiss is 8000 practices and growing. The operational overhead of maintaining separate DICOM instances for each practice is too high. From their perspective, multi-tenancy is a single instance of DICOM service that can horizontally scale to support any number of practices.
-Their key requirement is to allow resources to be cloned to allow data sharing across practices, while maintaining existing UUIDs. This means that within the same DICOM service, there could be multiple DICOM instances sharing one combination of study/series/instance identifiers.
+
+**Their key requirement is to allow resources to be cloned to allow data sharing across practices, while maintaining existing UUIDs.** This means that within the same DICOM service, there could be multiple DICOM instances sharing one combination of study/series/instance identifiers.
 In order to achieve that we need a data partition solution.
 
 # Scenarios
+
+In all URIs below, there is an implicit base URI, then the optional version and [data partition segments](#data-partition). 
 
 ## STOW
 Users can specify an optional data partition when storing studies, series and instances. If no partition is specified, the data will be stored in a default partition.
@@ -57,14 +60,12 @@ GET {API_VERSION}/{PARTITION_KEY}/studies/{studyUid}
 ### Errors
  - 400: bad partition id
 
-## QIDO [Optional]
-Users can search studies, series and instances within a partition. We don't support cross partition queries.
-
-If a user doesn't specify partitionId, then the results are from default partition.
+## QIDO
+Users can search studies, series and instances across all partitions. See [cross-partition query discussion](#cross-partition-queries).
 
 **Request**
 ```
-GET {API_VERSION}/{PARTITION_KEY}/studies?...
+GET {API_VERSION}/studies?...
 ```
 
 **Response**
@@ -85,12 +86,15 @@ GET {API_VERSION}/{PARTITION_KEY}/studies?...
  - 400: bad partition id
 
 ## DELETE 
-User can delete studies, series and instances within a partition. If partition is unspecified, default partition record is deleted.
+User can delete studies, series and instances within a partition. If partition is unspecified, delete will be perform against the default partition.
 
 **Request**
 ```
 DELETE {API_VERSION}/{PARTITION_KEY}/studies/{studyUid}
 ```
+
+### Errors
+ - 400: bad partition id
 
 # Metrics
 
@@ -107,7 +111,7 @@ Add PartitionId as a dimension to current metrics. Whenever STOW, WADO, QIDO and
 
 ## Data Partition
 
-There is a middle way between these two options, which is to partition data via a unique id, maintaining data uniqueness as in the tenancy approach while not requiring the overhead of managing the `tenant` concept. 
+There is a middle way between these two options, which is to partition data via a unique id, maintaining data uniqueness as in the tenancy approach while not requiring the overhead of managing the `tenant` concept. [Initial draft](data-partition.md)
 
 It seems best to indicate the data partition as an optional URI segment, after the optional version segment. Here's why:
 
@@ -118,16 +122,17 @@ It seems best to indicate the data partition as an optional URI segment, after t
 | Query Parameter | | May break OSS viewers |
 | URI Path Segment | Closer to DICOM standard | |
 
-We want to be consistent across all APIs, and consider how changefeed and DICOM cast will be affected.
+This allows us to maintain a consistent approach across all APIs. It also allows us to enable the feature with minimal interruption to existing services, as the partition segment is optional. 
 
-Zeiss creates dynamic test environments. So this may result in too many support requests if we do not make it auto for the customers.
+## Partition Id
 
-We will be introducing a optional partitionId in all the operations. If the partitionId is not given, then the default partitionId `Microsoft.Default` will be used.
+We will be introducing a optional partition id in all operations. This id will either be a unique string composed of unreserved and safe characters, or a GUID. In either case, the id will be created by the client.
+
+If the partition id is not given, then a default value will be used. If we choose strings, the default value will be `Microsoft.Default`. If we choose GUIDs, the default value will be `Guid.Empty` (`00000000-0000-0000-0000-000000000000`). 
 
 ## SQL Data Model Updates
-- Add a new column to the below tables. It will be a Not nullable column with a default value. 
-  - Max length of the paritionId will be 36 characters (guid with hyphens)
-  - 
+- Add a new column to the below tables. It will be a non-nullable column with a default value based on the decision above. The approach below assumes GUID. 
+  - Max length of the partition id will be 36 characters (GUID with hyphens)
 
 ```
 CREATE TABLE dbo.Study (
@@ -194,7 +199,7 @@ CREATE TABLE dbo.DeletedInstance
 ```
 CREATE TABLE dbo.ChangeFeed (
     Sequence                BIGINT IDENTITY(1,1) NOT NULL,
-    PartitionId             VARCHAR(36)          NOT NULL,
+    PartitionId             VARCHAR(36)          NULL,
     Timestamp               DATETIMEOFFSET(7)    NOT NULL,
     Action                  TINYINT              NOT NULL,
     StudyInstanceUid        VARCHAR(64)          NOT NULL,
@@ -210,9 +215,11 @@ CREATE TABLE dbo.ChangeFeed (
 
 ## Blob Storage Updates
 
-The format of the image & metadata blobs refers to instance, study, and series. This virtual path could be optionally prefixed with the partition id, and would not be present for the default tenant.
+The format of the image & metadata blobs refers to instance, study, and series. This virtual path will be optionally prefixed with the partition id, and will not be present for the default tenant. This will prevent migrate existing blobs.
 
 ## Migration
+
+We'll create a new schema version and diff.
 
 ## Cross partition queries
 
@@ -222,15 +229,11 @@ Two approaches:
 
 2. If `PartitionId` is not specified, search all partitions.
 
-For the first iteration, we will take approach 2, with the understanding that the QIDO functionality will not change. In future iterations, we can allow specifying partition(s) to search.
+For the first iteration, we will take approach 2, with the understanding that the QIDO functionality will reamin unchanged, but will return a result set with records across potentially multiple partitions, so clients will need to parse the record URIs. In future iterations, we can allow specifying partition(s) to search once we understand the usage patterns.
 
+## Roll-out Strategy
 
-
-
-## PaaS Roll out
-
-## Roll out strategy
-
+We need to understand how the schema update is set in the Kubernetes deployment.
 
 # Test Strategy
 
@@ -246,7 +249,6 @@ The security boundary of the DICOM service is not changed.
 
 *Describe any impact to privacy, localization, globalization, deployment, back-compat, SOPs, ISMS, etc.*
 
-
 # Question
 1. Can Zeiss once on-boarded to partitioning, can they go back?
-2. How will partitions be reflected in blob storage?
+2. Should partition ids be a [GUID or string?](#partition-id)
