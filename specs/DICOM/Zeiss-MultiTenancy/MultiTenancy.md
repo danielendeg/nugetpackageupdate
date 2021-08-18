@@ -252,3 +252,4 @@ The security boundary of the DICOM service is not changed.
 # Question
 1. Can Zeiss once on-boarded to partitioning, can they go back?
 2. Should partition ids be a [GUID or string?](#partition-id)
+3. Is it ok to accept the partitionId from the caller or should we generate the partitionId? Does Zeiss ok to generate guid?
