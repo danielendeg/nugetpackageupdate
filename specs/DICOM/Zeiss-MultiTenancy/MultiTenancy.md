@@ -7,7 +7,25 @@ Implement a light weight data partition scheme that will enable customers to sto
 Zeiss is 8000 practices and growing. The operational overhead of maintaining separate DICOM instances for each practice is too high. From their perspective, multi-tenancy is a single instance of DICOM service that can horizontally scale to support any number of practices.
 
 **Their key requirement is to allow resources to be cloned to allow data sharing across practices, while maintaining existing UUIDs.** This means that within the same DICOM service, there could be multiple DICOM instances sharing one combination of study/series/instance identifiers.
-In order to achieve that we need a data partition solution.
+
+## Can/should we do this?
+The requirement from Zeiss violates the DICOM standard, based on the following:
+ - The [portion of the standard](http://dicom.nema.org/dicom/2013/output/chtml/part05/chapter_9.html) covering unique identifiers (UIDs) specifies: "Unique Identifiers (UIDs) provide the capability to uniquely identify a wide variety of items. They guarantee _uniqueness across multiple countries, sites, vendors and equipment._ Different classes of objects, instance of objects and information entities can be distinguished from one another _across the DICOM universe of discourse irrespective of any semantic context_" (emphasis added). UIDs should be unique not only within a partition, or a DICOM service, but everywhere all the time.
+ - Oleg Pianykh's guide to DICOM explains: "one original image can produce multiple instances, some of them still being identical to the original, yet residing in different locations or serving different purposes....UIDs, used to label those instances, must be globally unique....UID strings are supposed to be _globally_ unique to guarantee distinction across multiple countries, sites, vendors, and equipment" (pp. 64-65). 
+
+Based on the above, any scenario that duplicates an instance UID, even when combined with other uniquely identifying data by our service, doesn't conform to the standard. Here's an example of the issues this could cause:
+ - An instance is created in `partition1` in a DICOM service.
+ - That instance is copied (with the same set of study/series/instance UIDs) to `partition2`.
+ - The owners of `partition2` make changes to the instance.
+ - A research cohort is created with search criteria that include both instances.
+ - Once the files are exported, downstream services have files with duplicate study/series/instance UIDs without access to the internal logic used by our service for disambiguation.
+
+## Alternatives
+Based on correspondence, an initial recommendation to Zeiss was for their system to generate UIDs when duplicating instances, but they preferred not to edit the DICOM file. An alternative solution could be to change via feature flag the way the system handles STOW requests when a set of study/series/instance UIDs is not unique. 
+
+Currently, we throw an exception, but we could instead change one or more UIDs in the DICOM file to guarantee uniqueness. The standard does provide a [mechanism for coercing values during the import process,](http://dicom.nema.org/medical/dicom/current/output/html/part18.html#sect_10.5.2) and specifies how to store the original values in the new file: "While creating resources from the representations, the origin server may coerce or replace the values of data elements....If any Attribute is coerced or corrected, the Original Attribute Sequence (0400,0561) shall be included in the DICOM Object that is stored and may be included in the Store Instances Response Module (see Annex I) in the response."
+
+The standard specifies that [study and series ids can be coerced.](http://dicom.nema.org/medical/dicom/current/output/html/part04.html#sect_B.4.1.3)
 
 # Scenarios
 
