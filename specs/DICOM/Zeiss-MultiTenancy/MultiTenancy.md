@@ -1,31 +1,60 @@
-Implement a light weight data partition scheme that will enable customers to store multiple copies of the same image with the same UUID on a single DICOM instance.
-
-[[_TOC_]]
+Implement a light-weight data partition scheme that will enable customers to store multiple copies of the same image with the same identifying study/series/instance UIDs on a single DICOM service.
 
 # Business Justification
 
-Zeiss is 8000 practices and growing. The operational overhead of maintaining separate DICOM instances for each practice is too high. From their perspective, multi-tenancy is a single instance of DICOM service that can horizontally scale to support any number of practices.
+Zeiss has asked us to provide a solution for the following requirements:
+ 1. Addressable storage for multiple organizational units should be implemented in one DICOM service
+ 2. Duplicate study/series/instance UIDs may exist across different organizational units (but not within one unit)
+ 3. Querying across organizational units is not required for this iteration
+ 4. No CRUD operations are required for the entity representing the organizational unit
+ 5. The feature is understood to be irreversible once enabled
 
-**Their key requirement is to allow resources to be cloned to allow data sharing across practices, while maintaining existing UUIDs.** This means that within the same DICOM service, there could be multiple DICOM instances sharing one combination of study/series/instance identifiers.
+ The first requirement is due to the scale of the solution Zeiss is building. They have a service topology that will involve multiple DICOM services, but they will support thousands of organizational units, so the operational overhead of one DICOM service per organizational unit is too high.
 
-## Can/should we do this?
-The requirement from Zeiss violates the DICOM standard, based on the following:
- - The [portion of the standard](http://dicom.nema.org/dicom/2013/output/chtml/part05/chapter_9.html) covering unique identifiers (UIDs) specifies: "Unique Identifiers (UIDs) provide the capability to uniquely identify a wide variety of items. They guarantee _uniqueness across multiple countries, sites, vendors and equipment._ Different classes of objects, instance of objects and information entities can be distinguished from one another _across the DICOM universe of discourse irrespective of any semantic context_" (emphasis added). UIDs should be unique not only within a partition, or a DICOM service, but everywhere all the time.
- - Oleg Pianykh's guide to DICOM explains: "one original image can produce multiple instances, some of them still being identical to the original, yet residing in different locations or serving different purposes....UIDs, used to label those instances, must be globally unique....UID strings are supposed to be _globally_ unique to guarantee distinction across multiple countries, sites, vendors, and equipment" (pp. 64-65). 
+ This only becomes complex when paired with the second requirement, since one DICOM service should be able to handle the scale as long as each organizational unit stores unique images. Currently, our DICOM service enforces uniqueness by the combination of study, series, and instance UIDs. Even this is less strict than [the DICOM standard,](http://dicom.nema.org/dicom/2013/output/chtml/part05/chapter_9.html) which specifies that UIDs should be unique "across the DICOM universe of discourse irrespective of any semantic context" - so instance id alone would be uniquely identifying. At first glance, allowing duplicates would seem to violate the DICOM standard.
 
-Based on the above, any scenario that duplicates an instance UID, even when combined with other uniquely identifying data by our service, doesn't conform to the standard. Here's an example of the issues this could cause:
- - An instance is created in `partition1` in a DICOM service.
- - That instance is copied (with the same set of study/series/instance UIDs) to `partition2`.
- - The owners of `partition2` make changes to the instance.
- - A research cohort is created with search criteria that include both instances.
- - Once the files are exported, downstream services have files with duplicate study/series/instance UIDs without access to the internal logic used by our service for disambiguation.
+There is, however, an important distinction to be made. The responsibility for creating valid UIDs in on the _producer_ of the image, not on the storage class. While _creating_ duplicate UIDs violates the standard, _allowing_ duplicates is a matter of leniency. As a storage class, the DICOM service has no way to validate any UID for uniqueness.
 
-## Alternatives
-Based on correspondence, an initial recommendation to Zeiss was for their system to generate UIDs when duplicating instances, but they preferred not to edit the DICOM file. An alternative solution could be to change via feature flag the way the system handles STOW requests when a set of study/series/instance UIDs is not unique. 
+Granting that we _can_ allow duplicates, why _should_ we? The answer is that in practice, duplicate DICOM objects have existed for decades. It's common practice for files to be written to portable storage media by a healthcare provider and given to the patient, who then gives the files to another healthcare provider, who then transfers the files into a DICOM storage system. Thus, multiple copies of one DICOM file commonly exist in isolated DICOM systems. As this functionality is moving to the cloud, we face a difficult problem: how can we ensure the **global uniqueness** of DICOM objects in an ever-more interconnected cloud ecosystem, while also providing an on-ramp for **existing data stores and workflows?**
 
-Currently, we throw an exception, but we could instead change one or more UIDs in the DICOM file to guarantee uniqueness. The standard does provide a [mechanism for coercing values during the import process,](http://dicom.nema.org/medical/dicom/current/output/html/part18.html#sect_10.5.2) and specifies how to store the original values in the new file: "While creating resources from the representations, the origin server may coerce or replace the values of data elements....If any Attribute is coerced or corrected, the Original Attribute Sequence (0400,0561) shall be included in the DICOM Object that is stored and may be included in the Store Instances Response Module (see Annex I) in the response."
+## Explored Approaches
 
-The standard specifies that [study and series ids can be coerced.](http://dicom.nema.org/medical/dicom/current/output/html/part04.html#sect_B.4.1.3)
+### Can we simply ensure that duplicate files are modified to have unique UIDs? 
+No, mainly because of Zeiss' appraisal of their end customer expectations. Zeiss doesn't want to present the end customer with files that have been altered in any way. Importantly, it doesn't matter whether this modification is performed by Zeiss, or in the DICOM service. 
+
+_Note: the DICOM standard [does allow for coercing values during the import process,](http://dicom.nema.org/medical/dicom/current/output/html/part18.html#sect_10.5.2) and storing the original values as metadata._
+
+### Can we store the organizational unit information in external metadata?
+We can, but then it's difficult to guarantee uniqueness, especially when performing WADO requests. [(initial exploration)](external-metadata.md)
+
+### Should we create a full `tenant` concept for the user to manage?
+We can, but we introduce complexity by increasing the API surface and adding background jobs to handle tenant lifecycle operations. [(initial exploration)](add-tenant-id.md)
+
+### Should we use a lighter version of the `tenant` concept?
+Yes - we'll call this lighter version a `data partition`.
+
+## Data Partition
+We propose partitioning data via a unique id, maintaining object uniqueness as in the tenancy approach while not requiring the overhead of managing tenant lifecycle. The proposal is to implement the smallest version of the feature that fulfills Zeiss requirements, and to consider a more robust approach to multitenancy as we discover the market demand. [(initial investigation)](data-partition.md) 
+
+### Partition Id
+
+We will be introducing a optional partition id in all operations. The partition id will be:
+ - unique within the scope of the DICOM service
+ - a string of 1 to 32 alphanumeric characters
+ - specified by the client
+
+The default value of this id will be `Guid.Empty`: `00000000000000000000000000000000`, and all existing data at time of feature enablement will be backfilled with the default value. When this feature is enabled by the user, **partition id will be required as input for STOW, WADO, QIDO, and delete.** It will not be required for extended query tag operations.
+
+It seems best to indicate the data partition as an optional URI segment, after the optional version segment. Here's why:
+
+| Option | Pros ✔ | Cons ❌ |
+| ------ | ------ | ------   |
+| Body   | | Requires parsing the entire body; Zeiss doesn't want to do this, not visible in default logging |
+| Header | | FHIR deep links will break, not visible in default logging |
+| Query Parameter | | May break OSS viewers |
+| URI Path Segment | Closer to DICOM standard | Breaking change to APIs |
+
+
 
 # Scenarios
 
@@ -119,34 +148,6 @@ DELETE {API_VERSION}/{PARTITION_KEY}/studies/{studyUid}
 Add PartitionId as a dimension to current metrics. Whenever STOW, WADO, QIDO and DELETE operation are requested with partitionId, we should emit a metric so that we can know usage of this feature.
 
 # Design
-
-## Explored Approaches
-
-| Option | Notes | Pros ✔ | Cons ❌ |
-| ------ | ----- | ---- | ---- |
-| [Add `tenant` to data model](add-tenant-id.md) | - Tenants created only on STOW operations<br><br>- Tenants deleted in background when they contain no records<br><br>- Need to list tenants | - Consistent with DICOM standard<br><br>- Allows simple client logic<br><br> - Serves as a potential basis to add tenant related default tags / nested tenancy |- Does not solve cross tenant query problems<br><br> - Additional complexity related to background jobs |
-| [Model tenancy with external metadata](external-metadata.md) | - All tenancy information stored in external tags | - Similar solution to FHIR<br><br> - Can be used to extend DICOM service to support tag morphing: a feature supported in VNAs. | - Difficult to guarantee uniqueness |
-
-## Data Partition
-
-There is a middle way between these two options, which is to partition data via a unique id, maintaining data uniqueness as in the tenancy approach while not requiring the overhead of managing the `tenant` concept. [Initial draft](data-partition.md)
-
-It seems best to indicate the data partition as an optional URI segment, after the optional version segment. Here's why:
-
-| Option | Pros ✔ | Cons ❌ |
-| ------ | ------ | ------   |
-| Body   | | Requires parsing entire body; Zeiss doesn't want |
-| Header | | FHIR deep links will break |
-| Query Parameter | | May break OSS viewers |
-| URI Path Segment | Closer to DICOM standard | |
-
-This allows us to maintain a consistent approach across all APIs. It also allows us to enable the feature with minimal interruption to existing services, as the partition segment is optional. 
-
-## Partition Id
-
-We will be introducing a optional partition id in all operations. This id will either be a unique string composed of unreserved and safe characters, or a GUID. In either case, the id will be created by the client.
-
-If the partition id is not given, then a default value will be used. If we choose strings, the default value will be `Microsoft.Default`. If we choose GUIDs, the default value will be `Guid.Empty` (`00000000-0000-0000-0000-000000000000`). 
 
 ## SQL Data Model Updates
 - Add a new column to the below tables. It will be a non-nullable column with a default value based on the decision above. The approach below assumes GUID. 
@@ -268,8 +269,3 @@ The security boundary of the DICOM service is not changed.
 # Other
 
 *Describe any impact to privacy, localization, globalization, deployment, back-compat, SOPs, ISMS, etc.*
-
-# Question
-1. Can Zeiss once on-boarded to partitioning, can they go back?
-2. Should partition ids be a [GUID or string?](#partition-id)
-3. Is it ok to accept the partitionId from the caller or should we generate the partitionId? Does Zeiss ok to generate guid?
