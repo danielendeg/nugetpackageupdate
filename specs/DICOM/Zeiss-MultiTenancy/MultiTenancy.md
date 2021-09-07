@@ -25,10 +25,10 @@ No, mainly because of Zeiss' appraisal of their end customer expectations. Zeiss
 _Note: the DICOM standard [does allow for coercing values during the import process,](http://dicom.nema.org/medical/dicom/current/output/html/part18.html#sect_10.5.2) and storing the original values as metadata._
 
 ### Can we store the organizational unit information in external metadata?
-We can, but then it's difficult to guarantee uniqueness, especially when performing WADO requests. [(initial exploration)](external-metadata.md)
+We can, but then it's difficult to guarantee uniqueness, especially when performing WADO requests. [(initial exploration)](OtherOptions/external-metadata.md)
 
 ### Should we create a full `tenant` concept for the user to manage?
-We can, but we introduce complexity by increasing the API surface and adding background jobs to handle tenant lifecycle operations. [(initial exploration)](add-tenant-id.md)
+We can, but we introduce complexity by increasing the API surface and adding background jobs to handle tenant lifecycle operations. [(initial exploration)](OtherOptions/add-tenant-id.md)
 
 ### Should we use a lighter version of the `tenant` concept?
 Yes - we'll call this lighter version a `data partition`.
@@ -154,8 +154,8 @@ Add PartitionId as a dimension to current metrics. Whenever STOW, WADO, QIDO and
 ```
 CREATE TABLE dbo.Study (
     StudyKey                    BIGINT                            NOT NULL, --PK
-    PartitionId                 VARCHAR(32)                       NOT NULL, --PK
     StudyInstanceUid            VARCHAR(64)                       NOT NULL,
+    PartitionId                 VARCHAR(32)                       NOT NULL DEFAULT '00000000000000000000000000000000',
     PatientId                   NVARCHAR(64)                      NOT NULL,
     PatientName                 NVARCHAR(200)                     COLLATE SQL_Latin1_General_CP1_CI_AI NULL,
     ReferringPhysicianName      NVARCHAR(200)                     COLLATE SQL_Latin1_General_CP1_CI_AI NULL,
@@ -171,9 +171,9 @@ CREATE TABLE dbo.Study (
 ```
 CREATE TABLE dbo.Series (
     SeriesKey                           BIGINT                     NOT NULL, --PK
-    PartitionId                         VARCHAR(32)                NOT NULL, --PK
     StudyKey                            BIGINT                     NOT NULL, --FK
     SeriesInstanceUid                   VARCHAR(64)                NOT NULL,
+    PartitionId                         VARCHAR(32)                NOT NULL DEFAULT '00000000000000000000000000000000',
     Modality                            NVARCHAR(16)               NULL,
     PerformedProcedureStepStartDate     DATE                       NULL,
     ManufacturerModelName               NVARCHAR(64)               NULL
@@ -183,7 +183,6 @@ CREATE TABLE dbo.Series (
 ```
 CREATE TABLE dbo.Instance (
     InstanceKey             BIGINT                     NOT NULL, --PK
-    PartitionId             VARCHAR(32)                NOT NULL, --PK
     SeriesKey               BIGINT                     NOT NULL, --FK
     -- StudyKey needed to join directly from Study table to find a instance
     StudyKey                BIGINT                     NOT NULL, --FK
@@ -191,6 +190,7 @@ CREATE TABLE dbo.Instance (
     StudyInstanceUid        VARCHAR(64)                NOT NULL,
     SeriesInstanceUid       VARCHAR(64)                NOT NULL,
     SopInstanceUid          VARCHAR(64)                NOT NULL,
+    PartitionId             VARCHAR(32)                NOT NULL DEFAULT '00000000000000000000000000000000',
     --data consitency columns
     Watermark               BIGINT                     NOT NULL,
     Status                  TINYINT                    NOT NULL,
@@ -204,7 +204,7 @@ CREATE TABLE dbo.Instance (
 CREATE TABLE dbo.DeletedInstance
 (
     StudyInstanceUid    VARCHAR(64)       NOT NULL,
-    PartitionId         VARCHAR(32)       NOT NULL,
+    PartitionId         VARCHAR(32)       NOT NULL DEFAULT '00000000000000000000000000000000',
     SeriesInstanceUid   VARCHAR(64)       NOT NULL,
     SopInstanceUid      VARCHAR(64)       NOT NULL,
     Watermark           BIGINT            NOT NULL,
@@ -216,7 +216,7 @@ CREATE TABLE dbo.DeletedInstance
 ```
 CREATE TABLE dbo.ChangeFeed (
     Sequence                BIGINT IDENTITY(1,1) NOT NULL,
-    PartitionId             VARCHAR(32)          NULL,
+    PartitionId             VARCHAR(32)          NULL DEFAULT '00000000000000000000000000000000',
     Timestamp               DATETIMEOFFSET(7)    NOT NULL,
     Action                  TINYINT              NOT NULL,
     StudyInstanceUid        VARCHAR(64)          NOT NULL,
@@ -227,7 +227,35 @@ CREATE TABLE dbo.ChangeFeed (
 ) WITH (DATA_COMPRESSION = PAGE)
 ```
 
-- All the corresponding will be updated. 
+```
+CREATE TABLE dbo.DeletedInstance
+(
+    StudyInstanceUid    VARCHAR(64)       NOT NULL,
+    SeriesInstanceUid   VARCHAR(64)       NOT NULL,
+    SopInstanceUid      VARCHAR(64)       NOT NULL,
+    Watermark           BIGINT            NOT NULL,
+    PartitionId         VARCHAR(32)       NOT NULL  DEFAULT '00000000000000000000000000000000',
+    DeletedDateTime     DATETIMEOFFSET(0) NOT NULL,
+    RetryCount          INT               NOT NULL,
+    CleanupAfter        DATETIMEOFFSET(0) NOT NULL
+) WITH (DATA_COMPRESSION = PAGE)
+```
+
+```
+CREATE TABLE dbo.ChangeFeed (
+    Sequence                BIGINT IDENTITY(1,1) NOT NULL,
+    Timestamp               DATETIMEOFFSET(7)    NOT NULL,
+    Action                  TINYINT              NOT NULL,
+    StudyInstanceUid        VARCHAR(64)          NOT NULL,
+    SeriesInstanceUid       VARCHAR(64)          NOT NULL,
+    SopInstanceUid          VARCHAR(64)          NOT NULL,
+    OriginalWatermark       BIGINT               NOT NULL,
+    CurrentWatermark        BIGINT               NULL,
+    PartitionId             VARCHAR(32)          NOT NULL  DEFAULT '00000000000000000000000000000000'
+) WITH (DATA_COMPRESSION = PAGE)
+```
+
+- All the corresponding indexes will be updated. PartitionId will be added to UNIQUE CLUSTERED INDEX 
 - Update all the stored procedures that are related to retrieving studies, series or instances.
 
 ## Blob Storage Updates
@@ -239,6 +267,8 @@ The format of the image & metadata blobs refers to instance, study, and series. 
 We'll create a new schema version and diff. Add the `PartitionId` as the composite primary key and fill the default value as a single transaction.
 
 Include `PartitionId` in all the indexes.
+
+As part of the migration script, we will update all the rows to default PartitionId `where PartitionId is NULL`.
 
 ## Cross partition queries
 
