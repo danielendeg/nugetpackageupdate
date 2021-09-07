@@ -45,7 +45,7 @@ We will be introducing a optional partition id in all operations. The partition 
 
 The default value of this id will be `Guid.Empty`: `00000000000000000000000000000000`, and all existing data at time of feature enablement will be backfilled with the default value. When this feature is enabled by the user, **partition id will be required as input for STOW, WADO, QIDO, and delete.** It will not be required for extended query tag operations.
 
-It seems best to indicate the data partition as an optional URI segment, after the optional version segment. Here's why:
+It seems best to indicate the data partition as a required URI segment, after the optional version segment. Here's why:
 
 | Option | Pros ✔ | Cons ❌ |
 | ------ | ------ | ------   |
@@ -54,14 +54,12 @@ It seems best to indicate the data partition as an optional URI segment, after t
 | Query Parameter | | May break OSS viewers |
 | URI Path Segment | Closer to DICOM standard | Breaking change to APIs |
 
-
-
 # Scenarios
 
 In all URIs below, there is an implicit base URI, then the optional version and [data partition segments](#data-partition). 
 
 ## STOW
-Users can specify an optional data partition when storing studies, series and instances. If no partition is specified, the data will be stored in a default partition.
+Users must specify a partition id when storing studies, series and instances.
 
 **Request**
 ```
@@ -80,12 +78,11 @@ POST {API_VERSION}/{PARTITION_KEY}/studies
 }
 ```
 
-### Errors
- - Invalid partition id (272)
- - Resource already exists within partition (45070)
+**Errors**
+Existing error behavior will remain the same, with the following clarification: if no partition id or an invalid partition id is included in the URI, a 400 status code will be returned, with a dataset including the reason code `272`.
 
 ## WADO
-Users can specify an optional data partition when retrieving studies, series and instances. If no partition is specified, the retrieval will be performed against the default partition.
+Users must specify a partition id when retrieving studies, series and instances.
 
 **Request**
 ```
@@ -104,11 +101,11 @@ GET {API_VERSION}/{PARTITION_KEY}/studies/{studyUid}
 }
 ```
 
-### Errors
- - 400: bad partition id
+**Errors**
+Existing error behavior will remain the same, with the following clarification: if no partition id or an invalid partition id is included in the URI, a 400 status code will be returned.
 
 ## QIDO
-Users can search studies, series and instances across all partitions. See [cross-partition query discussion](#cross-partition-queries).
+Users must specify a partition id as the scope for searching studies, series and instances. See [cross-partition query discussion](#cross-partition-queries).
 
 **Request**
 ```
@@ -129,34 +126,35 @@ GET {API_VERSION}/studies?...
 ]
 ```
 
-### Errors
- - 400: bad partition id
+**Errors**
+Existing error behavior will remain the same, with the following clarification: if no partition id or an invalid partition id is included in the URI, a 400 status code will be returned.
 
 ## DELETE 
-User can delete studies, series and instances within a partition. If partition is unspecified, delete will be perform against the default partition.
+User must specify a partition id to delete studies, series and instances.
 
 **Request**
 ```
 DELETE {API_VERSION}/{PARTITION_KEY}/studies/{studyUid}
 ```
 
-### Errors
- - 400: bad partition id
+**Errors**
+Existing error behavior will remain the same, with the following clarification: if no partition id or an invalid partition id is included in the URI, a 400 status code will be returned.
+
+## Extended Query Tags
+These endpoints will remain unchanged; any extended query tag operation will be performed at the scope of the server (all partitions).
 
 # Metrics
-
 Add PartitionId as a dimension to current metrics. Whenever STOW, WADO, QIDO and DELETE operation are requested with partitionId, we should emit a metric so that we can know usage of this feature.
 
 # Design
 
 ## SQL Data Model Updates
-- Add a new column to the below tables. It will be a non-nullable column with a default value based on the decision above. The approach below assumes GUID. 
-  - Max length of the partition id will be 36 characters (GUID with hyphens)
+- Add a new column to the below tables.
 
 ```
 CREATE TABLE dbo.Study (
     StudyKey                    BIGINT                            NOT NULL, --PK
-    PartitionId                 VARCHAR(36)                       NOT NULL, --PK
+    PartitionId                 VARCHAR(32)                       NOT NULL, --PK
     StudyInstanceUid            VARCHAR(64)                       NOT NULL,
     PatientId                   NVARCHAR(64)                      NOT NULL,
     PatientName                 NVARCHAR(200)                     COLLATE SQL_Latin1_General_CP1_CI_AI NULL,
@@ -173,7 +171,7 @@ CREATE TABLE dbo.Study (
 ```
 CREATE TABLE dbo.Series (
     SeriesKey                           BIGINT                     NOT NULL, --PK
-    PartitionId                         VARCHAR(36)                NOT NULL, --PK
+    PartitionId                         VARCHAR(32)                NOT NULL, --PK
     StudyKey                            BIGINT                     NOT NULL, --FK
     SeriesInstanceUid                   VARCHAR(64)                NOT NULL,
     Modality                            NVARCHAR(16)               NULL,
@@ -185,7 +183,7 @@ CREATE TABLE dbo.Series (
 ```
 CREATE TABLE dbo.Instance (
     InstanceKey             BIGINT                     NOT NULL, --PK
-    PartitionId             VARCHAR(36)                NOT NULL, --PK
+    PartitionId             VARCHAR(32)                NOT NULL, --PK
     SeriesKey               BIGINT                     NOT NULL, --FK
     -- StudyKey needed to join directly from Study table to find a instance
     StudyKey                BIGINT                     NOT NULL, --FK
@@ -206,7 +204,7 @@ CREATE TABLE dbo.Instance (
 CREATE TABLE dbo.DeletedInstance
 (
     StudyInstanceUid    VARCHAR(64)       NOT NULL,
-    PartitionId         VARCHAR(36)       NOT NULL,
+    PartitionId         VARCHAR(32)       NOT NULL,
     SeriesInstanceUid   VARCHAR(64)       NOT NULL,
     SopInstanceUid      VARCHAR(64)       NOT NULL,
     Watermark           BIGINT            NOT NULL,
@@ -218,7 +216,7 @@ CREATE TABLE dbo.DeletedInstance
 ```
 CREATE TABLE dbo.ChangeFeed (
     Sequence                BIGINT IDENTITY(1,1) NOT NULL,
-    PartitionId             VARCHAR(36)          NULL,
+    PartitionId             VARCHAR(32)          NULL,
     Timestamp               DATETIMEOFFSET(7)    NOT NULL,
     Action                  TINYINT              NOT NULL,
     StudyInstanceUid        VARCHAR(64)          NOT NULL,
@@ -229,16 +227,16 @@ CREATE TABLE dbo.ChangeFeed (
 ) WITH (DATA_COMPRESSION = PAGE)
 ```
 
-- All the corresponding indexes should be updated. 
+- All the corresponding will be updated. 
 - Update all the stored procedures that are related to retrieving studies, series or instances.
 
 ## Blob Storage Updates
 
-The format of the image & metadata blobs refers to instance, study, and series. This virtual path will be optionally prefixed with the partition id, and will not be present for the default tenant. This will prevent migrate existing blobs.
+The format of the image & metadata blobs refers to instance, study, and series. This virtual path will be prefixed with the partition id. While using the existing watermark would allow us to differentiate between objects, including the partition id as part of the blob name will allow the service to be restored from blob, which was identified as an existing design goal.
 
 ## Migration
 
-We'll create a new schema version and diff. Add the `PartitionId` as the composite primary key and fill the default value.
+We'll create a new schema version and diff. Add the `PartitionId` as the composite primary key and fill the default value as a single transaction.
 
 Include `PartitionId` in all the indexes.
 
@@ -246,15 +244,21 @@ Include `PartitionId` in all the indexes.
 
 Two approaches:
 
-1. If `PartitionId` is not specified, search only the default partition. To search all partitions, specify `PartitionId` of `all`.
+1. If `PartitionId` is not specified, return a 400 status code.
 
 2. If `PartitionId` is not specified, search all partitions.
 
-For the first iteration, we will take approach 2, with the understanding that the QIDO functionality will reamin unchanged, but will return a result set with records across potentially multiple partitions, so clients will need to parse the record URIs. In future iterations, we can allow specifying partition(s) to search once we understand the usage patterns.
+For the first iteration, we will take approach 1, with the understanding that the QIDO functionality will remain unchanged within the specified partition. In future iterations, we can allow querying across partitions once we understand the requirements and usage patterns.
 
 ## Roll-out Strategy
 
-We need to understand how the schema update is set in the Kubernetes deployment.
+Zeiss has requested that this feature be enabled programatically, not via manual process (IcM). Changing the base URI to include a required partition id is a breaking API change, so we will need to consider the best way to expose this feature while minimizing the complications related to API versions, documentation, and Azure Portal experience. 
+
+Options include:
+- making partition id optional to maintain back-compatibility
+- creating a new API version exposed via feature flag (how would this converge with future versions?)
+- updating RP to check for feature flag and set config at deploy time
+- updating RP (or workspace platform?) to query storage for feature status and set config at deploy time
 
 # Test Strategy
 
