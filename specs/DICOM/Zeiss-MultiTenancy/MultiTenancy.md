@@ -290,6 +290,15 @@ Options include:
 - updating RP to check for feature flag and set config at deploy time
 - updating RP (or workspace platform?) to query storage for feature status and set config at deploy time
 
+Our current feature flag managment at ARM level enables or restricts an endpoint being executed at the subscription. The feature flag information wont be propagated in our RP code. We can either
+- Create our feature flag in AFEC and query the AFEC while provisioning. 
+- Store the feature flag in our subscription metadata (Cosmos Db). And query the subscription info during provisioning and include that value in dicomServiceSpec to update the state in the CRD.
+
+| Option | Pros ✔ | Cons ❌ |
+| ------ | ------ | ------   |
+| Create our feature flag in AFEC   | Inbuilt Geneva action operation to enable at the given subscription level| Need to depend on external APIs to get the state of the feature flag during provisioning, which could result in delay. |
+| Store the feature flag in our subscription metadata (Cosmos Db) | Its in our control, this can be extended to FHIR and other resources.| We should create Geneva action operation to update the Db |
+
 # Test Strategy
 
 - Add and update existing unit tests, integration test and e2e tests to use partitionId
