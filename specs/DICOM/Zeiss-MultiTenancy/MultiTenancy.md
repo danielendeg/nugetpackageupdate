@@ -98,6 +98,9 @@ Software, systems or container names created or provided by customers, such as c
 
 The default value of this id will be `Microsoft.Default`, and all existing data at time of feature enablement will be backfilled with the default value. The path `<baseurl>/partitions/Microsoft.Default` will route to `<baseurl>/`.
 
+### Feature Toggling
+We will specify the following behavior: the partition resource and all subpaths can only be accessed when the feature is enabled. If the feature is disabled and then re-enabled, previously stored data **may** be available. Data stored in the root partition will always be available regardless of feature status.
+
 # Partition API DICOM Operations
 
 In all URIs below, there is an implicit base URI, then the optional version and [data partition segments](#data-partition). We will call this the `partition path` to differentiate from the `root path`.
@@ -220,7 +223,7 @@ Add PartitionId as a dimension to current metrics. Whenever STOW, WADO, QIDO and
 CREATE TABLE dbo.Study (
     StudyKey                    BIGINT                            NOT NULL, --PK
     StudyInstanceUid            VARCHAR(64)                       NOT NULL,
-    PartitionId                 VARCHAR(32)                       NOT NULL DEFAULT '00000000000000000000000000000000',
+    PartitionKey                VARCHAR(64)                       NOT NULL DEFAULT '00000000000000000000000000000000',
     PatientId                   NVARCHAR(64)                      NOT NULL,
     PatientName                 NVARCHAR(200)                     COLLATE SQL_Latin1_General_CP1_CI_AI NULL,
     ReferringPhysicianName      NVARCHAR(200)                     COLLATE SQL_Latin1_General_CP1_CI_AI NULL,
@@ -238,7 +241,7 @@ CREATE TABLE dbo.Series (
     SeriesKey                           BIGINT                     NOT NULL, --PK
     StudyKey                            BIGINT                     NOT NULL, --FK
     SeriesInstanceUid                   VARCHAR(64)                NOT NULL,
-    PartitionId                         VARCHAR(32)                NOT NULL DEFAULT '00000000000000000000000000000000',
+    PartitionKey                        VARCHAR(64)                NOT NULL DEFAULT '00000000000000000000000000000000',
     Modality                            NVARCHAR(16)               NULL,
     PerformedProcedureStepStartDate     DATE                       NULL,
     ManufacturerModelName               NVARCHAR(64)               NULL
@@ -255,7 +258,7 @@ CREATE TABLE dbo.Instance (
     StudyInstanceUid        VARCHAR(64)                NOT NULL,
     SeriesInstanceUid       VARCHAR(64)                NOT NULL,
     SopInstanceUid          VARCHAR(64)                NOT NULL,
-    PartitionId             VARCHAR(32)                NOT NULL DEFAULT '00000000000000000000000000000000',
+    PartitionKey             VARCHAR(64)                NOT NULL DEFAULT 'Microsoft.Default',
     --data consitency columns
     Watermark               BIGINT                     NOT NULL,
     Status                  TINYINT                    NOT NULL,
@@ -269,7 +272,7 @@ CREATE TABLE dbo.Instance (
 CREATE TABLE dbo.DeletedInstance
 (
     StudyInstanceUid    VARCHAR(64)       NOT NULL,
-    PartitionId         VARCHAR(32)       NOT NULL DEFAULT '00000000000000000000000000000000',
+    PartitionKey        VARCHAR(64)       NOT NULL DEFAULT 'Microsoft.Default',
     SeriesInstanceUid   VARCHAR(64)       NOT NULL,
     SopInstanceUid      VARCHAR(64)       NOT NULL,
     Watermark           BIGINT            NOT NULL,
@@ -281,7 +284,7 @@ CREATE TABLE dbo.DeletedInstance
 ```
 CREATE TABLE dbo.ChangeFeed (
     Sequence                BIGINT IDENTITY(1,1) NOT NULL,
-    PartitionId             VARCHAR(32)          NULL DEFAULT '00000000000000000000000000000000',
+    PartitionKey            VARCHAR(64)          NULL DEFAULT 'Microsoft.Default',
     Timestamp               DATETIMEOFFSET(7)    NOT NULL,
     Action                  TINYINT              NOT NULL,
     StudyInstanceUid        VARCHAR(64)          NOT NULL,
@@ -299,7 +302,7 @@ CREATE TABLE dbo.DeletedInstance
     SeriesInstanceUid   VARCHAR(64)       NOT NULL,
     SopInstanceUid      VARCHAR(64)       NOT NULL,
     Watermark           BIGINT            NOT NULL,
-    PartitionId         VARCHAR(32)       NOT NULL  DEFAULT '00000000000000000000000000000000',
+    PartitionKey        VARCHAR(64)       NOT NULL  DEFAULT 'Microsoft.Default',
     DeletedDateTime     DATETIMEOFFSET(0) NOT NULL,
     RetryCount          INT               NOT NULL,
     CleanupAfter        DATETIMEOFFSET(0) NOT NULL
@@ -316,16 +319,12 @@ CREATE TABLE dbo.ChangeFeed (
     SopInstanceUid          VARCHAR(64)          NOT NULL,
     OriginalWatermark       BIGINT               NOT NULL,
     CurrentWatermark        BIGINT               NULL,
-    PartitionId             VARCHAR(32)          NOT NULL  DEFAULT '00000000000000000000000000000000'
+    PartitionKey            VARCHAR(64)          NOT NULL  DEFAULT 'Microsoft.Default'
 ) WITH (DATA_COMPRESSION = PAGE)
 ```
 
 - All the corresponding indexes will be updated. PartitionId will be added to UNIQUE CLUSTERED INDEX 
 - Update all the stored procedures that are related to retrieving studies, series or instances.
-
-## Blob Storage Updates
-
-The format of the image & metadata blobs refers to instance, study, and series. This virtual path will be prefixed with the partition id. While using the existing watermark would allow us to differentiate between objects, including the partition id as part of the blob name will allow the service to be restored from blob, which was identified as an existing design goal.
 
 ## Migration
 
@@ -335,34 +334,22 @@ Include `PartitionId` in all the indexes.
 
 As part of the migration script, we will update all the rows to default PartitionId `where PartitionId is NULL`.
 
-## Cross partition queries
+## Cross-partition queries
 
-Two approaches:
-
-1. If `PartitionId` is not specified, return a 400 status code.
-
-2. If `PartitionId` is not specified, search all partitions.
-
-For the first iteration, we will take approach 1, with the understanding that the QIDO functionality will remain unchanged within the specified partition. In future iterations, we can allow querying across partitions once we understand the requirements and usage patterns.
+For the first iteration, each QIDO request will be scoped to the either the default partition (root path) or a specified partition. Zeiss is not requesting cross-partition queries now since there are authorization implications in their implementation. One approach could be for the root path QIDO operations to return results from all partitions if enabled.
 
 ## Roll-out Strategy
 
-Zeiss has requested that this feature be enabled programatically, not via manual process (IcM). Changing the base URI to include a required partition id is a breaking API change, so we will need to consider the best way to expose this feature while minimizing the complications related to API versions, documentation, and Azure Portal experience. 
+Zeiss has requested that this feature be enabled programatically, not via manual process (IcM). While we can reduce the management overhead by enabling the feature at the 
 
-Options include:
-- making partition id optional to maintain back-compatibility
-- creating a new API version exposed via feature flag (how would this converge with future versions?)
-- updating RP to check for feature flag and set config at deploy time
-- updating RP (or workspace platform?) to query storage for feature status and set config at deploy time
+The eventual solution here will include:
+ 1. An AFEC feature flag managed via Geneva Actions (optionally exposed to customers via Azure Portal)
+ 2. Syncing the status of the feature flag (via [subscription lifecycle notifications](https://github.com/Azure/azure-resource-manager-rpc/blob/master/v1.0/subscription-lifecycle-api-reference.md)) to our subscription metadata (global CosmosDB)
+ 3. Read subscription metadata, and update the Dicom CRD with the relevant feature status
 
-Our current feature flag managment at ARM level enables or restricts an endpoint being executed at the subscription. The feature flag information wont be propagated in our RP code. We can either
-- Create our feature flag in AFEC and query the AFEC while provisioning. 
-- Store the feature flag in our subscription metadata (Cosmos Db). And query the subscription info during provisioning and include that value in dicomServiceSpec to update the state in the CRD.
+Our initial implementation will be limited to step 3 above: we will update the CRD and alter the subscription metadata via prodution change request. Steps 1 and 2 are straightforward, but require some coordination with other Healthcare APIs teams to make the solution usable cross-team.
 
-| Option | Pros ✔ | Cons ❌ |
-| ------ | ------ | ------   |
-| Create our feature flag in AFEC   | Inbuilt Geneva action operation to enable at the given subscription level| Need to depend on external APIs to get the state of the feature flag during provisioning, which could result in delay. |
-| Store the feature flag in our subscription metadata (Cosmos Db) | Its in our control, this can be extended to FHIR and other resources.| We should create Geneva action operation to update the Db |
+For the initial PaaS implementation, we will specify that feature status will only be checked at resource creation - i.e. every DICOM resource will reflect the status of the subscription-level feature flag at the time the DICOM resource was created.
 
 # Test Strategy
 
@@ -372,8 +359,10 @@ Our current feature flag managment at ARM level enables or restricts an endpoint
 
 # Security
 
-The security boundary of the DICOM service is not changed.
+We may (eventually) update the [Azure Healthcare APIs RP security role](https://msazure.visualstudio.com/One/_git/AD-RBAC-RoleDefinitions?path=%2FMICROSOFT.HEALTHCAREAPIS%2FPROD%2FHealthcare%20Apis%20Resource%20Provider%20Service%20Role.json) to include the `Microsoft.Features/providers/Microsoft.HealthcareApis/features` permission, and would need to update the threat model accordingly. This would allow us to directly query the feature registration status.
+
+If we can handle subscription lifecycle notifications instead, we may not need this change.
 
 # Other
-
-*Describe any impact to privacy, localization, globalization, deployment, back-compat, SOPs, ISMS, etc.*
+Back-compatibility: all exising DICOM services will remain completely back-compatible regardless of feature enablement.
+Privacy: as discussed above, the partition id will be OII, so our telemetry collection and access will be unaffected.
