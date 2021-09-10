@@ -63,19 +63,19 @@ We will specify the following supported behavior:
 **Any other scenario is unsupported and will lead to undefined behavior.** ❌
 
 ### API Surface
-When the feature is enabled, partitions will be addressable under the `partitions` path. Beneath each partition resource, STOW, WADO, QIDO, and delete APIs will be exposed.
+When the feature is enabled, partitions will be addressable under the `partitions` path. Beneath each partition resource, STOW, WADO, QIDO, and delete APIs will be exposed. All other APIs (ExtendedQueryTags, Operations, Changefeed) will be accessible at the root path. Requests to STOW, WADO, QIDO, or delete under the root path will return 400 invalid request indicating that a partition id must be specified.
 
 ![Dicom file](../images/DICOM-Partition-API.png)
 
-This resource will only be accessible if the feature is enabled. When the feature is not enabled, any requests to this resource and sub-resources will return 400 indicating that the feature is not enabled. Here is the **future** API surface:
+The `partitions` path will only be accessible if the feature is enabled. When the feature is not enabled, any requests to this resource and sub-resources will return 400 indicating that the feature is not enabled. 
+
+In the **future**, we forsee a standard CRUD API surface for `partitions`:
 ```
 <base uri>/partitions GET, POST
 <base uri>/partitions/id GET, DELETE
 ```
 
-Of this group, **we will only implement `GET /partitions` in the first iteration.** This will allow all images on the DICOM server to be discovered.
-
-We considered simply requiring a partition id to be specified for all paths, but this leads to broken links when a user deploys the OSS server, stores files, and then enables the feature. By making partitions a resource under the root, we limit the amount of API surface that is changed by the feature. 
+Of this group, **we will only implement `GET /partitions` in the first iteration** to allow all images on the DICOM server to be discovered.
 
 ### Storage
 We will create a new table:
@@ -100,7 +100,7 @@ Since the partition id will be visible in telemetry, we need to consider data cl
 Software, systems or container names created or provided by customers, such as configuration settings, Azure Resource Names: Account Name (ADL), VM Name, Cluster DNS Name (HDInsight), SQL Server and Database Name, Global Database Account Name (CosmosDB), Machine or Agent Name, Storage Account Name, Service Name, Form Name, Batch Job Name; Job Query Name, ARM-level objects; Collection Name (CosmosD)
 ```
 
-The default value of this id will be `Microsoft.Default`, and all existing data at time of feature enablement will be backfilled with the default value. The path `<baseurl>/partitions/Microsoft.Default` will route to `<baseurl>/`.
+There will be no default value since enabling the feature while storage is present will not be supported.
 
 # Partition API DICOM Operations
 
@@ -193,7 +193,7 @@ DELETE {partition path}/studies/{studyUid}
 Existing error behavior will remain the same, with the following clarification: if no partition id or an invalid partition id is included in the URI, a 400 status code will be returned.
 
 ## Querying Partitions
-In first iteration, we will enable a new endpoint to get list of partitions
+In first iteration, we will enable a new endpoint to get list of partitions.
 
 **Request**
 ```
@@ -207,13 +207,13 @@ GET {root path}/partitions
   "{PARTITION_KEY_2}",
 ]
 ```
-Future, we will have all CRUD operations. This enable clients who do not have partition mapping.
+In the future, we may support all CRUD operations to enable clients to store basic metadata and perform management operations.
 
 ## Extended Query Tags
 These endpoints will remain unchanged; any extended query tag operation will be performed at the root path and will affect all partitions.
 
 # Metrics
-Add PartitionId as a dimension to current metrics. Whenever STOW, WADO, QIDO and DELETE operation are requested with partitionId, we should emit a metric so that we can know usage of this feature.
+We will capture telemetry about feature enablement in the future. Our initial implementation will be manually enabled, so we understand feature usage.
 
 # Design
 
@@ -224,7 +224,7 @@ Add PartitionId as a dimension to current metrics. Whenever STOW, WADO, QIDO and
 CREATE TABLE dbo.Study (
     StudyKey                    BIGINT                            NOT NULL, --PK
     StudyInstanceUid            VARCHAR(64)                       NOT NULL,
-    PartitionKey                VARCHAR(64)                       NOT NULL DEFAULT '00000000000000000000000000000000',
+    PartitionKey                VARCHAR(64)                       NOT NULL,
     PatientId                   NVARCHAR(64)                      NOT NULL,
     PatientName                 NVARCHAR(200)                     COLLATE SQL_Latin1_General_CP1_CI_AI NULL,
     ReferringPhysicianName      NVARCHAR(200)                     COLLATE SQL_Latin1_General_CP1_CI_AI NULL,
@@ -242,7 +242,7 @@ CREATE TABLE dbo.Series (
     SeriesKey                           BIGINT                     NOT NULL, --PK
     StudyKey                            BIGINT                     NOT NULL, --FK
     SeriesInstanceUid                   VARCHAR(64)                NOT NULL,
-    PartitionKey                        VARCHAR(64)                NOT NULL DEFAULT '00000000000000000000000000000000',
+    PartitionKey                        VARCHAR(64)                NOT NULL,
     Modality                            NVARCHAR(16)               NULL,
     PerformedProcedureStepStartDate     DATE                       NULL,
     ManufacturerModelName               NVARCHAR(64)               NULL
@@ -259,7 +259,7 @@ CREATE TABLE dbo.Instance (
     StudyInstanceUid        VARCHAR(64)                NOT NULL,
     SeriesInstanceUid       VARCHAR(64)                NOT NULL,
     SopInstanceUid          VARCHAR(64)                NOT NULL,
-    PartitionKey             VARCHAR(64)                NOT NULL DEFAULT 'Microsoft.Default',
+    PartitionKey             VARCHAR(64)                NOT NULL,
     --data consitency columns
     Watermark               BIGINT                     NOT NULL,
     Status                  TINYINT                    NOT NULL,
@@ -273,7 +273,7 @@ CREATE TABLE dbo.Instance (
 CREATE TABLE dbo.DeletedInstance
 (
     StudyInstanceUid    VARCHAR(64)       NOT NULL,
-    PartitionKey        VARCHAR(64)       NOT NULL DEFAULT 'Microsoft.Default',
+    PartitionKey        VARCHAR(64)       NOT NULL,
     SeriesInstanceUid   VARCHAR(64)       NOT NULL,
     SopInstanceUid      VARCHAR(64)       NOT NULL,
     Watermark           BIGINT            NOT NULL,
@@ -285,7 +285,7 @@ CREATE TABLE dbo.DeletedInstance
 ```
 CREATE TABLE dbo.ChangeFeed (
     Sequence                BIGINT IDENTITY(1,1) NOT NULL,
-    PartitionKey            VARCHAR(64)          NULL DEFAULT 'Microsoft.Default',
+    PartitionKey            VARCHAR(64)          NULL DEFAULT,
     Timestamp               DATETIMEOFFSET(7)    NOT NULL,
     Action                  TINYINT              NOT NULL,
     StudyInstanceUid        VARCHAR(64)          NOT NULL,
@@ -303,7 +303,7 @@ CREATE TABLE dbo.DeletedInstance
     SeriesInstanceUid   VARCHAR(64)       NOT NULL,
     SopInstanceUid      VARCHAR(64)       NOT NULL,
     Watermark           BIGINT            NOT NULL,
-    PartitionKey        VARCHAR(64)       NOT NULL  DEFAULT 'Microsoft.Default',
+    PartitionKey        VARCHAR(64)       NOT NULL,
     DeletedDateTime     DATETIMEOFFSET(0) NOT NULL,
     RetryCount          INT               NOT NULL,
     CleanupAfter        DATETIMEOFFSET(0) NOT NULL
@@ -320,7 +320,7 @@ CREATE TABLE dbo.ChangeFeed (
     SopInstanceUid          VARCHAR(64)          NOT NULL,
     OriginalWatermark       BIGINT               NOT NULL,
     CurrentWatermark        BIGINT               NULL,
-    PartitionKey            VARCHAR(64)          NOT NULL  DEFAULT 'Microsoft.Default'
+    PartitionKey            VARCHAR(64)          NOT NULL
 ) WITH (DATA_COMPRESSION = PAGE)
 ```
 
@@ -329,7 +329,7 @@ CREATE TABLE dbo.ChangeFeed (
 
 ## Migration
 
-We'll create a new schema version and diff. Add the `PartitionId` as the composite primary key and fill the default value as a single transaction.
+We'll create a new schema version and diff. Add the `PartitionId` as the composite primary key. Fail the operation if data exists.
 
 Include `PartitionId` in all the indexes.
 
@@ -337,7 +337,7 @@ As part of the migration script, we will update all the rows to default Partitio
 
 ## Cross-partition queries
 
-For the first iteration, each QIDO request will be scoped to the either the default partition (root path) or a specified partition. Zeiss is not requesting cross-partition queries now since there are authorization implications in their implementation. One approach could be for the root path QIDO operations to return results from all partitions if enabled.
+For the first iteration, each QIDO request will be scoped to a specified partition. Zeiss is not requesting cross-partition queries now since there are authorization implications in their implementation. One possible future approach could be for root path QIDO operations to return results from all partitions if enabled. Strictly speaking, QIDO is not a search across services, so we may have our own implementation for this case.
 
 ## Roll-out Strategy
 
@@ -362,8 +362,5 @@ For the initial PaaS implementation, we will specify that feature status will on
 
 We may (eventually) update the [Azure Healthcare APIs RP security role](https://msazure.visualstudio.com/One/_git/AD-RBAC-RoleDefinitions?path=%2FMICROSOFT.HEALTHCAREAPIS%2FPROD%2FHealthcare%20Apis%20Resource%20Provider%20Service%20Role.json) to include the `Microsoft.Features/providers/Microsoft.HealthcareApis/features` permission, and would need to update the threat model accordingly. This would allow us to directly query the feature registration status.
 
-If we can handle subscription lifecycle notifications instead, we may not need this change.
-
 # Other
-Back-compatibility: all exising DICOM services will remain completely back-compatible regardless of feature enablement.
 Privacy: as discussed above, the partition id will be OII, so our telemetry collection and access will be unaffected.
