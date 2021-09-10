@@ -333,8 +333,6 @@ We'll create a new schema version and diff. Add the `PartitionId` as the composi
 
 Include `PartitionId` in all the indexes.
 
-As part of the migration script, we will update all the rows to default PartitionId `where PartitionId is NULL`.
-
 ## Cross-partition queries
 
 For the first iteration, each QIDO request will be scoped to a specified partition. Zeiss is not requesting cross-partition queries now since there are authorization implications in their implementation. One possible future approach could be for root path QIDO operations to return results from all partitions if enabled. Strictly speaking, QIDO is not a search across services, so we may have our own implementation for this case.
