@@ -2,6 +2,7 @@ Implement a light-weight data partition scheme that will enable customers to sto
 
 # Business Justification
 
+## Customer Requirements
 Zeiss has asked us to provide a solution for the following requirements:
  1. Addressable storage for multiple organizational units should be implemented in one DICOM service
  2. Duplicate study/series/instance UIDs may exist across different organizational units (but not within one unit)
@@ -17,6 +18,13 @@ There is, however, an important distinction to be made. The responsibility for c
 
 Granting that we _can_ allow duplicates, why _should_ we? The answer is that in practice, duplicate DICOM objects have existed for decades. It's common practice for files to be written to portable storage media by a healthcare provider and given to the patient, who then gives the files to another healthcare provider, who then transfers the files into a DICOM storage system. Thus, multiple copies of one DICOM file commonly exist in isolated DICOM systems. As this functionality is moving to the cloud, we face a difficult problem: how can we ensure the **global uniqueness** of DICOM objects in an ever-more interconnected cloud ecosystem, while also providing an on-ramp for **existing data stores and workflows?**
 
+## Microsoft / OSS Requirements
+In conversation with the team, the following requirements (or at least strong preferences) have emerged:
+ 1. The solution has to make sense in the OSS context. Includes:
+   a. exposing the status of this feature, and 
+   b. making sure that behavior (and perhaps rationale) is well-documented.
+ 2. Users should be able to discover all content on their server.
+
 ## Explored Approaches
 
 ### Can we simply ensure that duplicate files are modified to have unique UIDs? 
@@ -30,29 +38,63 @@ We can, but then it's difficult to guarantee uniqueness, especially when perform
 ### Should we create a full `tenant` concept for the user to manage?
 We can, but we introduce complexity by increasing the API surface and adding background jobs to handle tenant lifecycle operations. [(initial exploration)](OtherOptions/add-tenant-id.md)
 
+### Can we specify that the feature can only be enabled at deployment time to simplify the usage?
+No, because the feature can be toggled at any time in the OSS implementation. We need to document the expected behavior.
+
 ### Should we use a lighter version of the `tenant` concept?
 Yes - we'll call this lighter version a `data partition`.
 
 ## Data Partition
-We propose partitioning data via a unique id, maintaining object uniqueness as in the tenancy approach while not requiring the overhead of managing tenant lifecycle. The proposal is to implement the smallest version of the feature that fulfills Zeiss requirements, and to consider a more robust approach to multitenancy as we discover the market demand. [(initial investigation)](data-partition.md) 
+We propose partitioning data via a unique id, maintaining object uniqueness as in the tenancy approach while not requiring the overhead of managing tenant lifecycle. The proposal is to implement the smallest version of the feature that fulfills the requirements above, and to consider a more robust approach to multitenancy as we discover the market demand. [(initial investigation)](data-partition.md) 
 
-### Partition Id
+Logically, we can think of each partition as mapping to the ["service" concept](http://dicom.nema.org/medical/dicom/current/output/html/part18.html#glossentry_Service) in the DICOM standard, where a service comprises a set of REST APIs. The base URI can support [more than one service.](http://dicom.nema.org/medical/dicom/current/output/html/part18.html#sect_8.2). However, we don't want to use the word "service" because it's overloaded and may cause confusion. Similarly, we don't want to use the word "tenant" since it's commonly used in our documnentation to refer to AAD tenant.
 
-We will be introducing a optional partition id in all operations. The partition id will be:
- - unique within the scope of the DICOM service
- - a string of 1 to 36 numeric characters. We choose numeric, since the data will be coming from the clients and we don't want to store any sensitive data. 
- - specified by the client
-
-The default value of this id will be `00000000000000000000000000000000`, and all existing data at time of feature enablement will be backfilled with the default value. When this feature is enabled by the user, **partition id will be optional as input for STOW, WADO, QIDO, and delete.** It will not be required for extended query tag operations.
-
-It seems best to indicate the data partition as a required URI segment, after the optional version segment. Here's why:
+We propose referencing partitions directly via URI. Here are some alternatives:
 
 | Option | Pros ✔ | Cons ❌ |
 | ------ | ------ | ------   |
 | Body   | | Requires parsing the entire body; Zeiss doesn't want to do this, not visible in default logging |
 | Header | | FHIR deep links will break, not visible in default logging |
 | Query Parameter | | May break OSS viewers |
-| URI Path Segment | Closer to DICOM standard | Breaking change to APIs |
+| URI Path Segment | Closer to DICOM standard | |
+
+### API Surface
+The new structure will have partitions exposed as subresources of the root, under the `partitions` path. Beneath each partition resource, STOW, WADO, QIDO, and delete APIs will be exposed.
+
+<< IMAGE HERE >>
+
+This resource will only be accessible if the feature is enabled. When the feature is not enabled, any requests to this resource and sub-resources will return 400 indicating that the feature is not enabled. Here is the **future** API surface:
+```
+<base uri>/partitions GET, POST
+<base uri>/partitions/id GET, DELETE
+```
+
+Of this group, **we will only implement `GET /partitions` in the first iteration.** This will allow all images on the DICOM server to be discovered.
+
+### Storage
+We will create a new table:
+```
+CREATE TABLE dbo.Partition (
+    PartitionKey               BIGINT              NOT NULL, --PK
+    PartitionId                VARCHAR(64)         NOT NULL,
+) WITH (DATA_COMPRESSION = PAGE)
+```
+`PartitionId` will be unique and indexed. In the future, we can add to this structure to allow customers to specify other metadata as part of partition creation / update.
+
+### Partition Id
+
+ The partition id will be:
+ - unique within the scope of the DICOM service
+ - a string of 1 to 64 alphanumeric characters, `.`, `-`, or `_`. (allows GUIDs and DICOM UIDs)
+ - specified by the client
+
+Since the partition id will be visible in telemetry, we need to consider data classification. We will classify the partition id as OII according to the [Enterprise Data Taxonomy](https://microsoft.sharepoint.com/sites/privacy/Privacy%20Documents/Privacy%20Program%20Refresh/Enterprise%20Online%20Services%20Asset%20Classification%20Standard/Enterprise%20Data%20Taxonomy%20(Asset%20Classification%20Standard).pdf), aligning to the following examples:
+
+```
+Software, systems or container names created or provided by customers, such as configuration settings, Azure Resource Names: Account Name (ADL), VM Name, Cluster DNS Name (HDInsight), SQL Server and Database Name, Global Database Account Name (CosmosDB), Machine or Agent Name, Storage Account Name, Service Name, Form Name, Batch Job Name; Job Query Name, ARM-level objects; Collection Name (CosmosD)
+```
+
+The default value of this id will be `Microsoft.Default`, and all existing data at time of feature enablement will be backfilled with the default value. The path `<baseurl>/partitions/Microsoft.Default` will route to `<baseurl>/`.
 
 # Scenarios
 
