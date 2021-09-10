@@ -20,10 +20,9 @@ Granting that we _can_ allow duplicates, why _should_ we? The answer is that in 
 
 ## Microsoft / OSS Requirements
 In conversation with the team, the following requirements (or at least strong preferences) have emerged:
- 1. The solution has to make sense in the OSS context. Includes:
-   a. exposing the status of this feature, and 
-   b. making sure that behavior (and perhaps rationale) is well-documented.
+ 1. We should expose the status of the feature.
  2. Users should be able to discover all content on their server.
+ 3. For OSS, we should ensure that feature behavior is well-documented.
 
 ## Explored Approaches
 
@@ -38,9 +37,6 @@ We can, but then it's difficult to guarantee uniqueness, especially when perform
 ### Should we create a full `tenant` concept for the user to manage?
 We can, but we introduce complexity by increasing the API surface and adding background jobs to handle tenant lifecycle operations. [(initial exploration)](OtherOptions/add-tenant-id.md)
 
-### Can we specify that the feature can only be enabled at deployment time to simplify the usage?
-No, because the feature can be toggled at any time in the OSS implementation. We need to document the expected behavior.
-
 ### Should we use a lighter version of the `tenant` concept?
 Yes - we'll call this lighter version a `data partition`.
 
@@ -49,7 +45,7 @@ We propose partitioning data via a unique id, maintaining object uniqueness as i
 
 Logically, we can think of each partition as mapping to the ["service" concept](http://dicom.nema.org/medical/dicom/current/output/html/part18.html#glossentry_Service) in the DICOM standard, where a service comprises a set of REST APIs. The base URI can support [more than one service.](http://dicom.nema.org/medical/dicom/current/output/html/part18.html#sect_8.2). However, we don't want to use the word "service" because it's overloaded and may cause confusion. Similarly, we don't want to use the word "tenant" since it's commonly used in our documnentation to refer to AAD tenant.
 
-We propose referencing partitions directly via URI. Here are some alternatives:
+We propose addressing partitions via URI. Here are some alternatives:
 
 | Option | Pros ✔ | Cons ❌ |
 | ------ | ------ | ------   |
@@ -58,8 +54,16 @@ We propose referencing partitions directly via URI. Here are some alternatives:
 | Query Parameter | | May break OSS viewers |
 | URI Path Segment | Closer to DICOM standard | |
 
+### Feature Toggling
+We will specify the following supported behavior: 
+ - when the feature is enabled, there must be no DICOM objects stored on the DICOM service
+ - once the feature is enabled, DICOM objects can only be accessed through the partition path
+ - the feature cannot be disabled
+
+**Any other scenario is unsupported and will lead to undefined behavior.** ❌
+
 ### API Surface
-The new structure will have partitions exposed as subresources of the root, under the `partitions` path. Beneath each partition resource, STOW, WADO, QIDO, and delete APIs will be exposed.
+When the feature is enabled, partitions will be addressable under the `partitions` path. Beneath each partition resource, STOW, WADO, QIDO, and delete APIs will be exposed.
 
 ![Dicom file](../images/DICOM-Partition-API.png)
 
@@ -97,9 +101,6 @@ Software, systems or container names created or provided by customers, such as c
 ```
 
 The default value of this id will be `Microsoft.Default`, and all existing data at time of feature enablement will be backfilled with the default value. The path `<baseurl>/partitions/Microsoft.Default` will route to `<baseurl>/`.
-
-### Feature Toggling
-We will specify the following behavior: the partition resource and all subpaths can only be accessed when the feature is enabled. If the feature is disabled and then re-enabled, previously stored data **may** be available. Data stored in the root partition will always be available regardless of feature status.
 
 # Partition API DICOM Operations
 
