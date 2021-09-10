@@ -96,16 +96,20 @@ Software, systems or container names created or provided by customers, such as c
 
 The default value of this id will be `Microsoft.Default`, and all existing data at time of feature enablement will be backfilled with the default value. The path `<baseurl>/partitions/Microsoft.Default` will route to `<baseurl>/`.
 
-# Scenarios
+# Partition API DICOM Operations
 
-In all URIs below, there is an implicit base URI, then the optional version and [data partition segments](#data-partition). We will insert the partitionId in to its own table if there is no partitionId exists. This will allow us to query for partitions.
+In all URIs below, there is an implicit base URI, then the optional version and [data partition segments](#data-partition). We will call this the `partition path` to differentiate from the `root path`.
+
+Example root path: `https://dicom-dicom.azurehealthcareapis.com/v1.0-prerelease/`
+
+Example partition path: `https://dicom-dicom.azurehealthcareapis.com/v1.0-prerelease/partitions/12345`
 
 ## STOW
-Users must specify a partition id when storing studies, series and instances.
+We will create a new partition in the partition table when a request is received with a new partition id. In the future, we may allow this to be managed via `POST /partitions`.
 
 **Request**
 ```
-POST {API_VERSION}/{PARTITION_KEY}/studies
+POST {partition path}/studies
 ```
 
 **Response**
@@ -114,7 +118,7 @@ POST {API_VERSION}/{PARTITION_KEY}/studies
   "00081190":
   {
     "vr":"UR",
-    "Value":["{API_VERSION}/{PARTITION_KEY}/studies/d09e8215-e1e1-4c7a-8496-b4f6641ed232"]
+    "Value":["{partition path}/studies/d09e8215-e1e1-4c7a-8496-b4f6641ed232"]
   }
   ...
 }
@@ -124,11 +128,11 @@ POST {API_VERSION}/{PARTITION_KEY}/studies
 Existing error behavior will remain the same, with the following clarification: if no partition id or an invalid partition id is included in the URI, a 400 status code will be returned, with a dataset including the reason code `272`.
 
 ## WADO
-Users must specify a partition id when retrieving studies, series and instances.
+Results will be returned from the partition specified in the path.
 
 **Request**
 ```
-GET {API_VERSION}/{PARTITION_KEY}/studies/{studyUid}
+GET {partition path}/studies/{studyUid}
 ```
 
 **Response**
@@ -137,7 +141,7 @@ GET {API_VERSION}/{PARTITION_KEY}/studies/{studyUid}
   "00081190":
   {
     "vr":"UR",
-    "Value":["{API_VERSION}/{PARTITION_KEY}/studies/d09e8215-e1e1-4c7a-8496-b4f6641ed232"]
+    "Value":["{partition path}/studies/d09e8215-e1e1-4c7a-8496-b4f6641ed232"]
   }
   ...
 }
@@ -147,11 +151,11 @@ GET {API_VERSION}/{PARTITION_KEY}/studies/{studyUid}
 Existing error behavior will remain the same, with the following clarification: if no partition id or an invalid partition id is included in the URI, a 400 status code will be returned.
 
 ## QIDO
-Users must specify a partition id as the scope for searching studies, series and instances. See [cross-partition query discussion](#cross-partition-queries).
+Results will be returned from the partition specified in the path. See [cross-partition query discussion](#cross-partition-queries).
 
 **Request**
 ```
-GET {API_VERSION}/{PARTITION_KEY}/studies?...
+GET {partition path}/studies?...
 ```
 
 **Response**
@@ -161,7 +165,7 @@ GET {API_VERSION}/{PARTITION_KEY}/studies?...
     "00081190":
     {
       "vr":"UR",
-      "Value":["{API_VERSION}/{PARTITION_KEY}/studies/d09e8215-e1e1-4c7a-8496-b4f6641ed232"]
+      "Value":["{partition path}/studies/d09e8215-e1e1-4c7a-8496-b4f6641ed232"]
     }
     ...
   }
@@ -172,11 +176,11 @@ GET {API_VERSION}/{PARTITION_KEY}/studies?...
 Existing error behavior will remain the same, with the following clarification: if no partition id or an invalid partition id is included in the URI, a 400 status code will be returned.
 
 ## DELETE 
-User must specify a partition id to delete studies, series and instances.
+Resources will be deleted from the partition specified in the path.
 
 **Request**
 ```
-DELETE {API_VERSION}/{PARTITION_KEY}/studies/{studyUid}
+DELETE {partition path}/studies/{studyUid}
 ```
 
 **Errors**
@@ -187,7 +191,7 @@ In first iteration, we will enable a new endpoint to get list of partitions
 
 **Request**
 ```
-GET {API_VERSION}/partitions
+GET {root path}/partitions
 ```
 
 **Response**
@@ -200,7 +204,7 @@ GET {API_VERSION}/partitions
 Future, we will have all CRUD operations. This enable clients who do not have partition mapping.
 
 ## Extended Query Tags
-These endpoints will remain unchanged; any extended query tag operation will be performed at the scope of the server (all partitions).
+These endpoints will remain unchanged; any extended query tag operation will be performed at the root path and will affect all partitions.
 
 # Metrics
 Add PartitionId as a dimension to current metrics. Whenever STOW, WADO, QIDO and DELETE operation are requested with partitionId, we should emit a metric so that we can know usage of this feature.
