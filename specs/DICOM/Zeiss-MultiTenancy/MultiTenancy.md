@@ -71,6 +71,8 @@ This resource will only be accessible if the feature is enabled. When the featur
 
 Of this group, **we will only implement `GET /partitions` in the first iteration.** This will allow all images on the DICOM server to be discovered.
 
+We considered simply requiring a partition id to be specified for all paths, but this leads to broken links when a user deploys the OSS server, stores files, and then enables the feature. By making partitions a resource under the root, we limit the amount of API surface that is changed by the feature. 
+
 ### Storage
 We will create a new table:
 ```
