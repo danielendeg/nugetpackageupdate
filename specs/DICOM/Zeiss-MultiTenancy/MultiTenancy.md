@@ -61,7 +61,7 @@ We propose referencing partitions directly via URI. Here are some alternatives:
 ### API Surface
 The new structure will have partitions exposed as subresources of the root, under the `partitions` path. Beneath each partition resource, STOW, WADO, QIDO, and delete APIs will be exposed.
 
-<< IMAGE HERE >>
+![Dicom file](../images/DICOM-Partition-API.png)
 
 This resource will only be accessible if the feature is enabled. When the feature is not enabled, any requests to this resource and sub-resources will return 400 indicating that the feature is not enabled. Here is the **future** API surface:
 ```
