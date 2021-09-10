@@ -40,10 +40,10 @@ We propose partitioning data via a unique id, maintaining object uniqueness as i
 
 We will be introducing a optional partition id in all operations. The partition id will be:
  - unique within the scope of the DICOM service
- - a string of 1 to 32 alphanumeric characters
+ - a string of 1 to 36 numeric characters. We choose numeric, since the data will be coming from the clients and we don't want to store any sensitive data. 
  - specified by the client
 
-The default value of this id will be `Guid.Empty`: `00000000000000000000000000000000`, and all existing data at time of feature enablement will be backfilled with the default value. When this feature is enabled by the user, **partition id will be required as input for STOW, WADO, QIDO, and delete.** It will not be required for extended query tag operations.
+The default value of this id will be `00000000000000000000000000000000`, and all existing data at time of feature enablement will be backfilled with the default value. When this feature is enabled by the user, **partition id will be optional as input for STOW, WADO, QIDO, and delete.** It will not be required for extended query tag operations.
 
 It seems best to indicate the data partition as a required URI segment, after the optional version segment. Here's why:
 
@@ -56,7 +56,7 @@ It seems best to indicate the data partition as a required URI segment, after th
 
 # Scenarios
 
-In all URIs below, there is an implicit base URI, then the optional version and [data partition segments](#data-partition). 
+In all URIs below, there is an implicit base URI, then the optional version and [data partition segments](#data-partition). We will insert the partitionId in to its own table if there is no partitionId exists. This will allow us to query for partitions.
 
 ## STOW
 Users must specify a partition id when storing studies, series and instances.
@@ -109,7 +109,7 @@ Users must specify a partition id as the scope for searching studies, series and
 
 **Request**
 ```
-GET {API_VERSION}/studies?...
+GET {API_VERSION}/{PARTITION_KEY}/studies?...
 ```
 
 **Response**
@@ -139,6 +139,23 @@ DELETE {API_VERSION}/{PARTITION_KEY}/studies/{studyUid}
 
 **Errors**
 Existing error behavior will remain the same, with the following clarification: if no partition id or an invalid partition id is included in the URI, a 400 status code will be returned.
+
+## Querying Partitions
+In first iteration, we will enable a new endpoint to get list of partitions
+
+**Request**
+```
+GET {API_VERSION}/partitions
+```
+
+**Response**
+```json
+[
+  "{PARTITION_KEY_1}",
+  "{PARTITION_KEY_2}",
+]
+```
+Future, we will have all CRUD operations. This enable clients who do not have partition mapping.
 
 ## Extended Query Tags
 These endpoints will remain unchanged; any extended query tag operation will be performed at the scope of the server (all partitions).
