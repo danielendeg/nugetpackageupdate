@@ -77,3 +77,6 @@ Describes how customer managed identity is used to connector source and destinat
 
 ### Provisioning
 Describes IoT Connector service specific items related to the provisioning of the service.  Broader model documented in Shared - Control Plane: Common Resource/Service Provisioning.
+
+## SQL LoadBalancer
+[Threat Model](SQL-LoadBalancer.tm7) Threat models for SQL Load balancer for the Workspace/Jupiter platform.
