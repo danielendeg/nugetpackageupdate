@@ -339,14 +339,14 @@ For the first iteration, each QIDO request will be scoped to a specified partiti
 
 ## Roll-out Strategy
 
-Zeiss has requested that this feature be enabled programatically, not via manual process (IcM). While we can reduce the management overhead by enabling the feature at the 
+Zeiss has requested that this feature be enabled programatically, not via manual process (IcM). While we can reduce the management overhead by enabling the feature at the subscription level, which can be managed via AFEC.
 
-The eventual solution here will include:
+The solution will include:
  1. An AFEC feature flag managed via Geneva Actions (optionally exposed to customers via Azure Portal)
  2. Syncing the status of the feature flag (via [subscription lifecycle notifications](https://github.com/Azure/azure-resource-manager-rpc/blob/master/v1.0/subscription-lifecycle-api-reference.md)) to our subscription metadata (global CosmosDB)
  3. Read subscription metadata, and update the Dicom CRD with the relevant feature status
 
-Our initial implementation will be limited to step 3 above: we will update the CRD and alter the subscription metadata via prodution change request. Steps 1 and 2 are straightforward, but require some coordination with other Healthcare APIs teams to make the solution usable cross-team.
+We will implement the steps above, but specifically to this case, not in a generalized way.
 
 For the initial PaaS implementation, we will specify that feature status will only be checked at resource creation - i.e. every DICOM resource will reflect the status of the subscription-level feature flag at the time the DICOM resource was created.
 
