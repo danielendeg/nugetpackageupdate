@@ -31,9 +31,15 @@ For reference a table for the new pricing model has been included below with mor
 | Standard Notifications | $0.00 | $0.59 |
 | | | |
 | **ETL Operations /GB** | | |
-| **Category** | **<= 1 GB** | **<= 1 TB** |
+| **Category** | **<= 1 GB** | **> 1 GB** |
 | Export Batching | $0.19 | $0.14 |
 | Export Streaming | $0.34 | $0.29 |
+| | | |
+| **Egress /GB** | | |
+| **Category** | **>0 GB** | |
+| Egress (Data Out)* | [Egress Pricing](https://azure.microsoft.com/en-us/pricing/details/bandwidth/) | |
+
+\* We will be charging egress to customers using the existing Bandwidth meters and pricing.
 
 # BillingAgent Review
 ![BillingAgentV1](./Assets/BillingAgentV1Diagram.png)
