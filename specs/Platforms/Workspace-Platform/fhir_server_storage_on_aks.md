@@ -16,7 +16,9 @@
 
 # Design
 
-*Describe the design with enough detail that code reviewers and stakeholders are not surprised.*
+A high-level architecture will look like this:
+
+![Fhir Server access to SQL Database using MI extension in AKS](imgs/fhir_sql_server_with_mi.png)
 
 # Test Strategy
 
