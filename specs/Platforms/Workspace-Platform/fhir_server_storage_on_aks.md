@@ -2,10 +2,10 @@
 
 **STATUS: Work In Progress.**
 
-This document describes at a high-level the changes that will be needed to support storing and exporting FHIR data using Managed Identities on AKS.
-In terms of storage mechanisms, FHIR Service can serve two roles:
-1) **Persisting FHIR data**. FHIR service is designed to support different data stores. For Gen1 offering Cosmos DB is used as the underlying persistent store, while for Gen2 is Azure SQL database. More details can be found [here](https://microsofthealth.visualstudio.com/Health/_git/health-paas?path=/doc/SQL%5Csql.md&_a=preview).
-2) **Exporting/Importing FHIR data** to/from a specified storage account.
+This document describes at a high-level the changes that will be needed to support storing, exporting and importing FHIR data using Managed Identities on AKS.
+In terms of storage mechanisms, FHIR Service can:
+1) **Persist FHIR data**. FHIR service is designed to support different data stores. For Gen1 offering Cosmos DB is used as the underlying persistent store, while for Gen2 is Azure SQL database. More details can be found [here](https://microsofthealth.visualstudio.com/Health/_git/health-paas?path=/doc/SQL%5Csql.md&_a=preview).
+2) **Export/Import FHIR data** to/from a specified storage account.
 
 [[_TOC_]]
 
