@@ -5,7 +5,7 @@
 This document describes at a high-level the changes that will be needed to support storing and exporting FHIR data using Managed Identities on AKS.
 In terms of storage mechanisms, FHIR Service can serve two roles:
 1) **Persisting FHIR data**. FHIR service is designed to support different data stores. For Gen1 offering Cosmos DB is used as the underlying persistent store, while for Gen2 is Azure SQL database. More details can be found [here](https://microsofthealth.visualstudio.com/Health/_git/health-paas?path=/doc/SQL%5Csql.md&_a=preview).
-2) **Exporting FHIR data** to a specified storage account
+2) **Exporting/Importint FHIR data** to/from a specified storage account.
 
 [[_TOC_]]
 
@@ -97,20 +97,33 @@ Moving out of the prototype phase.
 
 To ease and automate provisioning and configuration set-up for new Fhir instances, we can follow Dicom approach - a combination of ARM templates, bash and PS scripts, .NET Console application, Fhir Service custom resource and controller in Kubernetes.
 
-RP changes
+Identify RP changes
 ### Azure Cosmos DB
-We need to identify what changes will be needed in:
-#### Azure Resource Provisioning
-#### Kubernetes Resource Provisioning
-#### OSS
+We need to identify provisioning, configuration and code changes to enable Fhir Server on AKS to connect to Cosmos DB using Managed Identities.
 
 ### Azure storage
+#### Export
+##### Use case:
+The customer has a FHIR service provisioned in AKS and a storage account. The customer should be able to export their FHIR data to the storage account without having to provide us their storage key.
 
+In this case, the customer can establish an identity for the FHIR service and grant write permission to their storage account using that identity. To support export operation, the following resources must be provisioned:
+##### Azure Resource Provisioning
+- Managed Identity in a resource group where the AKS cluster has access
+- Azure Storage account
+- Assign role 'Storage Blob Data Contributor' to the identity
+##### Kubernetes Resource Provisioning
+- Fhir Server with export enabled
+- AAD Pod Identity deployed on the AKS cluster
+- `AzureIdentity` object, representing Fhir Service managed identity with clientId and resourceId.
+
+We have to evaluate if any additional OSS changes will be needed to support export operation for Fhir Server on AKS.
+#### Import
+This feature is currently being implemented under [work item](https://microsofthealth.visualstudio.com/Health/_workitems/edit/81672).
+We have to evaluate if any additional OSS changes will be needed to support import operation for Fhir Server on AKS.
 ## Test Strategy
-
 We will continue to use all of the tests that we have in the FHIR service for verifying all existing scenarios are working as expected.
 
-We will need to add a new set of E2E tests for provisioning a new Fhir service using managed identity to connect to its SQL Database.
+We will need to add a new set of E2E tests for provisioning a new Fhir service using managed identity to connect to its SQL Database or Cosmos DB.
 
 ## Security
 
