@@ -2,6 +2,11 @@
 
 **STATUS: Work In Progress.**
 
+Containers are a good way to bundle and run applications. In a production environment, the containers that run the applications need to be managed and ensure that there is no downtime. 
+That's how Kubernetes comes to the rescue! Kubernetes provides a framework to run distributed systems resiliently. It takes care of scaling and failover for an application, provides deployment patterns, and more. Since Kubernetes operates at the container level rather than at the hardware level, it provides some generally applicable features common to PaaS offerings, such as deployment, scaling, load balancing, and lets users integrate their logging, monitoring, and alerting solutions.
+
+Azure Kubernetes Service (AKS) is a hosted Kubernetes service on Azure. It simplifies deploying a managed Kubernetes cluster in Azure by offloading the operational overhead to Azure.
+
 [[_TOC_]]
 # Background
 The purpose of this document is to detail the design and changes for setting up Fhir Server on AKS.
@@ -45,26 +50,115 @@ A new instance of Fhir resource will create
 - `Deployment` that sets the deployment strategy, replica sets and pod image. It also has the azureIdentityBinding label.
 
 # Resource Provision
-Resource Provision module includes the libraries for provisioning and de-provisioning the resources for the Fhir service instances.
 
-## Package Structure
+## Concepts
+- Kind: The type of object that you'd like to create in Kubernetes. For example, a Pod, Deployment or Replica Set.
+- Resource: A use of a particular Kind. For example, one or more instanciation of Kind __Pod__ may be created.
+- Spec: The desired state of a resource
+## Prototype phase
+In K8s, there are the concepts of owners and dependents. It's very useful for K8s to perform GC and other operations. In our prototype design, for the Fhir Server, resource Kind is a Deployment, and then a ReplicaSet, then the Pod(s) and potentially along with other resources in descendant order.
 
-**Status: The package(namespace) structure should be delineated in the diagram. The model of the CRD API contract details will tend to update.**
+In the example below, you can spot the ownership relationship by looking at the "uid" of current object and the "ownerReferences.uid" of its owner.
 
-![Diagram](./.images/provision-uml-design.jpg)
+The Fhir Deployment object:
+```json
+{
+    "kind": "Deployment",
+    "apiVersion": "apps/v1",
+    "metadata": {
+        "name": "pgeorg-fhir-deployment",
+        "namespace": "default",
+        "selfLink": "/apis/apps/v1/namespaces/default/deployments/pgeorg-fhir-deployment",
+        "uid": "a0ec8464-b108-4e17-bce6-d5587e2bd995",
+        "resourceVersion": "21357696",
+        "generation": 1,
+        ...,
+    },
+    ...,
+}
+```
+The Fhir ReplicaSet object owned by above object:
+```json
+{
+    "kind": "ReplicaSet",
+    "apiVersion": "apps/v1",
+    "metadata": {
+        "name": "pgeorg-fhir-deployment-57697ff5dc",
+        "namespace": "default",
+        "selfLink": "/apis/apps/v1/namespaces/default/replicasets/pgeorg-fhir-deployment-57697ff5dc",
+        "uid": "93b644ad-5987-4485-93a5-24566fcc09c6",
+        ...,
+        "labels": {
+            "aadpodidbinding": "pgeorg-fhir-identity",
+            "deployment": "pgeorg-fhir-deployment",
+            "pod-template-hash": "57697ff5dc"
+        },
+        ...,
+        "ownerReferences": [
+            {
+                "apiVersion": "apps/v1",
+                "kind": "Deployment",
+                "name": "pgeorg-fhir-deployment",
+                "uid": "a0ec8464-b108-4e17-bce6-d5587e2bd995",
+                ...,
+            }
+        ]
+    },
+    ...,
+}
+```
 
-## Source Structure
+The running Fhir Pod object owned by above object:
+```json
+{
+    "kind": "Pod",
+    "apiVersion": "v1",
+    "metadata": {
+        "name": "pgeorg-fhir-deployment-57697ff5dc-xr8pr",
+        "generateName": "pgeorg-fhir-deployment-57697ff5dc-",
+        "namespace": "default",
+        "selfLink": "/api/v1/namespaces/default/pods/pgeorg-fhir-deployment-57697ff5dc-xr8pr",
+        "uid": "5d7bc936-58bd-4872-a51f-68bc0f240e26",
+        ...,
+        "labels": {
+            "aadpodidbinding": "pgeorg-fhir-identity",
+            "deployment": "pgeorg-fhir-deployment",
+            "pod-template-hash": "57697ff5dc"
+        },
+        "ownerReferences": [
+            {
+                "apiVersion": "apps/v1",
+                "kind": "ReplicaSet",
+                "name": "pgeorg-fhir-deployment-57697ff5dc",
+                "uid": "93b644ad-5987-4485-93a5-24566fcc09c6",
+                ...,
+            }
+        ]
+    },
+    ...,
+}
+```
+
+## Next phase
+Resource Provision module will include the libraries for provisioning and de-provisioning the resources for the Fhir service instances.
+
+### Source Structure
 ```
 workspace-platform/fhir/provision
 
 .
 ├── Microsoft.Health.Cloud.Fhir.Provision
-│   ├── K8s\Api\V1Alpha1\Models   // POCOs for K8s Service model 
-│   └── Service
-│       ├── Models      // POCOs for modeling Fhir Server Properties and Configuration
-│       └── Providers   // Resource Providers
-│
-└── Microsoft.Health.Cloud.Fhir.Provision.Console //  Console App example 
+│   ├── Configuration    // Fhir Server Configuration
+│   └── Models           // POCOs for modeling Fhir Server Properties and Configuration  
+│      
+├── Microsoft.Health.Cloud.Fhir.Provision.Azure  
+│   ├── Templates       // Templates for Fhir Service
+|   └── Providers       // Resource Providers
+|
+├── Microsoft.Health.Cloud.Fhir.Provision.K8
+|
+└── Microsoft.Health.Cloud.Fhir.Provision.Console //  Console App 
 ```
 
 # Resource Deprovision
+Deprovision of a Fhir service instance means that we should delete(hard-delete) all the resources provisioned for that service instance and purge all data in other resources related to that instance.
