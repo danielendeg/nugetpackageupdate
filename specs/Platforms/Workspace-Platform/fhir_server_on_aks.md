@@ -13,7 +13,7 @@ The purpose of this document is to detail the design and changes for setting up 
 
 # High Level Architecture
 For each instance of a Fhir service, we will create a combination of isolated and multi-tenant resource.
-![Fhir Server access to SQL Database using MI through aadpodidentity in AKS](imgs/fhir_sql_server_with_mi.png)
+![Fhir Service on K8S PaaS with SQL DB as persistent store](imgs/fhir-service-k8s-paas.png)
 
 # Container Image
 ## Prototype phase
