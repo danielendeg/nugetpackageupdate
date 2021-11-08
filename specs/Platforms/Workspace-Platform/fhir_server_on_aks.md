@@ -12,7 +12,8 @@ Azure Kubernetes Service (AKS) is a hosted Kubernetes service on Azure. It simpl
 The purpose of this document is to detail the design and changes for setting up Fhir Server on AKS.
 
 # High Level Architecture
-![Integration Architecture](./.images/k8s-arch.jpg)
+For each instance of a Fhir service, we will create a combination of isolated and multi-tenant resource.
+![Fhir Server access to SQL Database using MI through aadpodidentity in AKS](imgs/fhir_sql_server_with_mi.png)
 
 # Container Image
 ## Prototype phase
