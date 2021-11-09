@@ -35,12 +35,23 @@ The container image is built locally using the [docker file](https://microsofthe
 - Update Fhir service [docker file](https://microsofthealth.visualstudio.com/Health/_git/workspace-platform?version=GBpersonal/petyag/migration&path=/fhir/build/docker/dockerfile.fhirservice) and Fhir Web Project to support different Fhir versions.
 - Implement a CI pipeline to build Fhir container images and push them to an Azure container registry.
 
-# Fhir resource in k8s
+# Fhir operator in k8s
+A common pattern used in Kubernetes is [operator pattern](https://kubernetes.io/docs/concepts/extend-kubernetes/operator/) . The goal of the operator pattern is to make use of a [custom resource](https://kubernetes.io/docs/concepts/extend-kubernetes/api-extension/custom-resources/) to facilitate the management of the underlying components within Kubernetes.
+
+Similarly to Dicom team, we are going to adopt this pattern to facilitate the provisioning of the compute within the AKS clusters. To enable this pattern, [Kubebuilder](https://book.kubebuilder.io/) will be used. It is an open source project written in [Go](https://golang.org/) specifically for creating operators.
+
+Fhir operator can be defined in `workspace-platform/fhir/fhiroperator`
+##Fhir custom resource
 We will extend the Kubernetes API's with a custom resource `Fhir` to represent the Fhir service. We will use the kubebuilder and go lang to build the custom resource.
 
-Fhir resource type can be defined in `workspace-platform/fhir/fhiroperator/api/v1alpha1/fhir_types.go`
+Fhir resource type can be defined in `workspace-platform/fhir/fhiroperator/api/v1alpha1`
+##Fhir Controller
+Some of Fhir Controller responsibilities will be:
+- Handle the actions on the Fhir resource.
+- Creating or updating the deployment of Fhir service instance. 
+- Coordinate the schema-manager job. 
 
-Fhir controller will handle the actions on the Fhir resource and it will be responsible for creating or updating the deployment of Fhir service instance. It can be defined in `workspace-platform/fhir/fhiroperator/controllers/fhir_controller.go`
+Fhir controller can be defined in `workspace-platform/fhir/fhiroperator/controllers/fhir_controller.go`
 
 A new instance of Fhir resource will create
 - `Azure Managed Identity` related resource instances
@@ -49,6 +60,13 @@ A new instance of Fhir resource will create
 - `Ingress` with domain, service and port mapping.
 - `Service` to map internal clusterIP and port.
 - `Deployment` that sets the deployment strategy, replica sets and pod image. It also has the azureIdentityBinding label.
+- `Pod Disruption Budget`, because Kubernetes treats upgrading a node as a failure, we need to declare pod disruption budgets in addition to our upgrade strategy for deployments.
+- `Horizontal Pod Autoscaler`, used for pod scaling. Horizontal Pod Autoscaler can spin up additional pods if the metrics a pod reports exceed their threshold.
+
+##Fhir Release Controller
+It will handle image updates and some provisioning related actions for the FHIR services. 
+
+Fhir Release controller can be defined in `workspace-platform/fhir/fhiroperator/controllers/fhir_release_controller.go`
 
 # Resource Provision
 
