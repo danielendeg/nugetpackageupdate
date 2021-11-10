@@ -10,7 +10,6 @@ In terms of storage mechanisms, FHIR Service can:
 [[_TOC_]]
 
 ## Business Justification
-
 FHIR Services on AKS are going to use Managed Identities to connect to their underlying data stores. Managed identities allow us to build more secure services and simplify credential management for our customers.
 
 To understand more about managed identity, [What is managed identities for Azure resources?](https://docs.microsoft.com/en-us/azure/active-directory/managed-identities-azure-resources/overview) is a great place to start. From the link:
@@ -26,12 +25,12 @@ To understand more about, [How managed identities for Azure resources work with 
 In Azure Kubernetes Service, Managed Identities concept has been brought with [**AAD Pod Identity**](https://docs.microsoft.com/en-us/azure/aks/use-azure-ad-pod-identity). Azure Active Directory pod-managed identities uses Kubernetes primitives to associate managed identities for Azure resources and identities in Azure Active Directory (AAD) with pods. Administrators create identities and bindings as Kubernetes primitives that allow pods to access Azure resources that rely on AAD as an identity provider. 
 
 ### Azure SQL Database
-During the prototype phase we identified the following provisioning, configuration and code changes to be able to establish managed identities.
+During the prototype phase we identified the following provisioning, configuration and code changes to connect a Fhir Service to its SQL Database using user-assigned managed identities.
 #### Azure Resource Provisioning
 - User Managed Identity for the Fhir Service.
 - AKS managed identity - should have `Managed Identity Operator` and `Virtual Machine Contributor` roles on the resource group where the Fhir Service managed identity is created.
 - SQL - for the prototype, we used one of the dev SQL elastic pools. Other options are standalone Azure SQL Server, standalone Azure SQL Database, Elastic Pool, Hyperscale, SQL Server as a Kubernetes resource.
-- Azure AD user account - to manage database access (such as grant managed identity access) from a service principal, we will need to set the AAD administrator account. We can only have one AAD administrator account per SQL server, we could create an AAD group and assign that group as the administrator.
+- Azure AD user account - to manage database access (such as grant managed identity access) from a service principal, we will need to set the AAD administrator account. We can only have one AAD administrator account per SQL server. We can adopt the same approach as described in this design [document](https://microsofthealth.visualstudio.com/Health/_git/health-paas?path=/doc/SQL%5Csql.md&_a=preview&anchor=provisioning-sql-server-and-elastic-pool), AAD security group.
 #### Azure SQL Database configuration
 - Enable Azure AD authentication for Azure SQL Server
 - Set Azure AD user/group as SQL Server Active Directory admin
@@ -54,36 +53,20 @@ GRANT CONNECT TO [fhir-service-identity];
 
 #### OSS
 ##### Setting a token
-Currently [`fhir-server/src/Microsoft.Health.Fhir.SqlServer/Features/Storage/SqlServerFhirModel.cs`](https://github.com/microsoft/fhir-server/blob/main/src/Microsoft.Health.Fhir.SqlServer/Features/Storage/SqlServerFhirModel.cs) is initialized with [`healthcare-shared-components/src/Microsoft.Health.SqlServer/ISqlConnectionStringProvider.cs`](https://github.com/microsoft/healthcare-shared-components/blob/c07c85fcbd2dcfd4fecdbfc2dc176ee0379b86b1/src/Microsoft.Health.SqlServer/ISqlConnectionStringProvider.cs). While that is fine if `AuthenticationType` is `ConnectionString`, it will fail with the following error if it is `ManagedIdentity`:
-```
-      Microsoft.Data.SqlClient.SqlException (0x80131904): Login failed for user ''.
-         at Microsoft.Data.ProviderBase.DbConnectionPool.CheckPoolBlockingPeriod(Exception e)
-         at Microsoft.Data.ProviderBase.DbConnectionPool.CreateObject(DbConnection owningObject, DbConnectionOptions userOptions, DbConnectionInternal oldConnection)
-         at Microsoft.Data.ProviderBase.DbConnectionPool.UserCreateRequest(DbConnection owningObject, DbConnectionOptions userOptions, DbConnectionInternal oldConnection)
-         at Microsoft.Data.ProviderBase.DbConnectionPool.TryGetConnection(DbConnection owningObject, UInt32 waitForMultipleObjectsTimeout, Boolean allowCreate, Boolean onlyOneCheckConnection, DbConnectionOptions userOptions, DbConnectionInternal& connection)
-         at Microsoft.Data.ProviderBase.DbConnectionPool.TryGetConnection(DbConnection owningObject, TaskCompletionSource`1 retry, DbConnectionOptions userOptions, DbConnectionInternal& connection)
-         at Microsoft.Data.ProviderBase.DbConnectionFactory.TryGetConnection(DbConnection owningConnection, TaskCompletionSource`1 retry, DbConnectionOptions userOptions, DbConnectionInternal oldConnection, DbConnectionInternal& connection)
-         at Microsoft.Data.ProviderBase.DbConnectionInternal.TryOpenConnectionInternal(DbConnection outerConnection, DbConnectionFactory connectionFactory, TaskCompletionSource`1 retry, DbConnectionOptions userOptions)
-         at Microsoft.Data.ProviderBase.DbConnectionClosed.TryOpenConnection(DbConnection outerConnection, DbConnectionFactory connectionFactory, TaskCompletionSource`1 retry, DbConnectionOptions userOptions)
-         at Microsoft.Data.SqlClient.SqlConnection.TryOpen(TaskCompletionSource`1 retry, SqlConnectionOverrides overrides)
-         at Microsoft.Data.SqlClient.SqlConnection.Open(SqlConnectionOverrides overrides)
-         at Microsoft.Health.Fhir.SqlServer.Features.Storage.SqlServerFhirModel.InitializeBase(CancellationToken cancellationToken)
-         at Microsoft.Health.Fhir.SqlServer.Features.Storage.SqlServerFhirModel.Initialize(Int32 version, Boolean runAllInitialization, CancellationToken cancellationToken)
-         at Microsoft.Health.Fhir.SqlServer.Features.Storage.SqlServerFhirModel.EnsureInitialized()
-```
-This behaviour is expected. We need to use an access token when opening a connection to SQL Database. The access token is obtained using the user-assigned managed identity. In ['healthcare-shared-components/src/Microsoft.Health.SqlServer/ManagedIdentitySqlConnectionFactory.cs '](https://github.com/microsoft/healthcare-shared-components/blob/c07c85fcbd2dcfd4fecdbfc2dc176ee0379b86b1/src/Microsoft.Health.SqlServer/ManagedIdentitySqlConnectionFactory.cs), the SQL connection is updated with an access token. If we initialize `SqlServerFhirModel` with `ISqlConnectionFactory`, we will be able to authenticate to the SQL Database using a token and safely open a connection.
+Currently [`fhir-server/src/Microsoft.Health.Fhir.SqlServer/Features/Storage/SqlServerFhirModel.cs`](https://github.com/microsoft/fhir-server/blob/main/src/Microsoft.Health.Fhir.SqlServer/Features/Storage/SqlServerFhirModel.cs) is initialized with [`healthcare-shared-components/src/Microsoft.Health.SqlServer/ISqlConnectionStringProvider.cs`](https://github.com/microsoft/healthcare-shared-components/blob/c07c85fcbd2dcfd4fecdbfc2dc176ee0379b86b1/src/Microsoft.Health.SqlServer/ISqlConnectionStringProvider.cs). While that is fine if `AuthenticationType` is `ConnectionString`, it will fail if `AuthenticationType` is `ManagedIdentity`.
+We need to use an access token when opening a connection to SQL Database. The access token is obtained using the user-assigned managed identity. In ['healthcare-shared-components/src/Microsoft.Health.SqlServer/ManagedIdentitySqlConnectionFactory.cs '](https://github.com/microsoft/healthcare-shared-components/blob/c07c85fcbd2dcfd4fecdbfc2dc176ee0379b86b1/src/Microsoft.Health.SqlServer/ManagedIdentitySqlConnectionFactory.cs), the SQL connection is updated with an access token. If we initialize `SqlServerFhirModel` with `ISqlConnectionFactory`, we will be able to authenticate to the SQL Database using a token and safely open a connection.
 
+This could be implemented in our initial implementation.
 ##### Caching a token
 
 By default, the access token is valid for 1 hour. The `Microsoft.Azure.Services.AppAuthentication` library caches the token internally and automatically triggers refresh in the background when less than 5 minutes remaining until expiration.
 
-We might need to implement a similar caching mechanism for optimization if it hasn't been implemented.
+In future wave of implementation we could add a similar caching mechanism for optimization if it hasn't been implemented.
 
 ##### Handling Unauthorized error
-
 When opening a SQL connection fails with Unauthorized, we could try to refresh the access token on-demand and retry the connection.
 
-We could implement on-demand refresh of the token if it is not there. The downside is that the request latency might be longer. We can measure how frequent is the credential rotation.
+In future wave of implementation we could add on-demand refresh of the token if it is not there. The downside is that the request latency might be longer. We can measure how frequent is the credential rotation.
 
 A high-level architecture of a Fhir Service on AKS, connecting to its SQL Database using user assigned managed identity:
 
@@ -95,7 +78,7 @@ A high-level architecture of a Fhir Service on AKS, connecting to its SQL Databa
 #### Next Steps
 Moving out of the prototype phase.
 
-To ease and automate provisioning and configuration set-up for new Fhir instances, we can follow Dicom approach - a combination of ARM templates, bash and PS scripts, .NET Console application, Fhir Service custom resource and controller in Kubernetes.
+To ease and automate provisioning and configuration set-up for new Fhir instances, we can follow Dicom approach - a combination of ARM templates, bash and PS scripts, .NET Console application, Fhir Service custom resource and controller in Kubernetes. See this design [document](./fhir_server_on_aks.md) for more details.
 
 Identify RP changes
 ### Azure Cosmos DB
