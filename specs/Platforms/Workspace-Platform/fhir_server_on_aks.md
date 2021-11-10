@@ -34,6 +34,7 @@ The container image is built locally using the [docker file](https://microsofthe
 - Publish all dependencies to internal packages in health-paas to an internal feed so that Fhir web project can consume latest changes.
 - Update Fhir service [docker file](https://microsofthealth.visualstudio.com/Health/_git/workspace-platform?version=GBpersonal/petyag/migration&path=/fhir/build/docker/dockerfile.fhirservice) and Fhir Web Project to support different Fhir versions.
 - Implement a CI pipeline to build Fhir container images and push them to an Azure container registry.
+- Add release pipeline for Fhir Service.
 
 # Fhir operator in k8s
 A common pattern used in Kubernetes is [operator pattern](https://kubernetes.io/docs/concepts/extend-kubernetes/operator/) . The goal of the operator pattern is to make use of a [custom resource](https://kubernetes.io/docs/concepts/extend-kubernetes/api-extension/custom-resources/) to facilitate the management of the underlying components within Kubernetes.
@@ -67,6 +68,8 @@ A new instance of Fhir resource will create
 It will handle image updates and some provisioning related actions for the FHIR services. 
 
 Fhir Release controller can be defined in `workspace-platform/fhir/fhiroperator/controllers/fhir_release_controller.go`
+
+For its design and implementation we can follow Dicom's approach as described in this [document](https://microsofthealth.visualstudio.com/DefaultCollection/Health/_git/workspace-platform?path=%2Fdocs%2Frelease-controller.md&version=GBmain&_a=preview).
 
 # Resource Provision
 
