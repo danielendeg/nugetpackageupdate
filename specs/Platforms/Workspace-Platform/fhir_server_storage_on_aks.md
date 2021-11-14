@@ -2,10 +2,8 @@
 
 **STATUS: Work In Progress.**
 
-This document describes at a high-level the changes that will be needed to support storing, exporting and importing FHIR data using Managed Identities on AKS.
-In terms of storage mechanisms, FHIR Service can:
-1) **Persist FHIR data**. FHIR service is designed to support different data stores. For Gen1 offering Cosmos DB is used as the underlying persistent store, while for Gen2 is Azure SQL database. More details can be found [here](https://microsofthealth.visualstudio.com/Health/_git/health-paas?path=/doc/SQL%5Csql.md&_a=preview).
-2) **Export/Import FHIR data** to/from a specified storage account.
+The purpose of this document is to detail the design and changes for setting up Fhir Service on AKS to use Managed Identities to access its data store.
+
 
 [[_TOC_]]
 
@@ -19,18 +17,30 @@ To understand more about managed identity, [What is managed identities for Azure
 >The managed identities for Azure resources feature in Azure Active Directory (Azure AD) solves this problem. The feature provides Azure services with an automatically managed identity in Azure AD. You can use the identity to authenticate to any service that supports Azure AD authentication, including Key Vault, without any credentials in your code.
 
 ## Design
+FHIR services in a Service Fabric cluster connect to their database in two ways: using a master key and using a resource token. The master key applies to the entire account, whereas resource tokens are generated using a master key, have a maximum duration of five hours, and can be scoped to collections, partitions, or even individual documents. FHIR service obtains a refresh resource token from the Account Routing Service. Since workspace-platform uses [**AAD Pod Identity**](https://docs.microsoft.com/en-us/azure/aks/use-azure-ad-pod-identity), we can now switch FHIR services to use Managed Identities to connect to their underlying data stores. Thus the setup entrypoint and refresh tokens will no longer be needed for FHIR service access to its database.
+
 Managed identities allow your application or service to automatically obtain an OAuth 2.0 token to authenticate to Azure resources, from an endpoint running locally on the virtual machine or service where your application is executed. There are two different types of managed identities in Azure: system-assigned identities, that you can enable directly on the Azure services that support it (a virtual machine or Azure App Service, for example) and user-assigned managed identities that are Azure resources created separately.
 To understand more about, [How managed identities for Azure resources work with Azure virtual machines](https://docs.microsoft.com/en-us/azure/active-directory/managed-identities-azure-resources/how-managed-identities-work-vm)
 
-In Azure Kubernetes Service, Managed Identities concept has been brought with [**AAD Pod Identity**](https://docs.microsoft.com/en-us/azure/aks/use-azure-ad-pod-identity). Azure Active Directory pod-managed identities uses Kubernetes primitives to associate managed identities for Azure resources and identities in Azure Active Directory (AAD) with pods. Administrators create identities and bindings as Kubernetes primitives that allow pods to access Azure resources that rely on AAD as an identity provider. 
+In Azure Kubernetes Service, Managed Identities concept has been brought with AAD Pod Identity. Azure Active Directory pod-managed identities uses Kubernetes primitives to associate managed identities for Azure resources and identities in Azure Active Directory (AAD) with pods. Administrators create identities and bindings as Kubernetes primitives that allow pods to access Azure resources that rely on AAD as an identity provider. 
+### Prototype Phase
+FHIR service is designed to support different data stores. For Gen1 offering Cosmos DB is used as the underlying persistent store, while for Gen2 is Azure SQL database. We based our prototype on Azure SQL Database. The goal was to identify what changes will be needed in Fhir Service to use Managed Identity and not Account Routing Service to access SQL Database. The following sections describe that.
+#### FHIR Service PAAS customizations in workspace-platform
+We created a [Fhir web project](https://microsofthealth.visualstudio.com/Health/_git/workspace-platform?version=GBpersonal/petyag/migration&path=/fhir/fhirservice). It is based on Fhir Service implementation in health-paas repo. We excluded settings and services like:
+  - Ifx and Shoebox Auditing
+  - Authentication and Authorization
+  - RBAC
+  - Telemetry
+  - Export
+  - Reindex
 
-### Azure SQL Database
-During the prototype phase we identified the following provisioning, configuration and code changes to connect a Fhir Service to its SQL Database using user-assigned managed identities.
+We disabled all references to Account Rounting and Front End Services. 
 #### Azure Resource Provisioning
+We implemented temporary bash and PS scripts to provision the following Azure resources:
 - User Managed Identity for the Fhir Service.
 - AKS managed identity - should have `Managed Identity Operator` and `Virtual Machine Contributor` roles on the resource group where the Fhir Service managed identity is created.
-- SQL - for the prototype, we used one of the dev SQL elastic pools. Other options are standalone Azure SQL Server, standalone Azure SQL Database, Elastic Pool, Hyperscale, SQL Server as a Kubernetes resource.
-- Azure AD user account - to manage database access (such as grant managed identity access) from a service principal, we will need to set the AAD administrator account. We can only have one AAD administrator account per SQL server. We can adopt the same approach as described in this design [document](https://microsofthealth.visualstudio.com/Health/_git/health-paas?path=/doc/SQL%5Csql.md&_a=preview&anchor=provisioning-sql-server-and-elastic-pool), AAD security group.
+- SQL - for the prototype, we used one of the dev SQL elastic pools. Other options that we explored: standalone Azure SQL Server, standalone Azure SQL Database, SQL Server as a Kubernetes resource. We chose SQL Elastic Pool since both Dicom and Fhir use it in their current implementations.
+- Azure AD user account - to manage database access (such as grant managed identity access) from a service principal, we will need to set the AAD administrator account. We can only have one AAD administrator account per SQL server. We adopted the same approach as described in this design [document](https://microsofthealth.visualstudio.com/Health/_git/health-paas?path=/doc/SQL%5Csql.md&_a=preview&anchor=provisioning-sql-server-and-elastic-pool), AAD security group.
 #### Azure SQL Database configuration
 - Enable Azure AD authentication for Azure SQL Server
 - Set Azure AD user/group as SQL Server Active Directory admin
@@ -46,67 +56,46 @@ ALTER ROLE db_owner ADD MEMBER [fhir-service-identity];
 GRANT CONNECT TO [fhir-service-identity];
 ```
 #### Kubernetes Resource Provisioning
+We created temporary YAML specs to provision the following Kubernetes objects:
 - `AzureIdentity` object, representing Fhir Service managed identity with clientId and resourceId.
 - `AzureIdentityBinding` object, associating Fhir Service pod with the AzureIdentity.
-- Label to Fhir Service pod which is connecting to Azure Sql Database - `aadpodidbinding`
-- Fhir Server Container with environment variables `AuthenticationType` set to ManagedIdentity and `ManagedIdentityClientId` set to the `Client ID` of Fhir Service managed identity.
+- FHIR service from container image with the following extensions:
+  - Label to Fhir Service pod which is connecting to Azure Sql Database - `aadpodidbinding`
+  - Fhir Server Container with environment variables `AuthenticationType` set to ManagedIdentity and `ManagedIdentityClientId` set to the `Client ID` of Fhir Service managed identity.
 
-#### OSS
+#### OSS Changes
 ##### Setting a token
 Currently [`fhir-server/src/Microsoft.Health.Fhir.SqlServer/Features/Storage/SqlServerFhirModel.cs`](https://github.com/microsoft/fhir-server/blob/main/src/Microsoft.Health.Fhir.SqlServer/Features/Storage/SqlServerFhirModel.cs) is initialized with [`healthcare-shared-components/src/Microsoft.Health.SqlServer/ISqlConnectionStringProvider.cs`](https://github.com/microsoft/healthcare-shared-components/blob/c07c85fcbd2dcfd4fecdbfc2dc176ee0379b86b1/src/Microsoft.Health.SqlServer/ISqlConnectionStringProvider.cs). While that is fine if `AuthenticationType` is `ConnectionString`, it will fail if `AuthenticationType` is `ManagedIdentity`.
-We need to use an access token when opening a connection to SQL Database. The access token is obtained using the user-assigned managed identity. In ['healthcare-shared-components/src/Microsoft.Health.SqlServer/ManagedIdentitySqlConnectionFactory.cs '](https://github.com/microsoft/healthcare-shared-components/blob/c07c85fcbd2dcfd4fecdbfc2dc176ee0379b86b1/src/Microsoft.Health.SqlServer/ManagedIdentitySqlConnectionFactory.cs), the SQL connection is updated with an access token. If we initialize `SqlServerFhirModel` with `ISqlConnectionFactory`, we will be able to authenticate to the SQL Database using a token and safely open a connection.
+We need to use an access token when opening a connection to SQL Database. The access token is obtained for the user-assigned managed identity. In ['healthcare-shared-components/src/Microsoft.Health.SqlServer/ManagedIdentitySqlConnectionFactory.cs '](https://github.com/microsoft/healthcare-shared-components/blob/c07c85fcbd2dcfd4fecdbfc2dc176ee0379b86b1/src/Microsoft.Health.SqlServer/ManagedIdentitySqlConnectionFactory.cs), the SQL connection is updated with an access token. 
 
-This could be implemented in our initial implementation.
-##### Caching a token
-
-By default, the access token is valid for 1 hour. The `Microsoft.Azure.Services.AppAuthentication` library caches the token internally and automatically triggers refresh in the background when less than 5 minutes remaining until expiration.
-
-In future wave of implementation we could add a similar caching mechanism for optimization if it hasn't been implemented.
-
-##### Handling Unauthorized error
-When opening a SQL connection fails with Unauthorized, we could try to refresh the access token on-demand and retry the connection.
-
-In future wave of implementation we could add on-demand refresh of the token if it is not there. The downside is that the request latency might be longer. We can measure how frequent is the credential rotation.
+We initialized`SqlServerFhirModel` with `ISqlConnectionFactory`, to be able to authenticate to the SQL Database using a token and safely open a connection.
 
 A high-level architecture of a Fhir Service on AKS, connecting to its SQL Database using user assigned managed identity:
 
 ![Fhir Server access to SQL Database using MI through aadpodidentity in AKS](imgs/fhir_sql_server_with_mi.png)
 
-**nmi** (Node Managed Identity) - a daemonset, that hijacks all calls to Azure’s Instance Metadata API from each node, processing them by calling MIC instead.
-
-**mic** (Managed Identity Controller) - a pod that invokes Azure’s Instance Metadata API, caching locally tokens and the mapping between identities and pods.
-#### Next Steps
-Moving out of the prototype phase.
-
-To ease and automate provisioning and configuration set-up for new Fhir instances, we can follow Dicom approach - a combination of ARM templates, bash and PS scripts, .NET Console application, Fhir Service custom resource and controller in Kubernetes. See this design [document](./fhir_server_on_aks.md) for more details.
-
-Identify RP changes
-### Azure Cosmos DB
-We need to identify provisioning, configuration and code changes to enable Fhir Server on AKS to connect to Cosmos DB using Managed Identities.
-
-### Azure storage
-#### Export
-##### Use case:
-The customer has a FHIR service provisioned in AKS and a storage account. The customer should be able to export their FHIR data to the storage account without having to provide us their storage key.
-
-In this case, the customer can establish an identity for the FHIR service and grant write permission to their storage account using that identity. To support export operation, the following resources must be provisioned:
-##### Azure Resource Provisioning
-- Managed Identity in a resource group where the AKS cluster has access
-- Azure Storage account
-- Assign role 'Storage Blob Data Contributor' to the identity
-##### Kubernetes Resource Provisioning
-- Fhir Server with export enabled
-- AAD Pod Identity deployed on the AKS cluster
-- `AzureIdentity` object, representing Fhir Service managed identity with clientId and resourceId.
-
-We have to evaluate if any additional OSS changes will be needed to support export operation for Fhir Server on AKS.
-#### Import
-This feature is currently being implemented under [work item](https://microsofthealth.visualstudio.com/Health/_workitems/edit/81672).
-We have to evaluate if any additional OSS changes will be needed to support import operation for Fhir Server on AKS.
+1. Fhir pod uses Azure Active Directory Authentication Library(ADAL) to acquire a token for the user-assigned managed identity. The call is picked up by Node Managed Identity(NMI). NMI is a pod that runs as a DaemonSet on each node in the AKS cluster. NMI intercepts security token requests to the Azure Instance Metadata Service identity endpoint(IMDS) on each node.
+2. NMI queries Kubernetes API Server to find which identity is assigned to the Fhir Pod.
+3. NMI calls node's IMDS , `http://169.254.169.254/metadata/identity/oauth2/token`, to request a token on behalf of the Fhir Pod.
+4. IMDS returns the bearer token to NMI.
+5. NMI return the access token to Fhir Pod.
+6. Fhir Pod sets the access token on the SQL Connection and connects to its Azure SQL Database.
+### Next Phase
+To ease and automate provisioning of all Azure and Kubernetes resources, we identified during the prototype phase, we will need to implement:
+- [Fhir custom resource, Fhir and Fhir release controllers](./fhir_server_on_aks.md).
+- [Console App](./fhir_server_on_aks.md), this console tool will help provisioning FHIR services in workspace-platform only.
+- Enable all settings, services and middleware, we excluded during the prototype phase, so we can achieve feature parity with Fhir Server implementation in health-paas repo. 
+### Future wave of implementation
+- RP Worker, we need to integrate some of the work from the Console App in the RP Worker. We will need to be able to do this in a manner that does not impact prod provisioning until we reach a relatively stable state. Our options are to either:
+  - Work in a feature branch and merge in to main when the code is stable.
+  - Actively work in main branches, with configurations to disable workspace-platform FHIR provisioning until we are ready to enable it for dual stack.
+- SQL Schema init/upgrade for FHIR will need to be changed, to match how it is done with DICOM.
+### Out-of-Scope
+Cosmos DB is out-of-scope for now.
 ## Test Strategy
 We will continue to use all of the tests that we have in the FHIR service for verifying all existing scenarios are working as expected.
 
-We will need to add a new set of E2E tests for provisioning a new Fhir service using managed identity to connect to its SQL Database or Cosmos DB.
+We will need to add a new set of E2E tests for provisioning a new Fhir service using managed identity to connect to its SQL Database.
 
 ## Security
 
