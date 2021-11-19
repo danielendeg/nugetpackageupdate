@@ -259,8 +259,7 @@ CREATE TABLE dbo.WorkItem (
     WorkItemKey                 BIGINT                            NOT NULL,             --PK
     WorkItemUid                 VARCHAR(64)                       NOT NULL,
     TransactionUid              VARCHAR(64)                       NOT NULL,
-	State                       VARCHAR(64)                       NOT NULL,
-    PartitionKey                INT                               NOT NULL DEFAULT 1    --FK
+	PartitionKey                INT                               NOT NULL DEFAULT 1    --FK
 ) WITH (DATA_COMPRESSION = PAGE)
 
 ```
@@ -294,6 +293,10 @@ CREATE TABLE dbo.ExtendedQueryTagString (
     ExtendedQueryTagKey     BIGINT               NOT NULL,             --PK
     TagKey                  INT                  NOT NULL,              
     TagValue                NVARCHAR(64)         NOT NULL,
+    StudyKey                BIGINT               NULL,              --FK
+    SeriesKey               BIGINT               NULL,                  --FK
+    InstanceKey             BIGINT               NULL,                  --FK
+    WorkItemKey             BIGINT               NULL,                  --FK
     Watermark               BIGINT               NOT NULL,
     PartitionKey            INT                  NOT NULL DEFAULT 1     --FK
 ) WITH (DATA_COMPRESSION = PAGE)
