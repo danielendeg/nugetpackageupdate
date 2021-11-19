@@ -211,6 +211,10 @@ For our initial iteration, we are going to index only few columns and make it se
 |6. PatientName | Same as Patient Name|
 |7. PatientID | Same as Patient Id |
 
+Apart from this, we will store
+1. Procedure Step State
+2. 
+
 
 **Request**
 
@@ -263,6 +267,8 @@ CREATE TABLE dbo.WorkItem (
 ) WITH (DATA_COMPRESSION = PAGE)
 
 ```
+
+The workitem table will only consist of primary columns, all other columns will be in extended query tag table.
 
 While reusing ExtendedQueryTags table we can further do that in differnet options
 
