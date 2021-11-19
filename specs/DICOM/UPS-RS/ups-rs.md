@@ -11,7 +11,7 @@ produced, such as: Current Images, Prior Images, Reports, Films, Presentation St
 
 ## Customer Requirements
 
-Zeiss want to assign patients to specific examination or treatment devices. This is the typical modality worklist scenario. 
+Zeiss wants to assign patients to specific examination or treatment devices. This is the typical modality worklist scenario. 
 The basic properties are WHO (Patient), WHEN (Planned Date/Time) and WHERE (Device/Station). Zeiss's devices perform a query using the DICOM Basic Worklist Management Service. 
 The main query keys are the AE Title to identify the device itself and range selection on the planned procedure date.
 
@@ -69,6 +69,17 @@ For UPS Watch SOP Class, we will only do **request cancellation** of a worklist 
 
 In the Worklist Service, the Workitem is identified by a Workitem UID, which corresponds to the Affected SOP Instance UID and Requested SOP Instance UID used in the UPS Service.
 
+Workitems consist of different modules
+1. SOP Common Module
+2. Unified Procedure Step Scheduled Procedure Information Module
+3. Unified Procedure Step Relationship Module
+    1. Patient Demographic Module
+    2. Patient Medical Module
+    3. Visit Identification Module
+    4. Visit Status Module
+    5. Visit Admission Module
+4. Unified Procedure Step Progress Information Module
+
 [Detailed workitem definition](https://dicom.nema.org/medical/dicom/current/output/html/part04.html#table_CC.2.5-3)
 
 ### Dicom Media types
@@ -113,6 +124,7 @@ GET {partition path}/workitems/{workitemInstance}
 
 }
 ```
+**If the Workitem is in the IN PROGRESS state, the returned Workitem shall not contain the Transaction UID (0008,1195)**
 
 **Request**
 
@@ -139,6 +151,9 @@ Success - 200
 
 
 **Request**
+
+This transaction searches the Worklist for Workitems that match the specified Query Parameters and returns a list of matching Workitems. Each Workitem in the returned list includes return Attributes specified in the request. The transaction corresponds to the UPS DIMSE C-FIND operation.
+
 ```
 GET {partition path}/workitems?{&match*}{&includefield}{&fuzzymatching}{&offset}{&limit}
 Accept: dicom-media-types
@@ -158,7 +173,9 @@ Success - 200
 - 404 - Not found
 - 410 - Gone
 
-Queryable Fields
+###Queryable Fields
+
+For our initial iteration, we are going to index only few columns and make it searchable.
 
 Reusing ExtendedQueryTags table with few modifications
 
@@ -167,8 +184,3 @@ There are two operations
 1. Create duplicate tables to store the tags that are relevant to UPS-RS
 2. Use the existing table, but add a new column type to differentiate between UPS-RS and normal request
     Introduce new primary key instead of 
-
-###Update
-```
-POST {partition path}/workitems/{instance}{?transaction}
-```
