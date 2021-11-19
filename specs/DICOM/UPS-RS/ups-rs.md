@@ -24,7 +24,7 @@ A high level diagram which explains how SCP an SCU communicates
 ## Microsoft / OSS Requirements
 - Implement UPS-RS support as per the DICOM standard and not specific to any single customer.
 - Create a solution that is scabale to all customers
-- Expose the feature via feature flag.
+- Expose the feature via feature flag and it can be enabled by default.
 - Not all part of the UPS-RS standard needs to be implemented. SCU/SCP not required to implement all the SOP Classes. Can implement SOP Classes based on the operations it needs.
 
 ## UPS-RS
@@ -66,11 +66,7 @@ For UPS Watch SOP Class, we will only do **request cancellation** of a worklist 
 
 ## About Workitem
 
-
-In the Worklist Service, the Workitem is identified by a Workitem UID, which corresponds to the Affected SOP Instance UID and Requested SOP Instance UID used in the PS3.4 UPS Service.
-
-
-
+In the Worklist Service, the Workitem is identified by a Workitem UID, which corresponds to the Affected SOP Instance UID and Requested SOP Instance UID used in the UPS Service.
 
 ##Operations
 
