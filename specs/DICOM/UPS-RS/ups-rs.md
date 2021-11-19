@@ -41,6 +41,29 @@ SCUs.
 
 ## Scope
 
+There are multiple classes to be implement and that can be done in multiple iterations. Initially we wont be implementing all the classess for UPS.
+
+| Classs | Scope |
+| ------ | ------ |
+| UPS Push SOP Class   | ✔ |
+| UPS Pull SOP Class | ✔ |
+| UPS Watch SOP Class | ✔ ❌ |
+| The UPS Event SOP Class | ❌ |
+
+For UPS Watch SOP Class, we will only do **request cancellation** of a worklist item for first iteration.
+
+| Transaction |	Method |	Payload Request	| Payload Response	|	Description | Scope |
+| ------ | ------ |------ |------ |------ | ------ |
+|Create	|POST|	dataset|	none | Creates a new Workitem| ✔ |
+|Retrieve|	GET	|none	|dataset|	Retrieves the Target Workitem| ✔ |
+|Update	|POST	|dataset	|none	|Updates the Target Workitem| ✔ |
+|Change State	|PUT	|none|	none	|Changes the state of the Target Workitem| ✔ |
+|Request Cancellation|	POST|	dataset|	none|	Requests that the origin server cancel a Workitem| ✔ |
+|Search	|GET	|none	|results|	Searches for Workitems| ✔ |
+|Subscribe|	POST|	none|	none	|Creates a Subscription to the Target Worklist or Target Workitem|❌ |
+|Unsubscribe|	DELETE|	none|	none	|Cancels a Subscription from the Target Worklist or Target Workitem|❌ |
+
+
 ## About Workitem
 
 
