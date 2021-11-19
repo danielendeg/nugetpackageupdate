@@ -58,7 +58,7 @@ For UPS Watch SOP Class, we will only do **request cancellation** of a worklist 
 |Create	|POST|	dataset|	none | Creates a new Workitem| ✔ |
 |Retrieve|	GET	|none	|dataset|	Retrieves the Target Workitem| ✔ |
 |Update	|POST	|dataset	|none	|Updates the Target Workitem| ✔ |
-|Change State	|PUT	|none|	none	|Changes the state of the Target Workitem| ✔ |
+|Change State	|PUT	|none|	none	|Changes the state of the Target Workitem| ❌ |
 |Request Cancellation|	POST|	dataset|	none|	Requests that the origin server cancel a Workitem| ✔ |
 |Search	|GET	|none	|results|	Searches for Workitems| ✔ |
 |Subscribe|	POST|	none|	none	|Creates a Subscription to the Target Worklist or Target Workitem|❌ |
@@ -230,14 +230,13 @@ The request may also include a Contact Display Name and/or a Contact URI for the
 
 }
 ```
-Success - 200
+Success - 202
 
 **Errors**
 - 400 - Bad request
 - 409 - Conflict
 - 404 - Not found
-- 410 - Gone
-
+- 403 - Forbidden
 
 **Customer request**
 From the UPS-RS state model, we only plan to use the SCHEDULED and CANCELLED states directly. 
@@ -292,24 +291,20 @@ CREATE UNIQUE CLUSTERED INDEX IXC_ExtendedQueryTag ON dbo.ExtendedQueryTag
 )
 
 CREATE TABLE dbo.ExtendedQueryTagString (
-    ExtendedQueryTagKey     BIGINT                            NOT NULL,             --PK
+    ExtendedQueryTagKey     BIGINT               NOT NULL,             --PK
     TagKey                  INT                  NOT NULL,              
     TagValue                NVARCHAR(64)         NOT NULL,
     Watermark               BIGINT               NOT NULL,
     PartitionKey            INT                  NOT NULL DEFAULT 1     --FK
 ) WITH (DATA_COMPRESSION = PAGE)
 
--- Used in QIDO
 CREATE UNIQUE CLUSTERED INDEX IXC_ExtendedQueryTagString ON dbo.ExtendedQueryTagString
 (
+    ExtendedQueryTagKey,
     TagKey,
     TagValue,
-    PartitionKey,
-    StudyKey,
-    SeriesKey,
-    InstanceKey
+    PartitionKey
 )
-
 
 ```
 
