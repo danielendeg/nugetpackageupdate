@@ -259,7 +259,7 @@ CREATE TABLE dbo.WorkItem (
     WorkItemKey                 BIGINT                            NOT NULL,             --PK
     WorkItemUid                 VARCHAR(64)                       NOT NULL,
     TransactionUid              VARCHAR(64)                       NOT NULL,
-	PartitionKey                INT                               NOT NULL DEFAULT 1    --FK
+    PartitionKey                INT                               NOT NULL DEFAULT 1    --FK
 ) WITH (DATA_COMPRESSION = PAGE)
 
 ```
