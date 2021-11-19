@@ -17,6 +17,10 @@ The main query keys are the AE Title to identify the device itself and range sel
 
 To fulfill this request, we need to add support for UPS-RS to our existing service. Unified Procedure Step is part of the DICOM standard which not only help Zeiss but also future customers.
 
+A high level diagram which explains how SCP an SCU communicates
+
+![Dicom file](../images/SCP_SCU_Communication_1.jpg =500x)
+
 ## Microsoft / OSS Requirements
 - Implement UPS-RS support as per the DICOM standard and not specific to any single customer.
 - Create a solution that is scabale to all customers
