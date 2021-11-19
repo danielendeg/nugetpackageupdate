@@ -17,8 +17,9 @@ The main query keys are the AE Title to identify the device itself and range sel
 
 To fulfill this request, we need to add support for UPS-RS to our existing service. Unified Procedure Step is part of the DICOM standard which not only help Zeiss but also future customers.
 
-A high level diagram which explains how SCP an SCU communicates
+A high level diagram which explains how SCP and SCU communicates
 
+![Dicom file](../images/SCP_SCU_Communication.jpg =500x)
 ![Dicom file](../images/SCP_SCU_Communication_1.jpg =500x)
 
 ## Microsoft / OSS Requirements
@@ -68,24 +69,94 @@ For UPS Watch SOP Class, we will only do **request cancellation** of a worklist 
 
 In the Worklist Service, the Workitem is identified by a Workitem UID, which corresponds to the Affected SOP Instance UID and Requested SOP Instance UID used in the UPS Service.
 
-##Operations
+[Detailed workitem definition](https://dicom.nema.org/medical/dicom/current/output/html/part04.html#table_CC.2.5-3)
 
-List of operations
+### Dicom Media types
 
-1.
-2. 
-3.
-
-Out of scope
-
-
+|Media Type|Usage|
+|------ | ------ |
+|application/dicom+json |DEFAULT|
+|multipart/related; type="application/dicom+xml"| required|
 
 
 ### UPS Push 
+
+**Request**
+
+This transaction creates a Workitem on the target Worklist. It corresponds to the UPS DIMSE N-CREATE operation.
+
 ```
 POST {partition path}/workitems{?AffectedSOPInstanceUID}
+Accept: dicom-media-type
 ```
 
+**Response**
+Success - 201
+
+**Errors**
+- 400 - Bad request
+- 409 - Conflict
+
+### UPS Pull 
+
+**Request**
+
+This transaction retrieves a Workitem. It corresponds to the UPS DIMSE N-GET operation.
+
+```
+GET {partition path}/workitems/{workitemInstance}
+```
+
+**Response**
+```json
+{
+
+}
+```
+
+**Request**
+
+This transaction modifies Attributes of an existing Workitem. It corresponds to the UPS DIMSE N-SET operation.
+
+```
+POST {partition path}/workitems/{instance}{?transactionUID}
+Content-Type: dicom-media-type
+```
+
+**Response**
+```json
+{
+
+}
+```
+Success - 200
+
+**Errors**
+- 400 - Bad request
+- 409 - Conflict
+- 404 - Not found
+- 410 - Gone
+
+
+**Request**
+```
+GET {partition path}/workitems?{&match*}{&includefield}{&fuzzymatching}{&offset}{&limit}
+Accept: dicom-media-types
+```
+
+**Response**
+```json
+{
+
+}
+```
+Success - 200
+
+**Errors**
+- 400 - Bad request
+- 409 - Conflict
+- 404 - Not found
+- 410 - Gone
 
 Queryable Fields
 
