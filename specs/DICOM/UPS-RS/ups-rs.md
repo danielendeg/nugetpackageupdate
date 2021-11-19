@@ -107,6 +107,8 @@ Success - 201
 **Errors**
 - 400 - Bad request
 - 409 - Conflict
+- 403 - Forbidden
+
 
 ### UPS Pull 
 
@@ -148,6 +150,7 @@ Success - 200
 - 409 - Conflict
 - 404 - Not found
 - 410 - Gone
+- 403 - Forbidden
 
 
 **Request**
@@ -155,9 +158,15 @@ Success - 200
 This transaction searches the Worklist for Workitems that match the specified Query Parameters and returns a list of matching Workitems. Each Workitem in the returned list includes return Attributes specified in the request. The transaction corresponds to the UPS DIMSE C-FIND operation.
 
 ```
-GET {partition path}/workitems?{&match*}{&includefield}{&fuzzymatching}{&offset}{&limit}
+GET {partition path}/workitems?{&query*}{&includefield}{&fuzzymatching}{&offset}{&limit}
 Accept: dicom-media-types
 ```
+- {query}
+  - {attributeID}={value}, 0-n / {attributeID}={value} pairs allowed
+- includefield={attributeID} | all, 0-n includefield / {attributeID} pairs allowed, where “all” indicates that all attributes with values should be included for each response. Each {attributeID} shall refer to an attribute of the Unified Procedure Step IOD
+- fuzzymatching=true | false
+- limit={maximumResults}
+- offset={skippedResults} 
 
 **Response**
 ```json
@@ -177,6 +186,20 @@ Success - 200
 
 For our initial iteration, we are going to index only few columns and make it searchable.
 
+|MWL Attribute Name|UPS Mapping|
+|------ | ------ |
+|1. ScheduledStationAETitle | Station Name Code Sequence (0040,4025) putting AE Title in the code meaning with a local coding scheme |
+|2. ScheduledProcedureStepStartDate |  Scheduled Procedure Step Start Date and Time (0040,4005) |
+|3. Modality | Scheduled Station Class Code Sequence (0040,4026) using codes from DICOM PS3.16 CID 29 Acquisition Modality|
+|4. RequestedProcedure ID | Requested Procedure Code Sequence (0032,1064)|
+|5. AccessionNumber | Same as Accession Number (0008,0050) |
+|6. PatientName | Same as Patient Name|
+|7. PatientID | Same as Patient Id |
+
+All these are mapped to different tag in the UPS-RS object definition
+
+
+
 Reusing ExtendedQueryTags table with few modifications
 
 There are two operations
@@ -184,3 +207,7 @@ There are two operations
 1. Create duplicate tables to store the tags that are relevant to UPS-RS
 2. Use the existing table, but add a new column type to differentiate between UPS-RS and normal request
     Introduce new primary key instead of 
+
+##Storage
+
+There are two options to implement, 
