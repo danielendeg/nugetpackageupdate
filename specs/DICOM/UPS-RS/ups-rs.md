@@ -2,7 +2,7 @@ Add support for Unified Procedure Step (UPS-RS) to the existing DICOM service. T
 
 # Business Justification
 
-Unified Procedure Step instances may be used to represent a variety of scheduled tasks such as: Image Processing, Quality Control, 
+Unified Procedure Step instances used to represent a variety of scheduled tasks such as: Image Processing, Quality Control, 
 Computer Aided Detection, Interpretation, Transcription, Report Verification, or Printing.
 
 The UPS instance can contain details of the requested task such as when it is scheduled to be performed or Workitem Codes describing the 
@@ -89,6 +89,13 @@ Workitems consist of different modules
 |application/dicom+json |DEFAULT|
 |multipart/related; type="application/dicom+xml"| required|
 
+Since our existing APIs, we only support application/dicom+json. We will do the same here. There is a work item in backlog to implement application/dicom+xml
+
+### Partition support
+
+According to Zeiss, data partition is a pre-requisite to use this feaure. Similar to other APIS like (STOW, WADO, QIDO and DELETE) UPS-RS API will be supported with or without partition depends on the Data Partition feature flag state.
+
+**If the Data partition feature flag is set, then UPS-RS API should be accessed with partition url.**
 
 ### UPS Push 
 
@@ -109,6 +116,10 @@ Success - 201
 - 409 - Conflict
 - 403 - Forbidden
 
+
+Once the request comes in
+1. We validate the dataset as per the standard and store the json file in a new container, with the `WorkItemUid` as the file name. This will be useful to retrieve in a faster manner.
+2. Store the primary columns in the WorkItem table and store the queryable fields in the extended query tag table or workitem table ( as per discussion).
 
 ### UPS Pull 
 
@@ -136,6 +147,10 @@ This transaction modifies Attributes of an existing Workitem. It corresponds to 
 POST {partition path}/workitems/{instance}{?transactionUID}
 Content-Type: dicom-media-type
 ```
+If the UPS instance is currently in the SCHEDULED state, {transactionUID} shall not be specified.
+If the UPS instance is currently in the IN PROGRESS state, {transactionUID} shall be specified
+
+
 
 **Response**
 ```json
@@ -196,18 +211,118 @@ For our initial iteration, we are going to index only few columns and make it se
 |6. PatientName | Same as Patient Name|
 |7. PatientID | Same as Patient Id |
 
-All these are mapped to different tag in the UPS-RS object definition
+
+**Request**
+
+This transaction allows a user agent that does not own a Workitem to request that it be canceled. It corresponds to the UPS DIMSE N-ACTION operation "Request UPS Cancel". 
+
+```
+POST {partition path}/workitems/{workitem}/cancelrequest
+Accept: dicom-media-types
+```
+The request body describes a request to cancel a single Unified Procedure Step Instance.
+The request may include a Reason For Cancellation and/or a proposed Procedure Step Discontinuation Reason Code Sequence.
+The request may also include a Contact Display Name and/or a Contact URI for the person with whom the cancel request may be discussed
+
+**Response**
+```json
+{
+
+}
+```
+Success - 200
+
+**Errors**
+- 400 - Bad request
+- 409 - Conflict
+- 404 - Not found
+- 410 - Gone
 
 
-
-Reusing ExtendedQueryTags table with few modifications
-
-There are two operations
-
-1. Create duplicate tables to store the tags that are relevant to UPS-RS
-2. Use the existing table, but add a new column type to differentiate between UPS-RS and normal request
-    Introduce new primary key instead of 
+**Customer request**
+From the UPS-RS state model, we only plan to use the SCHEDULED and CANCELLED states directly. 
+We expect SCHEDULED to be set for new items. CANCELLED is the final state when a SCHEDULED entry was removed by the Request Cancellation transaction. 
+When executing the search query, there will be a filter on SCHEDULED, since only these entries are of interest.
 
 ##Storage
 
 There are two options to implement, 
+
+|Options|Pros| Cons |
+|------ | ------ |------ |
+|1. Create a workitem table with all the column that are part of UPS object definition.| Easy to access and query | Too many columns, we will doing which we wont require |
+|2. Create a workitem table with high level columns, and index the scoped column that are required by Zeiss now to ExtendedQueryTags table | Scalable for different customer and based on that we can add columns to the extended query tag table | More logics |
+
+
+```sql
+
+CREATE TABLE dbo.WorkItem (
+    WorkItemKey                 BIGINT                            NOT NULL,             --PK
+    WorkItemUid                 VARCHAR(64)                       NOT NULL,
+    TransactionUid              VARCHAR(64)                       NOT NULL,
+	State                       VARCHAR(64)                       NOT NULL,
+    PartitionKey                INT                               NOT NULL DEFAULT 1    --FK
+) WITH (DATA_COMPRESSION = PAGE)
+
+```
+
+While reusing ExtendedQueryTags table we can further do that in differnet options
+
+1. Create duplicate tables to store the tags that are relevant to UPS-RS similar to how we do ExtendedQueryTags
+2. Use the existing table, but add a new column type to differentiate between UPS-RS and normal request
+    Introduce new primary key instead of 
+
+```
+CREATE TABLE dbo.ExtendedQueryTag (
+    TagKey                  INT                  NOT NULL, --PK
+    TagPath                 VARCHAR(64)          NOT NULL,
+    TagVR                   VARCHAR(2)           NOT NULL,
+    TagPrivateCreator       NVARCHAR(64)         NULL,
+    TagLevel                TINYINT              NOT NULL,
+    TagStatus               TINYINT              NOT NULL,
+    QueryStatus             TINYINT              DEFAULT 1 NOT NULL,
+    ErrorCount              INT                  DEFAULT 0 NOT NULL,
+    Type                    BIT                  DEFAULT 0 NOT NULL
+)
+
+CREATE UNIQUE CLUSTERED INDEX IXC_ExtendedQueryTag ON dbo.ExtendedQueryTag
+(
+    TagKey,
+    Type
+)
+
+CREATE TABLE dbo.ExtendedQueryTagString (
+    ExtendedQueryTagKey     BIGINT                            NOT NULL,             --PK
+    TagKey                  INT                  NOT NULL,              
+    TagValue                NVARCHAR(64)         NOT NULL,
+    Watermark               BIGINT               NOT NULL,
+    PartitionKey            INT                  NOT NULL DEFAULT 1     --FK
+) WITH (DATA_COMPRESSION = PAGE)
+
+-- Used in QIDO
+CREATE UNIQUE CLUSTERED INDEX IXC_ExtendedQueryTagString ON dbo.ExtendedQueryTagString
+(
+    TagKey,
+    TagValue,
+    PartitionKey,
+    StudyKey,
+    SeriesKey,
+    InstanceKey
+)
+
+
+```
+
+## Migration
+
+Depend on the decisions, migration plan will be updated later.
+
+## Roll-out Strategy
+
+Once the complete feature is completed, we can enable the feature by default.
+
+# Test Strategy
+
+# Security
+
+# Other
