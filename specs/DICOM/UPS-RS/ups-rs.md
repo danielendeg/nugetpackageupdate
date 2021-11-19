@@ -1,12 +1,22 @@
-Add support for UPS-RS to the existing DICOM service. That means to implement a worklist service that manages a single worklist containing one or more workitems. 
+Add support for Unified Procedure Step (UPS-RS) to the existing DICOM service. That means to implement a worklist service that manages a single worklist containing one or more workitems. 
 
 # Business Justification
 
 ## Customer Requirements
-Basically, we want to assign patients to specific examination or treatment devices. This is the typical modality worklist scenario. 
-The basic properties are WHO (Patient), WHEN (Planned Date/Time) and WHERE (Device/Station). Our devices perform a query using the DICOM Basic Worklist Management Service. 
+
+Zeiss want to assign patients to specific examination or treatment devices. This is the typical modality worklist scenario. 
+The basic properties are WHO (Patient), WHEN (Planned Date/Time) and WHERE (Device/Station). Zeiss's devices perform a query using the DICOM Basic Worklist Management Service. 
 The main query keys are the AE Title to identify the device itself and range selection on the planned procedure date.
 
+To fulfill this request, we need to add support for UPS-RS to our existing service. Unified Procedure Step is part of the DICOM standard which not only help Zeiss but also future customers.
+
+## Microsoft / OSS Requirements
+- Implement UPS-RS support as per the DICOM standard and not specific to any single customer.
+- Create a solution that is scabale to all customers
+- Expose the feature via feature flag.
+- Not all part of the UPS-RS standard needs to be implemented. SCU/SCP not required to implement all the SOP Classes. Can implement SOP Classes based on the operations it needs.
+
+## UPS-RS
 Unified Procedure Step instances may be used to represent a variety of scheduled tasks such as: Image Processing, Quality Control, 
 Computer Aided Detection, Interpretation, Transcription, Report Verification, or Printing.
 The UPS instance can contain details of the requested task such as when it is scheduled to be performed or Workitem Codes describing the 
@@ -28,14 +38,14 @@ operate on a UPS object.
 Each SOP Class supports a few
 related operations.
 
-## Microsoft / OSS Requirements
-SCU/SCP not required to implement all the SOP Classes. Can implement SOP Classes based on the operations it needs.
-
+## Scope
 
 ## About Workitem
 
 
 In the Worklist Service, the Workitem is identified by a Workitem UID, which corresponds to the Affected SOP Instance UID and Requested SOP Instance UID used in the PS3.4 UPS Service.
+
+
 
 
 ##Operations
