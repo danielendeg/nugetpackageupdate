@@ -48,7 +48,7 @@ There are multiple classes to be implement and that can be done in multiple iter
 | ------ | ------ |
 | UPS Push SOP Class   | ✔ |
 | UPS Pull SOP Class | ✔ |
-| UPS Watch SOP Class | ✔ ❌ |
+| UPS Watch SOP Class | ❌ |
 | The UPS Event SOP Class | ❌ |
 
 For UPS Watch SOP Class, we will only do **request cancellation** of a worklist item for first iteration.
