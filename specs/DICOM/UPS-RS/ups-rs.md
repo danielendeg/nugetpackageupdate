@@ -58,7 +58,7 @@ For UPS Watch SOP Class, we will only do **request cancellation** of a worklist 
 |Create	|POST|	dataset|	none | Creates a new Workitem| ✔ |
 |Retrieve|	GET	|none	|dataset|	Retrieves the Target Workitem| ✔ |
 |Update	|POST	|dataset	|none	|Updates the Target Workitem| ✔ |
-|Change State	|PUT	|none|	none	|Changes the state of the Target Workitem| ❌ |
+|Change State	|PUT	|none|	none	|Changes the state of the Target Workitem| ✔ |
 |Request Cancellation|	POST|	dataset|	none|	Requests that the origin server cancel a Workitem| ✔ |
 |Search	|GET	|none	|results|	Searches for Workitems| ✔ |
 |Subscribe|	POST|	none|	none	|Creates a Subscription to the Target Worklist or Target Workitem|❌ |
@@ -99,6 +99,8 @@ According to Zeiss, data partition is a pre-requisite to use this feaure. Simila
 
 ### UPS Push 
 
+### Create workitem
+
 **Request**
 
 This transaction creates a Workitem on the target Worklist. It corresponds to the UPS DIMSE N-CREATE operation.
@@ -123,6 +125,8 @@ Once the request comes in
 
 ### UPS Pull 
 
+### Get workitem
+
 **Request**
 
 This transaction retrieves a Workitem. It corresponds to the UPS DIMSE N-GET operation.
@@ -138,6 +142,9 @@ GET {partition path}/workitems/{workitemInstance}
 }
 ```
 **If the Workitem is in the IN PROGRESS state, the returned Workitem shall not contain the Transaction UID (0008,1195)**
+
+
+### Update workitem
 
 **Request**
 
@@ -167,6 +174,7 @@ Success - 200
 - 410 - Gone
 - 403 - Forbidden
 
+### Query workitems
 
 **Request**
 
@@ -215,6 +223,7 @@ Apart from this, we will store
 1. Procedure Step State
 2. 
 
+### Cancel workitem
 
 **Request**
 
@@ -241,6 +250,32 @@ Success - 202
 - 409 - Conflict
 - 404 - Not found
 - 403 - Forbidden
+
+### Change workitem state
+
+**Request**
+
+This resource supports the modification of the state of an existing workitem Instance.
+
+```
+PUT {partition path}/workitems/{workitemInstance}/state
+```
+
+**Response**
+```json
+{
+
+}
+```
+
+**Errors**
+- 400 - Bad request
+- 409 - Conflict
+- 404 - Not found
+- 403 - Forbidden
+
+**UPS-RS State model **
+
 
 **Customer request**
 From the UPS-RS state model, we only plan to use the SCHEDULED and CANCELLED states directly. 
