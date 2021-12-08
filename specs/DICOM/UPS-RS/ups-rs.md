@@ -330,3 +330,9 @@ Once the complete feature is completed, we can enable the feature by default.
 # Security
 
 # Other
+
+# Open Questions
+
+- Number of requests that will come from SCP
+- C-Find queries every 10 minutes. More the devices, more the requests (30 requests per hour per device).
+- 
