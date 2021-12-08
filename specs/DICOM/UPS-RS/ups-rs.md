@@ -317,6 +317,7 @@ CREATE TABLE dbo.WorkItem (
     CreatedDate              DATETIME2(7)       NOT NULL,
 ) WITH (DATA_COMPRESSION = PAGE)
 
+
 CREATE TABLE dbo.WorkItemQueryTag (
     TagKey                  INT                  NOT NULL, --PK
     TagPath                 VARCHAR(64)          NOT NULL,
