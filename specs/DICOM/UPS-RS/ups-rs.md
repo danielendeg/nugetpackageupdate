@@ -209,15 +209,8 @@ Success - 200
 
 For our initial iteration, we are going to index only few columns and make it searchable.
 
-|MWL Attribute Name|UPS Mapping|
-|------ | ------ |
-|1. ScheduledStationAETitle | Station Name Code Sequence (0040,4025) putting AE Title in the code meaning with a local coding scheme |
-|2. ScheduledProcedureStepStartDate |  Scheduled Procedure Step Start Date and Time (0040,4005) |
-|3. Modality | Scheduled Station Class Code Sequence (0040,4026) using codes from DICOM PS3.16 CID 29 Acquisition Modality|
-|4. RequestedProcedure ID | Requested Procedure Code Sequence (0032,1064)|
-|5. AccessionNumber | Same as Accession Number (0008,0050) |
-|6. PatientName | Same as Patient Name|
-|7. PatientID | Same as Patient Id |
+![Dicom file](../images/UPS-RS-QueryableFields.jpg)
+
 
 Apart from this, we will store
 1. Procedure Step State
