@@ -89,7 +89,7 @@ Workitems consist of different modules
 |application/dicom+json |DEFAULT|
 |multipart/related; type="application/dicom+xml"| required|
 
-Since our existing APIs, we only support application/dicom+json. We will do the same here. There is a work item in backlog to implement application/dicom+xml
+**Since our existing APIs, we only support application/dicom+json. We will do the same here. There is a work item in backlog to implement application/dicom+xml**
 
 ### Partition support
 
@@ -120,8 +120,8 @@ Success - 201
 
 
 Once the request comes in
-1. We validate the dataset as per the standard and store the json file in a new container, with the `WorkItemUid` as the file name. This will be useful to retrieve in a faster manner.
-2. Store the primary columns in the WorkItem table and store the queryable fields in the extended query tag table or workitem table ( as per discussion).
+1. We validate the dataset as per the standard and store the json file in a new container, with the `WorkItemUid and WorkItemKey` as the file name. This will be useful to retrieve in a faster manner.
+2. Store the primary columns in the WorkItem table and store the queryable fields in the extended query tag table.
 
 ### UPS Pull 
 
@@ -156,8 +156,6 @@ Content-Type: dicom-media-type
 ```
 If the UPS instance is currently in the SCHEDULED state, {transactionUID} shall not be specified.
 If the UPS instance is currently in the IN PROGRESS state, {transactionUID} shall be specified
-
-
 
 **Response**
 ```json
@@ -207,14 +205,34 @@ Success - 200
 
 ###Queryable Fields
 
-For our initial iteration, we are going to index only few columns and make it searchable.
+For our initial iteration, we are going to have a static list
 
 ![Dicom file](../images/UPS-RS-QueryableFields.jpg)
 
+**Customer Request**
+Additional UPS query match key that Zeiss need:	ScheduledStationGeographicLocationCodeSequence.CodeValue (0040,4027).(0008,0100)
 
-Apart from this, we will store
-1. Procedure Step State
-2. 
+Background:
+
+In Zeiss HDP, there is a requirement to schedule workitem(s) to multiple devices that are located in the same department (or operating room) but belong to the same tenant. 
+Since AETitle is not unique (globally, only in a Local Area Network), hence we will need to group devices based on some additional attribute(s). 
+One such sequence/attribute could be the UPS ScheduledStationGeographicLocationCodeSequence.
+
+#### Attribute Matching
+The following types of matching may be performed on Key Attributes in the Query/Retrieve Service Class:
+- Single Value Matching
+- List of UID Matching
+- Universal Matching
+- Wild Card Matching
+- Range Matching
+- **Sequence Matching**
+
+**Sequence matching**
+Refer to https://dicom.nema.org/medical/Dicom/current/output/chtml/part04/sect_C.2.2.2.6.html
+Compared to exact matching, it is possible to search under any items under a particular sequence even in case it contains multiple items
+If all the Item Key Attributes match, for at least one of the Items of the Attribute against which the match is performed, a successful match is generated. 
+A sequence of matching Items containing only the requested Attributes is returned in the corresponding C-FIND responses.
+
 
 ### Cancel workitem
 
@@ -269,6 +287,9 @@ PUT {partition path}/workitems/{workitemInstance}/state
 
 **UPS-RS State model **
 
+SCHEDULED  - IN-PROGRESS  - COMPLETED
+                   |
+               CANCELLED
 
 **Customer request**
 From the UPS-RS state model, we only plan to use the SCHEDULED and CANCELLED states directly. 
@@ -282,66 +303,44 @@ There are two options to implement,
 |Options|Pros| Cons |
 |------ | ------ |------ |
 |1. Create a workitem table with all the column that are part of UPS object definition.| Easy to access and query | Too many columns, we will doing which we wont require |
+|2. Create a workitem table with all the column that includes all the high level fields similar to other DICOM tables.| Easy to access and query | We can't do sequence matching |
 |2. Create a workitem table with high level columns, and index the scoped column that are required by Zeiss now to ExtendedQueryTags table | Scalable for different customer and based on that we can add columns to the extended query tag table | More logics |
 
 
 ```sql
 
 CREATE TABLE dbo.WorkItem (
-    WorkItemKey                 BIGINT                            NOT NULL,             --PK
-    WorkItemUid                 VARCHAR(64)                       NOT NULL,
-    TransactionUid              VARCHAR(64)                       NOT NULL,
-    PartitionKey                INT                               NOT NULL DEFAULT 1    --FK
+    WorkItemKey              BIGINT             NOT NULL,             --PK
+    WorkItemUid              VARCHAR(64)        NOT NULL,
+    PartitionKey             INT                NOT NULL DEFAULT 1,   --FK
+    --audit columns
+    CreatedDate              DATETIME2(7)       NOT NULL,
 ) WITH (DATA_COMPRESSION = PAGE)
 
-```
-
-The workitem table will only consist of primary columns, all other columns will be in extended query tag table.
-
-While reusing ExtendedQueryTags table we can further do that in differnet options
-
-1. Create duplicate tables to store the tags that are relevant to UPS-RS similar to how we do ExtendedQueryTags
-2. Use the existing table, but add a new column type to differentiate between UPS-RS and normal request
-    Introduce new primary key instead of 
-
-```
-CREATE TABLE dbo.ExtendedQueryTag (
+CREATE TABLE dbo.WorkItemQueryTag (
     TagKey                  INT                  NOT NULL, --PK
     TagPath                 VARCHAR(64)          NOT NULL,
-    TagVR                   VARCHAR(2)           NOT NULL,
-    TagPrivateCreator       NVARCHAR(64)         NULL,
-    TagLevel                TINYINT              NOT NULL,
-    TagStatus               TINYINT              NOT NULL,
-    QueryStatus             TINYINT              DEFAULT 1 NOT NULL,
-    ErrorCount              INT                  DEFAULT 0 NOT NULL,
-    Type                    BIT                  DEFAULT 0 NOT NULL
+    TagVR                   VARCHAR(2)           NOT NULL
 )
 
-CREATE UNIQUE CLUSTERED INDEX IXC_ExtendedQueryTag ON dbo.ExtendedQueryTag
-(
-    TagKey,
-    Type
-)
+ALTER TABLE dbo.ExtendedQueryTagLong
 
-CREATE TABLE dbo.ExtendedQueryTagString (
-    ExtendedQueryTagKey     BIGINT               NOT NULL,             --PK
-    TagKey                  INT                  NOT NULL,              
-    TagValue                NVARCHAR(64)         NOT NULL,
-    StudyKey                BIGINT               NULL,              --FK
-    SeriesKey               BIGINT               NULL,                  --FK
-    InstanceKey             BIGINT               NULL,                  --FK
-    WorkItemKey             BIGINT               NULL,                  --FK
+TO 
+
+CREATE TABLE dbo.QueryTagLong (
+    TagKey                  INT                  NOT NULL,              --PK
+    TagValue                BIGINT               NOT NULL,
+    ForeignKey1             BIGINT               NOT NULL,              --FK
+    ForeignKey2             BIGINT               NULL,                  --FK
+    ForeignKey3             BIGINT               NULL,                  --FK
     Watermark               BIGINT               NOT NULL,
     PartitionKey            INT                  NOT NULL DEFAULT 1     --FK
 ) WITH (DATA_COMPRESSION = PAGE)
 
-CREATE UNIQUE CLUSTERED INDEX IXC_ExtendedQueryTagString ON dbo.ExtendedQueryTagString
-(
-    ExtendedQueryTagKey,
-    TagKey,
-    TagValue,
-    PartitionKey
-)
+
+-- ForeignKey1 is used both as WorkItemKey and StudyKey
+
+-- This table will be used both for Image Instance and UPS-RS instance.
 
 ```
 
@@ -362,5 +361,5 @@ Once the complete feature is completed, we can enable the feature by default.
 # Open Questions
 
 - Number of requests that will come from SCP
-- C-Find queries every 10 minutes. More the devices, more the requests (30 requests per hour per device).
+    - C-Find queries every 10 minutes. More the devices, more the requests (30 requests per hour per device). Zeiss will come back to us with some numbers
 - 
