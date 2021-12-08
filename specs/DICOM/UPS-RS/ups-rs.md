@@ -285,7 +285,7 @@ PUT {partition path}/workitems/{workitemInstance}/state
 - 404 - Not found
 - 403 - Forbidden
 
-**UPS-RS State model **
+**UPS-RS State model**
 
 SCHEDULED  - IN-PROGRESS  - COMPLETED
                    |
@@ -346,11 +346,19 @@ CREATE TABLE dbo.QueryTagLong (
 
 ## Migration
 
-Depend on the decisions, migration plan will be updated later.
+There is no specific migration Strategy, we only need to update the column names and table names.
 
 ## Roll-out Strategy
 
 Once the complete feature is completed, we can enable the feature by default.
+
+We will be doing this feature in multiple iterations 
+
+Iteration 1:
+ - Deliver UPS-RS Create, Retrieve, Query (without sequence matching), Cancel State
+
+Iteration 2:
+ - Query (with sequence matching), Change workitem state
 
 # Test Strategy
 
