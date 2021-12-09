@@ -309,6 +309,7 @@ There are two options to implement,
 
 ```sql
 
+
 CREATE TABLE dbo.WorkItem (
     WorkItemKey              BIGINT             NOT NULL,             --PK
     WorkItemUid              VARCHAR(64)        NOT NULL,
@@ -320,6 +321,7 @@ CREATE TABLE dbo.WorkItem (
 
 CREATE TABLE dbo.WorkItemQueryTag (
     TagKey                  INT                  NOT NULL, --PK
+    ParentTagKey            INT                  NULL, --PK
     TagPath                 VARCHAR(64)          NOT NULL,
     TagVR                   VARCHAR(2)           NOT NULL
 )
@@ -330,6 +332,7 @@ TO
 
 CREATE TABLE dbo.QueryTagLong (
     TagKey                  INT                  NOT NULL,              --PK
+    SequenceTagKey          INT                  NULL,              
     TagValue                BIGINT               NOT NULL,
     ForeignKey1             BIGINT               NOT NULL,              --FK
     ForeignKey2             BIGINT               NULL,                  --FK
