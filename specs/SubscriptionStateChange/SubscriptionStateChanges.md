@@ -29,7 +29,7 @@ Following metrics shall be tracked as part of this work.
 1. Emit metrics for failed subscription state change operation(s).
 
 # Design
-In general, when our service receives a notification in subscription state change, these states should be cascaded down to corresponding Azure API for FHR accounts. This will ensure that we are not having to make two jumps to global db get to the state of the account. This way, account subscription status is readily available on the account object itself. To accomplish this, we will add <code>AccountSubscriptionState</code> property on the account. 
+In general, when our service receives a notification in subscription state change, these states should be cascaded down to corresponding Azure API for FHR accounts. This will ensure that we are not having to make two jumps to global db get to the state of the account. This way, account subscription status is readily available on the account object itself. To accomplish this, we will add <code>State</code> property on the account. 
 
 As described earlier, there are a few bulding blocks that can accomplish responding to all 3 state implementation. We will talk about design of each of those actions by suscription state in detail in this section. 
 
