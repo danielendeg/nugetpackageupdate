@@ -336,6 +336,7 @@ CREATE TABLE dbo.QueryTagLong (
     ForeignKey3             BIGINT               NULL,                  --FK
     Watermark               BIGINT               NOT NULL,
     PartitionKey            INT                  NOT NULL DEFAULT 1     --FK
+    ResourceType            TINYINT              NOT NULL DEFAULT 0     
 ) WITH (DATA_COMPRESSION = PAGE)
 
 
@@ -371,4 +372,8 @@ Iteration 2:
 
 - Number of requests that will come from SCP
     - C-Find queries every 10 minutes. More the devices, more the requests (30 requests per hour per device). Zeiss will come back to us with some numbers
-- 
+- Should we delete CANCELLED, COMPLETED workitem ?
+- Do we need to support changing state to COMPLETED?
+- The Attributes of the Scheduled Station Name Code Sequence shall only be retrieved with Sequence Matching. But the requirements says exact match or sequence match.
+- The Attributes of the Scheduled Station Class Code Sequence shall only be retrieved with Sequence Matching. But the requirements says exact match or sequence match.
+
