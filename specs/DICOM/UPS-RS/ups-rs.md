@@ -296,6 +296,12 @@ From the UPS-RS state model, we only plan to use the SCHEDULED and CANCELLED sta
 We expect SCHEDULED to be set for new items. CANCELLED is the final state when a SCHEDULED entry was removed by the Request Cancellation transaction. 
 When executing the search query, there will be a filter on SCHEDULED, since only these entries are of interest.
 
+
+## Delete workitems
+
+Workitems in CANCELLED OR COMPLETED state can be deleted after a period of time. We need to come up with time period to delete.
+
+
 ##Storage
 
 There are two options to implement, 
