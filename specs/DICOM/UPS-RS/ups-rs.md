@@ -377,4 +377,5 @@ Iteration 2:
 - Do we need to support changing state to COMPLETED?
 - The Attributes of the Scheduled Station Name Code Sequence shall only be retrieved with Sequence Matching. But the requirements says exact match or sequence match.
 - The Attributes of the Scheduled Station Class Code Sequence shall only be retrieved with Sequence Matching. But the requirements says exact match or sequence match.
-
+- Will a workitem involves multiple devices?
+- Do we need to support MV (value multitiplicity)
