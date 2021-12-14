@@ -77,11 +77,16 @@ Following types of matching will be supported while searching workitems
 
 ###1
 
+For the first iteration, we would like to implement minimum requirement to test the end to end flow. The functionality below should allow the Cataract planner to create workitems and also to request cancellation and DICOM forwarder to respond to C-FIND queries.
+
 - Create Workitem
 - Searching workitems including all the above attribute matching types with Limited Sequence matching
 - Request Cancellation
 
 ###2
+
+For the second iteration, we would implement the rest of the requested scope once the core end to end flow is validated. 
+
 - Update Workitem
 - Retrieve Workitem
 - Change state
