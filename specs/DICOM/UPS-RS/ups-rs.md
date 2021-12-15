@@ -11,9 +11,8 @@ produced, such as: Current Images, Prior Images, Reports, Films, Presentation St
 
 ## Customer Requirements
 
-Zeiss wants to assign patients to specific examination or treatment devices. This is the typical modality worklist scenario. 
-The basic properties are WHO (Patient), WHEN (Planned Date/Time) and WHERE (Device/Station). Zeiss's devices perform a query using the DICOM Basic Worklist Management Service. 
-The main query keys are the AE Title to identify the device itself and range selection on the planned procedure date.
+Zeiss wants to assign patients to specific examination or treatment devices. This is the typical modality worklist (MWL) scenario. 
+The basic properties are WHO (Patient), WHEN (Planned Date/Time) and WHERE (Device/Station). Zeiss's devices perform a DIMSE C-FIND query using the DICOM Basic Worklist Management Service against a custom proxy cloud / on-prem gateway component called Dicom Forwarder. This service polls the Dicom service via UPS-RS according to query keys described below, then translates these keys into MWL format according to a mapping proposal from IHE.
 
 To fulfill this request, we need to add support for UPS-RS to our existing service. Unified Procedure Step is part of the DICOM standard which not only help Zeiss but also future customers.
 
@@ -42,16 +41,14 @@ SCUs.
 
 ## Scope
 
-There are multiple classes to be implement and that can be done in multiple iterations. Initially we wont be implementing all the classess for UPS.
+There are multiple classes to be implemented and that can be done in multiple iterations. For this feature, we will only implement the Push and Pull classes.
 
-| Classs | Scope |
+| Class | Scope |
 | ------ | ------ |
 | UPS Push SOP Class   | ✔ |
 | UPS Pull SOP Class | ✔ |
 | UPS Watch SOP Class | ❌ |
 | The UPS Event SOP Class | ❌ |
-
-For UPS Watch SOP Class, we will only do **request cancellation** of a worklist item for first iteration.
 
 | Transaction |	Method |	Payload Request	| Payload Response	|	Description | Scope |
 | ------ | ------ |------ |------ |------ | ------ |
@@ -203,36 +200,33 @@ Success - 200
 - 404 - Not found
 - 410 - Gone
 
-###Queryable Fields
+#### Search Attributes
+The following attributes will be supported for searching workitems.
 
-For our initial iteration, we are going to have a static list
-
-![Dicom file](../images/UPS-RS-QueryableFields.jpg)
-
-**Customer Request**
-Additional UPS query match key that Zeiss need:	ScheduledStationGeographicLocationCodeSequence.CodeValue (0040,4027).(0008,0100)
-
-Background:
+|MWL Attribute Name|UPS Mapping|
+|------ | ------ |
+|1. ScheduledStationAETitle | Station Name Code Sequence (0040,4025)  |
+|2. ScheduledProcedureStepStartDate |  Scheduled Procedure Step Start Date and Time (0040,4005) |
+|3. Modality | Scheduled Station Class Code Sequence (0040,4026) using codes from DICOM PS3.16 CID 29 Acquisition Modality|
+|4. RequestedProcedure ID | Requested Procedure Code Sequence (0032,1064)|
+|5. AccessionNumber | Same as Accession Number (0008,0050) |
+|6. PatientName | Same as Patient Name|
+|7. PatientID | Same as Patient Id |
+|8. ScheduledStationGeographicLocationCodeSequence.CodeValue  | Same as ScheduledStationGeographicLocationCodeSequence ((0040,4027).(0008,0100)) |
 
 In Zeiss HDP, there is a requirement to schedule workitem(s) to multiple devices that are located in the same department (or operating room) but belong to the same tenant. 
 Since AETitle is not unique (globally, only in a Local Area Network), hence we will need to group devices based on some additional attribute(s). 
 One such sequence/attribute could be the UPS ScheduledStationGeographicLocationCodeSequence.
 
 #### Attribute Matching
-The following types of matching may be performed on Key Attributes in the Query/Retrieve Service Class:
-- Single Value Matching
-- List of UID Matching
-- Universal Matching
-- Wild Card Matching
-- Range Matching
-- **Sequence Matching**
+The following types of matching will be supported while searching workitems:
 
-**Sequence matching**
-Refer to https://dicom.nema.org/medical/Dicom/current/output/chtml/part04/sect_C.2.2.2.6.html
-Compared to exact matching, it is possible to search under any items under a particular sequence even in case it contains multiple items
-If all the Item Key Attributes match, for at least one of the Items of the Attribute against which the match is performed, a successful match is generated. 
-A sequence of matching Items containing only the requested Attributes is returned in the corresponding C-FIND responses.
-
+- Exact match (Single value matching)
+- Range matching for dates
+- Fuzzy matching on patient name
+- Limited Sequence matching for Station Name Code Sequence (AE Title), Scheduled Station Class Code Sequence (Modality) and ScheduledStationGeographicLocationCodeSequence
+  - SQ elements contains data elements with VM = 1
+  - Only the first level elements will be searched
 
 ### Cancel workitem
 
@@ -299,18 +293,19 @@ When executing the search query, there will be a filter on SCHEDULED, since only
 
 ## Delete workitems
 
-Workitems in CANCELLED OR COMPLETED state can be deleted after a period of time. We need to come up with time period to delete.
-
+Workitems in CANCELLED OR COMPLETED state can be (but are not required to be) deleted after a period of time per Zeiss. We will not implement any deletion mechanism for this feature since
+we are not clear about the broader market implications and needs - auditing, recoverability, etc.
 
 ##Storage
 
-There are two options to implement, 
+There are several implementation options:
 
 |Options|Pros| Cons |
 |------ | ------ |------ |
-|1. Create a workitem table with all the column that are part of UPS object definition.| Easy to access and query | Too many columns, we will doing which we wont require |
-|2. Create a workitem table with all the column that includes all the high level fields similar to other DICOM tables.| Easy to access and query | We can't do sequence matching |
-|2. Create a workitem table with high level columns, and index the scoped column that are required by Zeiss now to ExtendedQueryTags table | Scalable for different customer and based on that we can add columns to the extended query tag table | More logics |
+|1. Create a workitem table with all the columns that are part of UPS object definition.| Easy to access and query | We will index many unused tags, and will require parsing complex data structures on retrieval |
+|2. Create a workitem table that only includes commonly accessed columns similar to other DICOM tables.| Easy to access and query | No good way to model searchable sequences |
+|3. Create a workitem table with high level columns, and index the scoped columns that are required by Zeiss now to ExtendedQueryTags table. Stored procedures for extended query tags and workitems could both use a common internal stored procedure. | Scalable and customizable, enables searching sequences | More logic in the common stored procedures, less clear isolation between workitem tags and image tags |
+|4. Create a workitem table with high level columns, and index the scoped columns that are required by Zeiss now to a new WorkitemQueryTags table. We would duplicate stored procedures for extended query tags and workitems. | Scalable and customizable, enables searching sequences | Duplicate logic - higher maintenance cost |
 
 
 ```sql
