@@ -302,55 +302,62 @@ There are several implementation options:
 
 |Options|Pros| Cons |
 |------ | ------ |------ |
-|1. Create a workitem table with all the columns that are part of UPS object definition.| Easy to access and query | We will index many unused tags, and will require parsing complex data structures on retrieval |
+|1. Create a workitem table with all the columns that are part of UPS object definition.| Easy to access and query | We will index many unused tags, and will need to model searchable sequences |
 |2. Create a workitem table that only includes commonly accessed columns similar to other DICOM tables.| Easy to access and query | No good way to model searchable sequences |
-|3. Create a workitem table with high level columns, and index the scoped columns that are required by Zeiss now to ExtendedQueryTags table. Stored procedures for extended query tags and workitems could both use a common internal stored procedure. | Scalable and customizable, enables searching sequences | More logic in the common stored procedures, less clear isolation between workitem tags and image tags |
-|4. Create a workitem table with high level columns, and index the scoped columns that are required by Zeiss now to a new WorkitemQueryTags table. We would duplicate stored procedures for extended query tags and workitems. | Scalable and customizable, enables searching sequences | Duplicate logic - higher maintenance cost |
+|3. Create a workitem table with metadata columns, and index the scoped columns that are required by Zeiss now to a new WorkitemQueryTags table. We would duplicate stored procedures for extended query tags and workitems. | Scalable and customizable, enables searching sequences. | Duplicate logic - higher maintenance cost. |
+|4. Create a workitem table with metadata columns, and index the scoped columns that are required by Zeiss now to ExtendedQueryTags table. Stored procedures for extended query tags and workitems could both use a common internal stored procedure. | Scalable and customizable, enables searching sequences | Requires modification to ExtendedQueryTag tables. |
 
+![Dicom file](../images/UPS-schema-options.png)
 
+We propose to implement the fourth option, which will involve:
+- Add a ResourceType column to ExtendedQueryTag and ExtendedQueryTag* tables to distinguish between Image tags and Workitem tags
+- Rename the foreign key columns in ExtendedQueryTag* tables generically to support either Images or Workitems
+- Delete stored procedures that referenced the old column names
+- Rev the IIndexInstanceCore stored procedure to use the new column names and ResourceType
+- Create new versions of stored procedures that changed input contract, and update stored procedures that didn't
+- Update the QueryGenerator to use the new column names and ResourceType if version > 8
+
+Sequences will be stored in ExtendedQueryTag.TagPath like `0040A370.00401001` for `ReferencedRequestSequence.Requested​Procedure​ID`
+
+Sample SQL:
 ```sql
-
-
-CREATE TABLE dbo.WorkItem (
-    WorkItemKey              BIGINT             NOT NULL,             --PK
-    WorkItemUid              VARCHAR(64)        NOT NULL,
+CREATE TABLE dbo.Workitem (
+    WorkitemKey              BIGINT             NOT NULL,             --PK
+    WorkitemUid              VARCHAR(64)        NOT NULL,
     PartitionKey             INT                NOT NULL DEFAULT 1,   --FK
     --audit columns
     CreatedDate              DATETIME2(7)       NOT NULL,
 ) WITH (DATA_COMPRESSION = PAGE)
 
-
-CREATE TABLE dbo.WorkItemQueryTag (
+CREATE TABLE dbo.ExtendedQueryTag (
     TagKey                  INT                  NOT NULL, --PK
     TagPath                 VARCHAR(64)          NOT NULL,
-    TagVR                   VARCHAR(2)           NOT NULL
-)
+    TagVR                   VARCHAR(2)           NOT NULL,
+    TagPrivateCreator       NVARCHAR(64)         NULL,
+    TagLevel                TINYINT              NOT NULL,
+    TagStatus               TINYINT              NOT NULL,
+    QueryStatus             TINYINT              DEFAULT 1 NOT NULL,
+    ErrorCount              INT                  DEFAULT 0 NOT NULL,
+    ResourceType            TINYINT              NOT NULL DEFAULT 0
+) WITH (DATA_COMPRESSION = PAGE)
 
-ALTER TABLE dbo.ExtendedQueryTagLong
-
-TO 
-
-CREATE TABLE dbo.QueryTagLong (
+-- This table will be used both for Image instances and Workitem instances.
+CREATE TABLE dbo.ExtendedQueryTagLong (
     TagKey                  INT                  NOT NULL,              --PK
     TagValue                BIGINT               NOT NULL,
-    ForeignKey1             BIGINT               NOT NULL,              --FK
-    ForeignKey2             BIGINT               NULL,                  --FK
-    ForeignKey3             BIGINT               NULL,                  --FK
+    SopInstanceKey1         BIGINT               NOT NULL,              --FK
+    SopInstanceKey2         BIGINT               NULL,                  --FK
+    SopInstanceKey3         BIGINT               NULL,                  --FK
     Watermark               BIGINT               NOT NULL,
     PartitionKey            INT                  NOT NULL DEFAULT 1     --FK
     ResourceType            TINYINT              NOT NULL DEFAULT 0     
 ) WITH (DATA_COMPRESSION = PAGE)
 
-
--- ForeignKey1 is used both as WorkItemKey and StudyKey
-
--- This table will be used both for Image Instance and UPS-RS instance.
-
 ```
 
 ## Migration
 
-There is no specific migration Strategy, we only need to update the column names and table names.
+There is no specific migration strategy, we only need to update the column names and table names.
 
 ## Roll-out Strategy
 
