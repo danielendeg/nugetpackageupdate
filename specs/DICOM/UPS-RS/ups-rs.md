@@ -323,6 +323,15 @@ Sequences will be stored in WorkitemQueryTag.TagPath like `0040A370.00401001` fo
 **Other than the asked search attribute tags, we are also storing 1 more important tag (transactionUID). TransactionUID will be set by the first SCU who claims a workitem which is in SCHEDULED state by setting its state to IN-PROGRESS and also setting the transactionUID.
 Once set, the transactionUID only used to validate future update requests and its never returned from the SCP as part of workitem dataset and cannot be queried.**
 
+TransactionUID and Procedure​Step​State are two tags that will be used often to validate incoming requests, there are two approaches to store the values
+
+|Options|Pros| Cons |
+|------ | ------ |------ |
+1. Store it in the ExtendedQueryTagString table|Easy for writing query builder. We dont need to write separate logic.| Need to do extra read provided tagKey is passed. |
+2. Store it in Workitem table|Easy retrieval. No need to pass any tagKeys| Need to have special logic for query builder. |
+
+We are choosing option 1.
+
 Sample SQL:
 ```sql
 CREATE TABLE dbo.Workitem (
@@ -365,10 +374,10 @@ Once the complete feature is completed, we can enable the feature by default.
 We will be doing this feature in multiple iterations 
 
 Iteration 1:
- - Deliver UPS-RS Create, Retrieve, Query (without sequence matching), Cancel State
+ - Deliver UPS-RS Create, Query and Request Cancellation
 
 Iteration 2:
- - Query (with sequence matching), Change workitem state
+ - Retrieve, Update and Change workitem state
 
 # Test Strategy
 
@@ -378,11 +387,3 @@ Iteration 2:
 
 # Open Questions
 
-- Number of requests that will come from SCP
-    - C-Find queries every 10 minutes. More the devices, more the requests (30 requests per hour per device). Zeiss will come back to us with some numbers
-- Should we delete CANCELLED, COMPLETED workitem ?
-- Do we need to support changing state to COMPLETED?
-- The Attributes of the Scheduled Station Name Code Sequence shall only be retrieved with Sequence Matching. But the requirements says exact match or sequence match.
-- The Attributes of the Scheduled Station Class Code Sequence shall only be retrieved with Sequence Matching. But the requirements says exact match or sequence match.
-- Will a workitem involves multiple devices?
-- Do we need to support MV (value multitiplicity)
