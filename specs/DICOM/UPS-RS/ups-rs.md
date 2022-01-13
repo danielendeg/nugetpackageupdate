@@ -213,6 +213,7 @@ The following attributes will be supported for searching workitems.
 |6. PatientName | Same as Patient Name|
 |7. PatientID | Same as Patient Id |
 |8. ScheduledStationGeographicLocationCodeSequence.CodeValue  | Same as ScheduledStationGeographicLocationCodeSequence ((0040,4027).(0008,0100)) |
+|9. Procedure​Step​State  | Same as Procedure​Step​State (0074, 1000) |
 
 In Zeiss HDP, there is a requirement to schedule workitem(s) to multiple devices that are located in the same department (or operating room) but belong to the same tenant. 
 Since AETitle is not unique (globally, only in a Local Area Network), hence we will need to group devices based on some additional attribute(s). 
@@ -307,17 +308,20 @@ There are several implementation options:
 |3. Create a workitem table with metadata columns, and index the scoped columns that are required by Zeiss now to a new WorkitemQueryTags table. We would duplicate stored procedures for extended query tags and workitems. | Scalable and customizable, enables searching sequences. | Duplicate logic - higher maintenance cost. |
 |4. Create a workitem table with metadata columns, and index the scoped columns that are required by Zeiss now to ExtendedQueryTags table. Stored procedures for extended query tags and workitems could both use a common internal stored procedure. | Scalable and customizable, enables searching sequences | Requires modification to ExtendedQueryTag tables. |
 
-![Dicom file](../images/UPS-schema-options.png)
+![Dicom file](../images/UPS-schema-options.png =1000x)
 
-We propose to implement the fourth option, which will involve:
-- Add a ResourceType column to ExtendedQueryTag and ExtendedQueryTag* tables to distinguish between Image tags and Workitem tags
+We propose to implement the third option, which will involve:
+- Create WorkitemQueryTag table and store the static query tags
 - Rename the foreign key columns in ExtendedQueryTag* tables generically to support either Images or Workitems
 - Delete stored procedures that referenced the old column names
-- Rev the IIndexInstanceCore stored procedure to use the new column names and ResourceType
+- Create new IIndexWorkitemInstanceCore procedure to insert into ExtendedQueryTag value tables
 - Create new versions of stored procedures that changed input contract, and update stored procedures that didn't
 - Update the QueryGenerator to use the new column names and ResourceType if version > 8
 
-Sequences will be stored in ExtendedQueryTag.TagPath like `0040A370.00401001` for `ReferencedRequestSequence.Requested​Procedure​ID`
+Sequences will be stored in WorkitemQueryTag.TagPath like `0040A370.00401001` for `ReferencedRequestSequence.Requested​Procedure​ID`
+
+**Other than the asked search attribute tags, we are also storing 1 more important tag (transactionUID). TransactionUID will be set by the first SCU who claims a workitem which is in SCHEDULED state by setting its state to IN-PROGRESS and also setting the transactionUID.
+Once set, the transactionUID only used to validate future update requests and its never returned from the SCP as part of workitem dataset and cannot be queried.**
 
 Sample SQL:
 ```sql
@@ -329,16 +333,11 @@ CREATE TABLE dbo.Workitem (
     CreatedDate              DATETIME2(7)       NOT NULL,
 ) WITH (DATA_COMPRESSION = PAGE)
 
-CREATE TABLE dbo.ExtendedQueryTag (
+CREATE TABLE dbo.WorkitemQueryTag (
     TagKey                  INT                  NOT NULL, --PK
     TagPath                 VARCHAR(64)          NOT NULL,
     TagVR                   VARCHAR(2)           NOT NULL,
-    TagPrivateCreator       NVARCHAR(64)         NULL,
-    TagLevel                TINYINT              NOT NULL,
-    TagStatus               TINYINT              NOT NULL,
     QueryStatus             TINYINT              DEFAULT 1 NOT NULL,
-    ErrorCount              INT                  DEFAULT 0 NOT NULL,
-    ResourceType            TINYINT              NOT NULL DEFAULT 0
 ) WITH (DATA_COMPRESSION = PAGE)
 
 -- This table will be used both for Image instances and Workitem instances.
