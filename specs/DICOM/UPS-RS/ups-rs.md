@@ -330,13 +330,14 @@ TransactionUID and Procedure​Step​State are two tags that will be used often
 1. Store it in the ExtendedQueryTagString table|Easy for writing query builder. We dont need to write separate logic.| Need to do extra read provided tagKey is passed. |
 2. Store it in Workitem table|Easy retrieval. No need to pass any tagKeys| Need to have special logic for query builder. |
 
-We are choosing option 1.
+Since the transactionUID is not queryable, we will store the transactionUID in the Workitem table and Procedure​Step​State in ExtendedQueryTagString table
 
 Sample SQL:
 ```sql
 CREATE TABLE dbo.Workitem (
     WorkitemKey              BIGINT             NOT NULL,             --PK
     WorkitemUid              VARCHAR(64)        NOT NULL,
+    TransactionUID           VARCHAR(64)        NOT NULL,
     PartitionKey             INT                NOT NULL DEFAULT 1,   --FK
     --audit columns
     CreatedDate              DATETIME2(7)       NOT NULL,
@@ -345,9 +346,10 @@ CREATE TABLE dbo.Workitem (
 CREATE TABLE dbo.WorkitemQueryTag (
     TagKey                  INT                  NOT NULL, --PK
     TagPath                 VARCHAR(64)          NOT NULL,
-    TagVR                   VARCHAR(2)           NOT NULL,
-    QueryStatus             TINYINT              DEFAULT 1 NOT NULL,
+    TagVR                   VARCHAR(2)           NOT NULL
 ) WITH (DATA_COMPRESSION = PAGE)
+
+-- WorkItemQueryTag table in future can contain QueryStatus if needed to know whether an indexed tag is querable or not.
 
 -- This table will be used both for Image instances and Workitem instances.
 CREATE TABLE dbo.ExtendedQueryTagLong (
