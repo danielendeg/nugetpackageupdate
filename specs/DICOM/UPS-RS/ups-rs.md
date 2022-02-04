@@ -376,14 +376,17 @@ Once the complete feature is completed, we can enable the feature by default.
 We will be doing this feature in multiple iterations 
 
 Iteration 1:
- - Deliver UPS-RS Create, Query and Request Cancellation
+ - Deliver UPS-RS Create, Query and Request Cancellation 
+ - Will enable based on the data partition feature flag managed by AFEC. We know that Zeiss is the only customer with data partition enabled, and they require both features to be enabled together. This approach will avoid mismatch between features on their deployed services.
 
 Iteration 2:
  - Retrieve, Update and Change workitem state
+ - For iteration 2 we will release a separate AFEC feature flag: https://microsofthealth.visualstudio.com/Health/_workitems/edit/88403
 
 # Test Strategy
 
 # Security
+We will need to add new roles related to workitem management since that can be orthagonal to image access.
 
 # Other
 
