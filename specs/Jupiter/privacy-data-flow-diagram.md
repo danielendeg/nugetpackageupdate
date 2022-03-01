@@ -1,52 +1,15 @@
 # Data Flow Diagrams
 
-This document contains Data Flow Diagrams (DFD) for C+AI privacy reviews.  For reference, see [Enterprise Online Services Data Taxonomy](https://aka.ms/EntOnlineSvcDataTaxonomy) and [DFD examples](http://aka.ms/privacyreview/dfdexamples).  To upload the DFD in the privacy manager tool, open the mermaid diagram in a viewer like ADO wiki or VS Code, and take a screenshot of the rendered diagram.
+This document contains Data Flow Diagrams (DFD) for C+AI privacy reviews.  For reference, see [Enterprise Online Services Data Taxonomy](https://aka.ms/EntOnlineSvcDataTaxonomy) and [DFD examples](http://aka.ms/privacyreview/dfdexamples).  To upload the DFD in the privacy manager tool, select an image below, right click, and save a copy of the diagram image.
+
+## Updating Data Flow Diagrams (DFD)
+
+Each image below should link to the [online mermaid editor](https://mermaid.live/) with the diagram contents embedded.  To edit, make the necessary changes in the online editor and use the ```Copy Markdown``` option to generate a new embedded link and replace the link content in the markdown file with the new link.
 
 ## Resource Provider, FHIR Service, and Service Fabric
-::: mermaid
-flowchart LR
 
-subgraph Customer
-azdns[Azure DNS]<-->|OII| client 
-aztm[Azure Traffic Manager] <-->|OII| client
-aad[Azure AD] <-->|Customer Content, OII| client
-end
+[![](https://mermaid.ink/img/pako:eNqdVdtymzAQ_ZUdnp0f8HQ64_iSMkla17R5AR4EElhjkFxJ0HEu_96VEDROHIfkRcZw9uzu2bPwEOSSsmAaFJX8m2-JMnCzSUQidJOViuy3MG-0kTVTiSD3VOh4dt8oBovvUfrl4uLr448wfIS84kwYsBBTe8QvRYqC53BLBCmZSuElHNGEevBs4Z_32WAuhUHQBI4imKBHxekijphqec5gRTLF8zQRvpg36Ja_w9Ce69BTF0y3ebxSDkAhai2HuzmeYsuVI_kWbl4TOAhxgFmeywZr28jGcFF-KpnaxxumZaOw57WSLacoLkpS1KWKo9WgN4rVIkO8tCfMSjz7ey4XnNZ6AtFBG1bDLTOEEkO69mim_1SD_o6lVJx69iu8HMg_xD0wubHaHsBrdgKs0aRl78DISIWNwgVg0_Z--j4BisBaEl-5n9Sm7LR_L8Ii1X4Y5wRwkExr15ySFSwcluxaX9s1O8AdaSqreB_37mhPZa9kRiqaedq51LXUsLjEpmsPSl9U9oqDqH4jB9v8twiG2sgRlXgdfIBzYsarCl2su0G8Gstl99jJ7Ow_Qr9E9C3DuY6QrOccMzq_n2_PYR0-c3nfyM-bTmm71emHSHI3pxNDe0H1aVv4zoaSz6jQktM7g93dzfq9Qdkd5Rmena0zvrZnegaW8RMKXoadCXbtmUgsBW1ZHQzPdXwjS5j1_9JRrnge30vTDeKDQef1PI7o1B0N715go-HHCzYyLJgEaKeacIpf9YdEACSB2bKaJcEULylRuyRIxBPimj2GsyXlmCCYFqTSbBKQxsjoIPJgalTDetCCE_zi1h719A_kx-Uj)](https://mermaid.live/edit#pako:eNqdVdtymzAQ_ZUdnp0f8HQ64_iSMkla17R5AR4EElhjkFxJ0HEu_96VEDROHIfkRcZw9uzu2bPwEOSSsmAaFJX8m2-JMnCzSUQidJOViuy3MG-0kTVTiSD3VOh4dt8oBovvUfrl4uLr448wfIS84kwYsBBTe8QvRYqC53BLBCmZSuElHNGEevBs4Z_32WAuhUHQBI4imKBHxekijphqec5gRTLF8zQRvpg36Ja_w9Ce69BTF0y3ebxSDkAhai2HuzmeYsuVI_kWbl4TOAhxgFmeywZr28jGcFF-KpnaxxumZaOw57WSLacoLkpS1KWKo9WgN4rVIkO8tCfMSjz7ey4XnNZ6AtFBG1bDLTOEEkO69mim_1SD_o6lVJx69iu8HMg_xD0wubHaHsBrdgKs0aRl78DISIWNwgVg0_Z--j4BisBaEl-5n9Sm7LR_L8Ii1X4Y5wRwkExr15ySFSwcluxaX9s1O8AdaSqreB_37mhPZa9kRiqaedq51LXUsLjEpmsPSl9U9oqDqH4jB9v8twiG2sgRlXgdfIBzYsarCl2su0G8Gstl99jJ7Ow_Qr9E9C3DuY6QrOccMzq_n2_PYR0-c3nfyM-bTmm71emHSHI3pxNDe0H1aVv4zoaSz6jQktM7g93dzfq9Qdkd5Rmena0zvrZnegaW8RMKXoadCXbtmUgsBW1ZHQzPdXwjS5j1_9JRrnge30vTDeKDQef1PI7o1B0N715go-HHCzYyLJgEaKeacIpf9YdEACSB2bKaJcEULylRuyRIxBPimj2GsyXlmCCYFqTSbBKQxsjoIPJgalTDetCCE_zi1h719A_kx-Uj)
 
-subgraph sf[Service Fabric]
-client <-->|Customer Content, EUII, EUPI, OII| fesvc[Frontend Svc]
-fesvc <-->|Customer Content, EUII, EUPI, OII| fhirsvc[FHIR Svc]
-fesvc <-->|OII| arsvc[Account Routing Svc]
-fesvc <-->|Customer Content, EUII, EUPI, OII| rp[Resource Provider]
-sfmgr[SF Manager]
-end
+## IoT Connector, AKS, Resource Provider
 
-sfmgr -->|OII, System Metadata| sflogs[Azure Storage - SF logs]
-sfmgr -->|OII, System Metadata| geneva[Geneva]
-
-fesvc -->|OII, System Metadata| geneva
-
-rp <-->|OII, Access Control Data| akv[Azure Key Vault]
-rp <-->|Customer Content, EUII, EUPI, OII, System Metadata| globaldb[Azure Cosmos DB - metadata]
-rp <-->|OII, System Metadata| arm[Azure Resource Manager]
-rp -->|EUII, EUPI, OII, System Metadata| geneva
-rp -->|OII| billingstorage[Azure Storage - Billing]
-
-arsvc <-->|OII, Access Control Data| akv
-globaldb -->|OII, System Metadata| arsvc
-arsvc -->|OII, System Metadata| geneva
-
-fhirsvc <-->|Customer Content, EUPI| fhirdbsql[Azure SQL DB - FHIR]
-fhirsvc <-->|Customer Content, EUPI| fhirdbcosmos[Azure Cosmos DB - FHIR]
-fhirsvc -->|Customer Content, EUII, EUPI, OII, System Metadata| geneva
-fhirdbsql -->|OII, System Metadata| valogs[Azure Storage - SQL VA logs]
-
-geneva -->|OII, System Metadata| kusto[Kusto] -->|OII, System Metadata| bisql[Azure SQL DB - BI]
-
-akv -->|OII, System Metadata| loganalytics[Log Analytics]
-globaldb -->|OII, System Metadata| loganalytics
-fhirdbcosmos -->|OII, System Metadata| loganalytics
-fhirdbsql -->|OII, System Metadata| loganalytics
-valogs -->|OII, System Metadata| loganalytics
-sflogs -->|OII, System Metadata| loganalytics
-billingstorage -->|OII, System Metadata| loganalytics
-:::
+[![](https://mermaid.ink/img/pako:eNqNVdtymzAQ_ZUdnuMf8HQ6Q-K0Yew0adzLA_Ag0MbWGCQqCWecy793hYBgO3Z4YaTds2fv4iXIFcdgGjwW6ilfM21h8ZDIRJo6W2lWrSGvjVUlahLEV-0ZwudaIyzrzORaVFYomSYStyjtmmBee-2ucFNnpHpcC21Qb0WO8beb6AGW_kIqxnhrEM4cieR77tnGxOF86YEwmXyF1z6KKyUt-biA699R5L739L2LoleoFBdEG87gXnGIOKGE3RFJo4AvI3mEsmSQyBVbkT7-jpQjg9BdiIu0PqA7Z7XcGYsl3KJlnFn2Ct6I4t6YQq2aLGBBh7QXjbEelIL8xZH65cKVmFulfQwU4b54UNyuJaML12U8aNjoavXGbQ8PW0lqjeYg1gc0qtY5urIkUipduvzjfnhgAj9IyArxjBxmpEvfYSdCe49k3zuhNJUVDsvlxcRbsqoS0vXKz3eLn8Btqxhg4BPXT8wixa03x2x_e1U6xHnGg0k4KG2BzOAx48KJabryhtKDxtC1LWKbbUs5xx38YXVhmyndnpqbj0h0FXfNhHuttoKjTsHJT5WqK-VpTOuJIqEl5N3LcqVMqQzMLinzsk0sbUhGjupH-8YzlwStJZOs2FmRm5i2FcLuRg4yURQuXl_2oyZcenUzyER3bruHbvpCj8IOxnisCUXTPFzt-5V279nZ56eBdpbnkPtFGVqcMNi47sRz903PwDJh_hVdjX8ufLcvozS4CEq3MILTX-slkQBJYNdYYhJM6chpk5IgkW-EqyuiwmsuKLZg-sgKgxcBq61a7mQeTK2usQPNBKNnomxRb_8BuGCM8A)](https://mermaid.live/edit#pako:eNqNVdtymzAQ_ZUdnuMf8HQ6Q-K0Yew0adzLA_Ag0MbWGCQqCWecy793hYBgO3Z4YaTds2fv4iXIFcdgGjwW6ilfM21h8ZDIRJo6W2lWrSGvjVUlahLEV-0ZwudaIyzrzORaVFYomSYStyjtmmBee-2ucFNnpHpcC21Qb0WO8beb6AGW_kIqxnhrEM4cieR77tnGxOF86YEwmXyF1z6KKyUt-biA699R5L739L2LoleoFBdEG87gXnGIOKGE3RFJo4AvI3mEsmSQyBVbkT7-jpQjg9BdiIu0PqA7Z7XcGYsl3KJlnFn2Ct6I4t6YQq2aLGBBh7QXjbEelIL8xZH65cKVmFulfQwU4b54UNyuJaML12U8aNjoavXGbQ8PW0lqjeYg1gc0qtY5urIkUipduvzjfnhgAj9IyArxjBxmpEvfYSdCe49k3zuhNJUVDsvlxcRbsqoS0vXKz3eLn8Btqxhg4BPXT8wixa03x2x_e1U6xHnGg0k4KG2BzOAx48KJabryhtKDxtC1LWKbbUs5xx38YXVhmyndnpqbj0h0FXfNhHuttoKjTsHJT5WqK-VpTOuJIqEl5N3LcqVMqQzMLinzsk0sbUhGjupH-8YzlwStJZOs2FmRm5i2FcLuRg4yURQuXl_2oyZcenUzyER3bruHbvpCj8IOxnisCUXTPFzt-5V279nZ56eBdpbnkPtFGVqcMNi47sRz903PwDJh_hVdjX8ufLcvozS4CEq3MILTX-slkQBJYNdYYhJM6chpk5IgkW-EqyuiwmsuKLZg-sgKgxcBq61a7mQeTK2usQPNBKNnomxRb_8BuGCM8A)
