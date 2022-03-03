@@ -26,6 +26,11 @@
 
 *Describe any special security implications or security testing needed.*
 
+# Privacy
+
+*Describe any new data that is being stored/processed (including logging), what data classifications they are, and how long the data will be retained.*
+*Will any of the above require an update to the privacy data inventory? If yes, provide a work item link to track that.*
+
 # Other
 
 *Describe any impact to privacy, localization, globalization, deployment, back-compat, SOPs, ISMS, etc.*
