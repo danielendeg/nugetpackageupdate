@@ -20,19 +20,19 @@ Below is a visual review of the current (December 2021) build and release pipeli
 
 *Current Build Pipelines*
 
-![Current Build Pipelines](pipelines_split_currentbuild.png)
+![Current Build Pipelines](images/pipelines_split_currentbuild.png)
 
 The non-production releases are handled through several Release definitions. The light-blue boxes (e.g. test, perf, rel, etc...) show the environment in which the definition is deployed. 
 
 *Current Release Pipelines (non-prod)*
 
-![Current Release Pipelines (non-prod)](pipelines_split_currentreleasenonprod.png)
+![Current Release Pipelines (non-prod)](images/pipelines_split_currentreleasenonprod.png)
 
 The production releases are similarly handled through several Release definitions.
 
 *Current Release Pipelines (prod)*
 
-![Current Release Pipelines (prod)](pipelines_split_currentreleaseprod.png)
+![Current Release Pipelines (prod)](images/pipelines_split_currentreleaseprod.png)
 
 # Concerns
 Though no system is perfect and each user's experience will likely be unique, we have identified a set of common concerns that have a direct effect on reliability, observabiltiy, flexibility, and scale.
@@ -79,7 +79,7 @@ As a first pass for identifying the components within the `health-paas` repo, we
 ## Terms
 For further context on the eventual intention for the refactored pipelines, refer to the abstract pipeline below and what each stage of the pipeline intends to achieve. The bottom row refers roughly to how the current pipeline structure lines up with these stages.
 
-![Terminology](pipelines_split_terms.png)
+![Terminology](images/pipelines_split_terms.png)
 
 1. **Pull Request**
    - Runs builds and unit tests
@@ -99,7 +99,7 @@ For further context on the eventual intention for the refactored pipelines, refe
    - Deploys a known good component to the customer-facing production environment.
 
 ## Phase 1
-![Phase 1](pipelines_split_phase1.png)
+![Phase 1](images/pipelines_split_phase1.png)
 
 In phase 1 we split the PR and CI builds per-component. Additionally we create a single multi-stage pipeline to handle deploying all components to the test, rel, and production environments. This model introduces the new split paradigm to developers and mitigates much of the risk by limiting changes in the critical path to production.
 
@@ -110,7 +110,7 @@ On successful completion of integration test stage, the changes will be automati
 Before moving on to phase 2 we will integrate feedback and design adjustments from phase 1.
 
 ## Phase 2
-![Phase 2](pipelines_split_phase2.png)
+![Phase 2](images/pipelines_split_phase2.png)
 
 Phase 2 extends the split pipelines through all non-production environments. Within phase one we hope to further stabilize the test environment allowing us to remove the use of the release branch and deploy the master branch from the default (`master`) branch in phase 2.
 
@@ -119,7 +119,7 @@ In the (hopefully) rare event of a production hotfix, we will pull the deployed 
 Before moving on to phase 3 we will integrate feedback and design adjustments from phase 3.
 
 ## Phase 3
-![Phase 3](pipelines_split_phase3.png)
+![Phase 3](images/pipelines_split_phase3.png)
 
 Phase 3 extends the split pipelines through all production environments. Additionally, we hope to have gained enough confidence in the pipelines to deploy changes as they are in the master branch.
 
